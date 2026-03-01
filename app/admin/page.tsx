@@ -92,7 +92,7 @@ export default function AdminDashboard() {
           </div>
           <div className="min-w-0">
             <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-              {totalViews.toLocaleString("ar-EG")}
+              {totalViews.toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
             <p className="text-xs sm:text-sm text-gray-500">{t.admin.totalViews} (30 {isAr ? 'يوم' : 'Days'})</p>
           </div>
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
           </div>
           <div className="min-w-0">
             <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-              {uniqueVisitors.toLocaleString("ar-EG")}
+              {uniqueVisitors.toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
             <p className="text-xs sm:text-sm text-gray-500">{t.admin.uniqueVisitors}</p>
           </div>
@@ -114,9 +114,9 @@ export default function AdminDashboard() {
           </div>
           <div className="min-w-0">
             <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-              {(totalStudents + totalReaders).toLocaleString("ar-EG")}
+              {(totalStudents + totalReaders).toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">{isAr ? 'إجمالي الأعضاء' : 'Total Members'}</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t.admin.totalMembers}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
           </div>
           <div className="min-w-0">
             <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
-              {stats.recitationsToday?.toLocaleString("ar-EG") || '0'}
+              {stats.recitationsToday?.toLocaleString(isAr ? "ar-EG" : "en-US") || '0'}
             </p>
             <p className="text-xs sm:text-sm text-gray-500">{t.admin.todaysRecitations}</p>
           </div>
@@ -160,45 +160,13 @@ export default function AdminDashboard() {
 
       {/* Advanced Analytics */}
       {analytics && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* Visitor Stats (Countries & Devices) */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-1">
             <VisitorStats
               countryData={topCountriesMapped}
               deviceData={deviceTypesMapped}
             />
-          </div>
-
-          {/* Top Pages Table replacing TopContent */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-h-[400px] overflow-y-auto">
-              <h3 className="font-bold text-gray-900 mb-4">{t.admin.topPages}</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="pb-3 text-gray-500 font-medium text-start">{t.admin.pageLabel}</th>
-                      <th className="pb-3 text-gray-500 font-medium text-end">{t.admin.viewsLabel}</th>
-                      <th className="pb-3 text-gray-500 font-medium text-end">{t.admin.visitorsLabel}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {(analytics.topPages || []).map((p: any, i: number) => (
-                      <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3 font-mono text-gray-700 max-w-[300px] truncate" dir="ltr" style={{ textAlign: isAr ? 'right' : 'left' }}>{p.path}</td>
-                        <td className="py-3 text-end font-bold text-[#0B3D2E]">{parseInt(p.views || '0').toLocaleString('ar-EG')}</td>
-                        <td className="py-3 text-end text-gray-500 font-medium">{parseInt(p.visitors || '0').toLocaleString('ar-EG')}</td>
-                      </tr>
-                    ))}
-                    {(!analytics.topPages || analytics.topPages.length === 0) && (
-                      <tr>
-                        <td colSpan={3} className="py-8 text-center text-gray-400">لا توجد بيانات متاحة</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -230,7 +198,7 @@ export default function AdminDashboard() {
               {latestRecitations.length > 0 ? latestRecitations.map((rec: any) => (
                 <tr key={rec.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="py-4 px-6 font-medium text-gray-900">{rec.studentName}</td>
-                  <td className="py-4 px-6 text-gray-500 font-medium">{rec.surah} <span className="text-gray-400 font-normal">({rec.fromAyah}-{rec.toAyah})</span></td>
+                  <td className="py-4 px-6 text-gray-500 font-medium">{t.reader.surah} {rec.surah} <span className="text-gray-400 font-normal">({rec.fromAyah}-{rec.toAyah})</span></td>
                   <td className="py-4 px-6 text-gray-500">{rec.assignedReaderName || "---"}</td>
                   <td className="py-4 px-6"><StatusBadge status={rec.status as any} /></td>
                   <td className="py-4 px-6 text-gray-400 text-xs">{new Date(rec.createdAt).toLocaleDateString(t.locale === 'ar' ? "ar-SA" : "en-US")}</td>

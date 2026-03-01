@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { Video, Calendar, Clock, ExternalLink, MessageSquare, Loader2, Send } from "lucide-react"
+import { Video, CalendarDays, Clock, ExternalLink, MessageSquare, Loader2, Send, X, CalendarClock, Info, ShieldCheck } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
-import { useMemo } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 type Booking = {
   id: string
@@ -16,109 +17,331 @@ type Booking = {
   reader_id: string
 }
 
-// STATUS config moved inside component to use translations
+type RescheduleRequest = {
+  id: string
+  requested_by_role: string
+  proposed_slot_start: string
+  proposed_slot_end: string
+  status: string
+  created_at: string
+  requester_name: string
+}
 
 export default function StudentSessionsPage() {
   const { t, locale } = useI18n()
+  const isAr = locale === "ar"
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [pendingRequests, setPendingRequests] = useState<Record<string, RescheduleRequest[]>>({})
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+
+  // Reschedule state
+  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null)
+  const [proposedDate, setProposedDate] = useState("")
+  const [proposedTime, setProposedTime] = useState("")
+  const [submittingReschedule, setSubmittingReschedule] = useState(false)
 
   useEffect(() => {
-    fetch("/api/bookings")
-      .then(r => r.json())
-      .then(d => setBookings(d.bookings || []))
-      .catch(() => { })
-      .finally(() => setLoading(false))
+    async function load() {
+      try {
+        const r = await fetch("/api/bookings")
+        const d = await r.json()
+        const bks: Booking[] = d.bookings || []
+        setBookings(bks)
+
+        const active = bks.filter(b => b.status !== "completed" && b.status !== "cancelled")
+        const reqsMap: Record<string, RescheduleRequest[]> = {}
+        await Promise.all(active.map(async (b) => {
+          try {
+            const res = await fetch(`/api/bookings/${b.id}/reschedule`)
+            if (res.ok) {
+              const rd = await res.json()
+              const pending = (rd.requests || []).filter((req: RescheduleRequest) => req.status === "pending")
+              if (pending.length > 0) reqsMap[b.id] = pending
+            }
+          } catch { }
+        }))
+        setPendingRequests(reqsMap)
+      } catch { }
+      finally { setLoading(false) }
+    }
+    load()
   }, [])
 
   const STATUS = useMemo(() => ({
-    confirmed: { label: t.student.statusBooked, color: "bg-purple-50 text-purple-700 border-purple-200" },
-    completed: { label: t.student.statusCompleted, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    cancelled: { label: t.student.statusCancelled, color: "bg-red-50 text-red-600 border-red-200" },
-    pending: { label: t.student.statusPending, color: "bg-amber-50 text-amber-700 border-amber-200" },
-  }), [t])
+    confirmed: { label: t.student.statusBooked, color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
+    completed: { label: t.student.statusCompleted, color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
+    cancelled: { label: t.student.statusCancelled, color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
+    pending: { label: t.student.statusPending, color: "bg-[#D4A843]/10 text-[#D4A843] border-[#D4A843]/30 ring-[#D4A843]/10" },
+    rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
+  }), [t, isAr])
+
+  const handleCancel = async (id: string) => {
+    if (!confirm(isAr ? "هل أنت متأكد من إلغاء الجلسة؟" : "Are you sure you want to cancel this session?")) return
+    setCancellingId(id)
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled" }),
+      })
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b.id === id ? { ...b, status: "cancelled" } : b))
+      }
+    } catch { } finally {
+      setCancellingId(null)
+    }
+  }
+
+  const handleRescheduleSubmit = async () => {
+    if (!rescheduleBooking || !proposedDate || !proposedTime) return
+    setSubmittingReschedule(true)
+    try {
+      const proposedSlotStart = new Date(`${proposedDate}T${proposedTime}`).toISOString()
+      const proposedSlotEnd = new Date(new Date(`${proposedDate}T${proposedTime}`).getTime() + 30 * 60000).toISOString()
+
+      const res = await fetch(`/api/bookings/${rescheduleBooking.id}/reschedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposedSlotStart, proposedSlotEnd }),
+      })
+      if (res.ok) {
+        alert(isAr ? "تم إرسال طلب التعديل. سيتم إشعارك بعد رد المقرئ." : "Reschedule request sent. You'll be notified when the reader responds.")
+        setRescheduleBooking(null)
+        setProposedDate("")
+        setProposedTime("")
+      } else {
+        const d = await res.json()
+        alert(d.error || "Error")
+      }
+    } finally { setSubmittingReschedule(false) }
+  }
+
+  const handleRespondToReaderRequest = async (bookingId: string, reqId: string, action: "accept" | "reject") => {
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/reschedule/${reqId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        if (action === "accept") {
+          const refreshed = await fetch("/api/bookings")
+          if (refreshed.ok) {
+            const data = await refreshed.json()
+            setBookings(data.bookings || [])
+          }
+          alert(isAr ? "تم قبول التعديل وتحديث الموعد." : "Reschedule accepted.")
+        } else {
+          alert(isAr
+            ? "تم رفض الطلب. يمكنك التواصل مع الدعم لطلب تغيير المقرئ."
+            : "Request rejected. You can contact support to request a different reader.")
+        }
+        setPendingRequests(prev => {
+          const next = { ...prev }
+          delete next[bookingId]
+          return next
+        })
+      }
+    } catch { alert("Error") }
+  }
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">{t.student.mySessions}</h1>
-          <p className="text-sm text-slate-500 mt-1">{t.student.mySessionsDesc}</p>
-        </div>
+    <div className="max-w-4xl max-auto space-y-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold text-slate-800">{t.student.mySessions}</h1>
+        <p className="text-slate-500">{t.student.mySessionsDesc}</p>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" /></div>
       ) : bookings.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl py-16 text-center shadow-sm">
-          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Video className="w-7 h-7 text-slate-300" />
+        <div className="bg-white border border-slate-100 rounded-[2rem] py-24 text-center shadow-sm">
+          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Video className="w-10 h-10 text-slate-300" />
           </div>
-          <p className="text-slate-500 font-medium">{t.student.noSessionsYet}</p>
+          <h3 className="text-xl font-bold text-slate-700 mb-2">{t.student.noSessionsYet}</h3>
+          <p className="text-slate-500 mb-8 max-w-sm mx-auto">
+            {isAr ? "لم تقم بحجز أي جلسات تصحيح بعد. ابدأ بحجز جلستك الأولى الآن لتصحيح تلاوتك." : "You haven't booked any correction sessions yet. Book your first session now to perfect your recitation."}
+          </p>
+          <Link href="/student/booking" className="inline-flex items-center gap-2 px-8 py-4 bg-[#0B3D2E] text-white rounded-2xl font-bold hover:bg-[#082e23] transition-colors shadow-lg shadow-emerald-900/10">
+            <CalendarClock className="w-5 h-5" />
+            {isAr ? "احجز جلسة جديدة" : "Book New Session"}
+          </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-5">
           {bookings.map(b => {
             const st = STATUS[b.status as keyof typeof STATUS] || STATUS.pending
             const isExpanded = expandedId === b.id
+            const isCancelled = b.status === "cancelled"
+            const isCompleted = b.status === "completed"
+            const isActive = !isCancelled && !isCompleted
+            const pendingReqs = pendingRequests[b.id] || []
+
             return (
-              <div key={b.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              <div key={b.id} className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300
+                ${isExpanded ? 'border-[#0B3D2E]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
+
+                {/* Card Header (Clickable) */}
                 <div
-                  className="p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition-colors"
+                  className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer bg-white relative overflow-hidden"
                   onClick={() => setExpandedId(isExpanded ? null : b.id)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
-                      <Video className="w-5 h-5 text-purple-600" />
+                  {/* Status indicator line */}
+                  <div className={`absolute top-0 bottom-0 left-0 w-1.5 ${st.color.split(' ')[0]}`} />
+
+                  <div className="flex items-center gap-5 z-10">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border 
+                      ${isActive ? 'bg-[#0B3D2E]/5 border-[#0B3D2E]/10' : 'bg-slate-50 border-slate-100'}`}>
+                      {isActive ? <Video className="w-6 h-6 text-[#0B3D2E]" /> : <CalendarClock className="w-6 h-6 text-slate-400" />}
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800">{b.reader_name || "مقرئ معتمد"}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(b.slot_start).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-slate-800">{b.reader_name || t.student.certifiedReaderFallback}</h3>
+                        {!b.reader_name && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#D4A843]/10 text-[#D4A843]">
+                            <ShieldCheck className="w-3 h-3" />
+                            {isAr ? "معتمد" : "Certified"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-500 font-medium">
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
+                          <CalendarDays className="w-4 h-4 text-[#D4A843]" />
+                          {new Date(b.slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {new Date(b.slot_start).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: "2-digit", minute: "2-digit" })}
-                          {" – "}
-                          {new Date(b.slot_end).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: "2-digit", minute: "2-digit" })}
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
+                          <Clock className="w-4 h-4 text-[#0B3D2E]/60" />
+                          {new Date(b.slot_start).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                          {" - "}
+                          {new Date(b.slot_end).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${st.color}`}>{st.label}</span>
+                  <span className={`px-4 py-1.5 rounded-xl text-xs font-bold border ring-4 z-10 inline-flex items-center justify-center self-start md:self-auto ${st.color}`}>
+                    {st.label}
+                  </span>
                 </div>
 
+                {/* Pending Reschedule Request from Reader */}
+                {pendingReqs.length > 0 && (
+                  <div className="mx-6 md:mx-8 mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl p-5 shadow-inner">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CalendarClock className="w-5 h-5 text-amber-600" />
+                      <p className="text-sm font-bold text-amber-900">{isAr ? "طلب تعديل موعد من المقرئ:" : "Reschedule request from reader:"}</p>
+                    </div>
+                    {pendingReqs.map(req => (
+                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 p-4 rounded-xl border border-amber-100">
+                        <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+                          <CalendarDays className="w-4 h-4 opacity-70" />
+                          {new Date(req.proposed_slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", month: "long", day: "numeric" })}
+                          <span className="mx-1 opacity-50">•</span>
+                          {new Date(req.proposed_slot_start).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <button
+                            onClick={() => handleRespondToReaderRequest(b.id, req.id, "accept")}
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#0B3D2E] text-white rounded-xl text-xs font-bold hover:bg-[#082e23] transition-colors shadow-sm"
+                          >
+                            {isAr ? "قبول وتأكيد" : "Accept"}
+                          </button>
+                          <button
+                            onClick={() => handleRespondToReaderRequest(b.id, req.id, "reject")}
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors"
+                          >
+                            {isAr ? "رفض الطلب" : "Reject"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Expanded Content Details */}
                 {isExpanded && (
-                  <div className="border-t border-slate-100 p-5 space-y-4">
-                    {/* Meeting Link */}
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 mb-2">{t.student.sessionLinkLabel}</p>
-                      {b.meeting_link ? (
-                        <a
-                          href={b.meeting_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0A3528] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          {t.student.joinSessionBtn}
-                        </a>
-                      ) : (
-                        <p className="text-sm text-slate-400">{t.student.linkPendingMsg}</p>
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-6 md:p-8 space-y-8 animate-in slide-in-from-top-2 fade-in duration-200">
+
+                    {/* Actions and Meeting Link Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                      {/* Meeting Section */}
+                      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.student.sessionLinkLabel}</h4>
+                        {b.meeting_link ? (
+                          <div className="space-y-3">
+                            <p className="text-sm font-medium text-slate-600">
+                              {isAr ? "رابط الجلسة جاهز. الرجاء الانضمام في الموعد المحدد." : "The session link is ready. Please join at the scheduled time."}
+                            </p>
+                            <a
+                              href={b.meeting_link.startsWith('http') ? b.meeting_link : `https://${b.meeting_link}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full flex items-center justify-center gap-2 bg-[#0B3D2E] hover:bg-[#082e23] text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-[#0B3D2E]/10"
+                            >
+                              <Video className="w-5 h-5" />
+                              {t.student.joinSessionBtn}
+                              <ExternalLink className="w-4 h-4 opacity-70 ml-1 rtl:mr-1 rtl:ml-0" />
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="flex gap-3 items-start bg-amber-50 rounded-xl p-4 border border-amber-100">
+                            <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                            <p className="text-sm font-medium text-amber-800 leading-relaxed">
+                              {isActive ? t.student.linkPendingMsg : (isAr ? 'الجلسة غير نشطة ولن يتم إنشاء رابط لها.' : 'Session is inactive. No link will be generated.')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Controls Section */}
+                      {isActive && (
+                        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3 flex flex-col justify-center">
+                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{isAr ? "التحكم في الجلسة" : "Session Controls"}</h4>
+                          <div className="flex flex-col gap-3">
+                            <Link
+                              href={`/student/chat?with=${b.reader_id}`}
+                              className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-[#D4A843]/20 bg-white text-slate-700 px-6 py-3 text-sm font-bold hover:border-[#D4A843] hover:bg-[#FAF8F4] transition-all"
+                            >
+                              <MessageSquare className="w-5 h-5 text-[#D4A843]" />
+                              {isAr ? "تواصل مع المقرئ في شات خاص" : "Chat privately with Reader"}
+                            </Link>
+
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => setRescheduleBooking(b)}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-slate-600 px-4 py-3 text-sm font-bold hover:bg-slate-50 transition-all font-medium"
+                              >
+                                <CalendarClock className="w-4 h-4 opacity-70" />
+                                {isAr ? "تعديل الموعد" : "Reschedule"}
+                              </button>
+                              <button
+                                onClick={() => handleCancel(b.id)}
+                                disabled={cancellingId === b.id}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 text-red-600 px-4 py-3 text-sm font-bold hover:bg-red-100 hover:border-red-200 transition-all disabled:opacity-50"
+                              >
+                                {cancellingId === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                                {isAr ? "إلغاء الجلسة" : "Cancel"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
 
-                    {/* Comment Box */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="w-4 h-4 text-slate-400" />
-                        <p className="text-xs font-semibold text-slate-500">{t.student.chat || t.student.commentLabel}</p>
+                    {/* Integrated Comment Box */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-[#0B3D2E]/5 flex items-center justify-center">
+                          <MessageSquare className="w-4 h-4 text-[#0B3D2E]" />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-800">{t.student.commentLabel || t.student.chat}</h4>
                       </div>
                       <CommentBox bookingId={b.id} />
                     </div>
+
                   </div>
                 )}
               </div>
@@ -126,6 +349,65 @@ export default function StudentSessionsPage() {
           })}
         </div>
       )}
+
+      {/* Reschedule Dialog */}
+      <Dialog open={!!rescheduleBooking} onOpenChange={() => setRescheduleBooking(null)}>
+        <DialogContent className="max-w-md p-6 rounded-[2rem]">
+          <DialogHeader className="mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
+              <CalendarClock className="w-6 h-6 text-amber-600" />
+            </div>
+            <DialogTitle className="text-xl font-bold">{isAr ? "اقتراح تعديل الموعد" : "Request Reschedule"}</DialogTitle>
+            <DialogDescription className="text-slate-500 mt-2">
+              {isAr
+                ? `سيتم إرسال اقتراحك للمقرئ (${rescheduleBooking?.reader_name}) للموافقة عليه.`
+                : `Your proposal will be sent to the reader (${rescheduleBooking?.reader_name}) for approval.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {rescheduleBooking && (
+            <div className="space-y-5 py-4">
+              <div className="space-y-2.5">
+                <label className="text-sm font-bold text-slate-700 block">{isAr ? "التاريخ الجديد" : "New Date"}</label>
+                <input
+                  type="date"
+                  value={proposedDate}
+                  onChange={e => setProposedDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E] transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-2.5">
+                <label className="text-sm font-bold text-slate-700 block">{isAr ? "الوقت الجديد" : "New Time"}</label>
+                <input
+                  type="time"
+                  value={proposedTime}
+                  onChange={e => setProposedTime(e.target.value)}
+                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E] transition-all font-medium"
+                />
+              </div>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+                <Info className="w-5 h-5 text-blue-500 shrink-0" />
+                <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                  {isAr
+                    ? "لن يتم تأكيد الموعد الجديد إلا بعد موافقة المقرئ عليه. في حال الرفض، سيبقى الموعد القديم فعالاً."
+                    : "The new time won't be confirmed until the reader approves it. If rejected, the old time remains active."}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-3 sm:gap-0">
+            <Button variant="outline" className="h-12 rounded-xl font-bold border-slate-200" onClick={() => setRescheduleBooking(null)}>{isAr ? "إلغاء التعديل" : "Cancel"}</Button>
+            <Button
+              onClick={handleRescheduleSubmit}
+              disabled={!proposedDate || !proposedTime || submittingReschedule}
+              className="h-12 rounded-xl bg-[#0B3D2E] hover:bg-[#082e23] text-white font-bold"
+            >
+              {submittingReschedule ? <Loader2 className="w-5 h-5 animate-spin mx-2" /> : (isAr ? "إرسال الاقتراح للمقرئ" : "Send Proposal")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -161,36 +443,40 @@ function CommentBox({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {comments.length > 0 && (
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {comments.map(c => (
-            <div key={c.id} className="bg-slate-50 rounded-xl p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')}</span>
-                <span className="text-xs font-bold text-slate-600">{c.author_name}</span>
+        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          {comments.map((c, i) => (
+            <div key={c.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 50}ms` }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">{c.author_name}</span>
+                <span className="text-[10px] font-medium text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
+                  <Clock className="w-3 h-3 inline-block mr-1 rtl:ml-1 rtl:mr-0 opacity-50" />
+                  {new Date(c.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
+                </span>
               </div>
-              <p className="text-sm text-slate-700 text-right">{c.comment_text}</p>
+              <p className="text-sm text-slate-600 leading-relaxed font-medium mt-1">{c.comment_text}</p>
             </div>
           ))}
         </div>
       )}
-      <div className="flex gap-2">
-        <button
-          onClick={send}
-          disabled={!text.trim() || sending}
-          className="px-4 py-2.5 bg-[#0B3D2E] text-white rounded-xl text-sm font-medium hover:bg-[#0A3528] disabled:opacity-50 transition-colors"
-        >
-          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-        </button>
+
+      <div className="relative group">
         <input
           type="text"
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={t.student.writeCommentPlaceholder}
-          className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-right text-slate-700 focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E] placeholder:text-slate-400"
+          className="w-full border-2 border-slate-100 bg-slate-50 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#0B3D2E]/10 focus:border-[#0B3D2E] placeholder:text-slate-400 transition-all font-medium"
         />
+        <button
+          onClick={send}
+          disabled={!text.trim() || sending}
+          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-[#0B3D2E] text-white rounded-xl text-sm font-bold hover:bg-[#082e23] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 transition-all group-focus-within:shadow-lg shadow-emerald-900/20"
+        >
+          {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:rotate-180" />}
+        </button>
       </div>
     </div>
   )

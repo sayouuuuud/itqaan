@@ -175,14 +175,14 @@ export default function StudentDashboard() {
                   <div className="space-y-3">
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
                       {certificate.certificate_issued
-                        ? (locale === 'ar' ? '🎉 شهادتك مُصدَرة!' : '🎉 Your Certificate is Issued!')
-                        : (locale === 'ar' ? '📋 بيانات شهادتك محفوظة' : '📋 Your Certificate Data is Saved')
+                        ? t.student.certIssuedTitle
+                        : t.student.certSavedTitle
                       }
                     </h2>
                     <p className="text-gray-600 text-base leading-relaxed max-w-md mx-auto">
                       {certificate.certificate_issued
-                        ? (locale === 'ar' ? 'تهانينا! تم إصدار شهادة إتقان الفاتحة الرسمية لك. يمكنك الآن تحميلها والاحتفاظ بها.' : 'Congratulations! Your official Al-Fatiha Mastery Certificate has been issued. You can now download it and keep it.')
-                        : (locale === 'ar' ? 'سيقوم المسؤولون بمراجعة البيانات وإصدار الشهادة قريباً. سنرسل لك إشعاراً عند الانتهاء.' : 'Administrators will review your data and issue the certificate soon. We\'ll notify you when it\'s ready.')
+                        ? t.student.certIssuedDesc
+                        : t.student.certSavedDesc
                       }
                     </p>
                   </div>
@@ -191,7 +191,7 @@ export default function StudentDashboard() {
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-emerald-100">
                     <h3 className="text-lg font-bold text-emerald-800 mb-4 flex items-center justify-center gap-2">
                       <FileText className="w-5 h-5" />
-                      {locale === 'ar' ? 'تفاصيل الشهادة' : 'Certificate Details'}
+                      {t.student.certDetails}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200">
@@ -222,7 +222,7 @@ export default function StudentDashboard() {
                             <MapPin className="w-5 h-5 text-cyan-700" />
                           </div>
                           <div className="flex-1 text-right">
-                            <p className="text-sm text-cyan-600 font-medium">{locale === 'ar' ? 'المدينة' : 'City'}</p>
+                            <p className="text-sm text-cyan-600 font-medium">{t.student.cityPlaceholder}</p>
                             <p className="text-base font-bold text-cyan-800">{certificate.city}</p>
                           </div>
                         </div>
@@ -238,12 +238,12 @@ export default function StudentDashboard() {
                           </div>
                           <div className="flex-1 text-right">
                             <p className={`text-sm font-medium ${certificate.certificate_issued ? 'text-green-600' : 'text-amber-600'}`}>
-                              {locale === 'ar' ? 'حالة الشهادة' : 'Certificate Status'}
+                              {t.student.certStatus}
                             </p>
                             <p className={`text-base font-bold ${certificate.certificate_issued ? 'text-green-800' : 'text-amber-800'}`}>
                               {certificate.certificate_issued
-                                ? (locale === 'ar' ? 'مُصدَرة' : 'Issued')
-                                : (locale === 'ar' ? 'بانتظار المراجعة' : 'Pending Review')
+                                ? t.student.statusIssued
+                                : t.student.statusPendingReview
                               }
                             </p>
                           </div>
@@ -261,7 +261,7 @@ export default function StudentDashboard() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/40 transform hover:scale-105"
                       >
-                        <span className="text-lg">{locale === 'ar' ? 'تحميل الشهادة' : 'Download Certificate'}</span>
+                        <span className="text-lg">{t.student.downloadCert}</span>
                         <ArrowLeft className="w-5 h-5" />
                       </a>
                     </div>
@@ -276,10 +276,10 @@ export default function StudentDashboard() {
                         </div>
                         <div className="text-center">
                           <h4 className="text-lg font-bold text-purple-800">
-                            {locale === 'ar' ? 'حفل التكريم' : 'Ceremony'}
+                            {t.student.ceremonyTitle}
                           </h4>
                           <p className="text-sm text-purple-600">
-                            {locale === 'ar' ? 'موعد الحفل والتكريم' : 'Ceremony Date & Time'}
+                            {t.student.ceremonyDateTime}
                           </p>
                         </div>
                       </div>
@@ -323,6 +323,7 @@ export default function StudentDashboard() {
           </div>
         )}
 
+
         {/* State: Needs Session */}
         {status === 'needs_session' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
@@ -344,58 +345,91 @@ export default function StudentDashboard() {
 
         {/* State: Session Booked */}
         {status === 'session_booked' && booking && (
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm text-right overflow-hidden">
-            {/* Header */}
-            <div className="p-6 border-b border-gray-50 bg-gray-50/30 text-center">
-              <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-100">
-                <Video className="w-8 h-8 text-purple-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-800">{t.student.appointmentDetails}</h2>
-              <div className="inline-flex items-center gap-2 mt-2 bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-sm font-bold border border-purple-100">
-                <span>{t.student.bookedStatus}</span>
+          <div className="bg-white border border-gray-100 rounded-[2rem] shadow-xl shadow-gray-200/50 overflow-hidden text-right">
+            {/* Premium Header */}
+            <div className="relative p-8 pb-10 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4A843]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#D4A843]/10 rounded-full -ml-12 -mb-12 blur-2xl" />
+
+              <div className="relative flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D4A843] to-[#C49A3A] rounded-3xl flex items-center justify-center shadow-lg shadow-[#D4A843]/30 mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                  <Video className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2">{t.student.appointmentDetails}</h2>
+                <div className="inline-flex items-center gap-2 bg-[#D4A843]/10 text-[#5c4718] px-5 py-2 rounded-full text-xs font-black border border-[#D4A843]/20 shadow-sm">
+                  <span className="w-1.5 h-1.5 bg-[#D4A843] rounded-full animate-pulse" />
+                  {t.student.bookedStatus}
+                </div>
               </div>
             </div>
 
-            {/* Appointment Details */}
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center py-3 border-b border-gray-50">
-                <span className="text-sm text-gray-500">{t.student.sessionDate}</span>
-                <span className="text-sm font-bold text-gray-800">
-                  {new Date(booking.slot_start).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-50">
-                <span className="text-sm text-gray-500">{t.student.sessionTime}</span>
-                <span className="text-sm font-bold text-gray-800">
-                  {new Date(booking.slot_start).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                  {' - '}
-                  {new Date(booking.slot_end).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-
-              {/* Meeting Link */}
-              <div className="py-3 border-b border-gray-50">
-                <span className="text-sm text-gray-500 block mb-2">{t.student.sessionLinkLabel}</span>
-                {booking.meeting_link ? (
-                  <a
-                    href={booking.meeting_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0A3528] text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm"
-                  >
-                    <Video className="w-4 h-4" />
-                    <span>{t.student.joinSessionBtn}</span>
-                  </a>
-                ) : (
-                  <p className="text-sm text-gray-400">{t.student.linkPendingMsg}</p>
-                )}
+            {/* Info Grid */}
+            <div className="px-8 pb-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-5 rounded-2xl transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center shrink-0">
+                      <Calendar className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t.student.sessionDate}</p>
+                      <p className="text-sm font-bold text-slate-800">
+                        {new Date(booking.slot_start).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-5 rounded-2xl transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center shrink-0">
+                      <Clock className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t.student.sessionTime}</p>
+                      <p className="text-sm font-bold text-slate-800">
+                        {new Date(booking.slot_start).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {' - '}
+                        {new Date(booking.slot_end).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Comments Section */}
-              <div className="py-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <MessageSquare className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">{t.student.commentLabel}</span>
+              {/* Join Session Section */}
+              <div className="bg-[#0B3D2E] rounded-[1.5rem] p-6 text-white relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
+                <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="text-center md:text-right">
+                    <p className="text-white/70 text-xs font-bold mb-1">{t.student.sessionLinkLabel}</p>
+                    <p className="text-white text-lg font-black">جاهز للبدء؟</p>
+                  </div>
+                  {booking.meeting_link ? (
+                    <a
+                      href={booking.meeting_link.startsWith('http') ? booking.meeting_link : `https://${booking.meeting_link}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-[#0B3D2E] hover:bg-slate-50 font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-black/20 transform hover:-translate-y-1 active:scale-95"
+                    >
+                      <Video className="w-5 h-5" />
+                      <span>{t.student.joinSessionBtn}</span>
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-2 text-white/50 bg-black/10 px-4 py-3 rounded-xl">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-sm font-bold">{t.student.linkPendingMsg}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modern Comments Section */}
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                    <MessageSquare className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">{t.student.commentLabel}</h3>
                 </div>
                 <CommentBox bookingId={booking.id} />
               </div>
@@ -403,7 +437,7 @@ export default function StudentDashboard() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   )
 }
 
@@ -442,36 +476,54 @@ function CommentBox({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {comments.length > 0 && (
-        <div className="space-y-2 max-h-48 overflow-y-auto">
+        <div className="space-y-4 max-h-64 overflow-y-auto px-2 scrollbar-thin scrollbar-thumb-slate-200">
           {comments.map(c => (
-            <div key={c.id} className="bg-gray-50 rounded-xl p-3 text-right border border-gray-100">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')}</span>
-                <span className="text-xs font-bold text-gray-600">{c.user_name}</span>
+            <div key={c.id} className="flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <span className="text-[10px] font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md">{c.user_name}</span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {new Date(c.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: 'numeric',
+                    month: 'short'
+                  })}
+                </span>
               </div>
-              <p className="text-sm text-gray-700">{c.comment_text}</p>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tr-none p-4 shadow-sm">
+                <p className="text-sm text-slate-700 leading-relaxed">{c.comment_text}</p>
+              </div>
             </div>
           ))}
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="relative group">
+        <textarea
+          rows={1}
+          value={newComment}
+          onChange={e => {
+            setNewComment(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+          placeholder={t.student.writeCommentPlaceholder}
+          className="w-full bg-slate-50 border border-slate-100 rounded-[1.25rem] pl-16 pr-6 py-4 text-sm text-slate-800 focus:bg-white focus:ring-4 focus:ring-slate-100 focus:border-slate-200 transition-all outline-none resize-none placeholder:text-slate-400 min-h-[56px] max-h-32"
+        />
         <button
           onClick={handleSend}
           disabled={!newComment.trim() || sending}
-          className="px-4 py-2.5 bg-[#0B3D2E] text-white rounded-xl text-sm font-medium hover:bg-[#0A3528] disabled:opacity-50 transition-colors"
+          className="absolute left-3 bottom-2.5 w-11 h-11 bg-[#D4A843] text-white rounded-xl flex items-center justify-center hover:bg-[#C49A3A] disabled:opacity-30 transition-all shadow-md active:scale-90"
         >
-          <Send className="w-4 h-4" />
+          {sending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
         </button>
-        <input
-          type="text"
-          value={newComment}
-          onChange={e => setNewComment(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder={t.student.writeCommentPlaceholder}
-          className="flex-1 border border-gray-100 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E] placeholder:text-gray-400 bg-gray-50/30"
-        />
       </div>
     </div>
   )

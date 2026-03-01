@@ -110,10 +110,10 @@ export default function AdminRecitationsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            {t.admin?.recitationsManagement || (isAr ? "إدارة التلاوات" : "Recitations Management")}
+            {t.admin.recitationsManagement}
           </h1>
           <p className="text-gray-500 mt-1 text-sm">
-            {t.admin?.recitationsManagementDesc || (isAr ? "المرجع الشامل لجميع التلاوات وتقييمها" : "Comprehensive reference for all recitations and their evaluations")}
+            {t.admin.recitationsManagementDesc}
           </p>
         </div>
         <div className="flex gap-3">
@@ -131,7 +131,7 @@ export default function AdminRecitationsPage() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               className="pr-10 border-gray-200 focus:border-[#0B3D2E] focus:ring-[#0B3D2E]/20"
-              placeholder={t.search || (isAr ? "بحث بالاسم أو رقم التلاوة..." : "Search by name or ID...")}
+              placeholder={t.admin.searchRecitationsPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -142,7 +142,7 @@ export default function AdminRecitationsPage() {
               value={readerFilter}
               onChange={(e) => setReaderFilter(e.target.value)}
             >
-              <option value="">{t.allReaders || (isAr ? "كل المقرئين" : "All Readers")}</option>
+              <option value="">{t.admin.allReaders}</option>
               {readers.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name}
@@ -156,12 +156,12 @@ export default function AdminRecitationsPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">{t.allStatuses || (isAr ? "جميع الحالات" : "All Statuses")}</option>
-              <option value="pending">{t.pending || (isAr ? "قيد الانتظار" : "Pending")}</option>
-              <option value="in_review">{t.inReview || (isAr ? "جاري المراجعة" : "In Review")}</option>
-              <option value="mastered">{isAr ? "متقن" : "Mastered"}</option>
-              <option value="needs_session">{isAr ? "يحتاج جلسة" : "Needs Session"}</option>
-              <option value="session_booked">{isAr ? "تم حجز الموعد" : "Session Booked"}</option>
+              <option value="">{t.admin.allStatuses}</option>
+              <option value="pending">{t.pending}</option>
+              <option value="in_review">{t.inReview}</option>
+              <option value="mastered">{t.mastered}</option>
+              <option value="needs_session">{t.needsSession}</option>
+              <option value="session_booked">{t.sessionBooked}</option>
             </select>
           </div>
           <div className="md:col-span-1">
@@ -185,25 +185,25 @@ export default function AdminRecitationsPage() {
                 <tr>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">ID</th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.student?.name || (isAr ? "الطالب" : "Student")}
+                    {t.auth.student}
                   </th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.auth?.surah || (isAr ? "السورة / الآيات" : "Surah / Verses")}
+                    {t.admin.surahAyahs}
                   </th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.admin?.assignedReader || (isAr ? "مقرئ المراجعة" : "Review Reader")}
+                    {t.admin.assignedReader}
                   </th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {isAr ? "مقرئ الجلسة" : "Session Reader"}
+                    {t.admin.sessionReader}
                   </th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.status || (isAr ? "الحالة" : "Status")}
+                    {t.reader.status}
                   </th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.admin?.submissionDate || (isAr ? "تاريخ التقديم" : "Submission Date")}
+                    {t.admin.submissionDate}
                   </th>
                   <th className="px-6 py-4 font-semibold whitespace-nowrap text-center">
-                    {t.admin?.action || (isAr ? "الإجراءات" : "Actions")}
+                    {t.admin.action}
                   </th>
                 </tr>
               </thead>
@@ -223,7 +223,7 @@ export default function AdminRecitationsPage() {
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${avatarColors[idx % avatarColors.length]}`}
                         >
-                          {(rec.studentName || "م").charAt(0)}
+                          {(rec.studentName || t.userFallbackLetter).charAt(0)}
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">
@@ -283,13 +283,13 @@ export default function AdminRecitationsPage() {
                         <Link
                           href={`/admin/recitations/${rec.id}`}
                           className="p-1.5 text-gray-400 hover:text-[#0B3D2E] hover:bg-emerald-50 rounded-lg transition-colors"
-                          title={isAr ? "عرض التفاصيل" : "View Details"}
+                          title={t.viewDetails}
                         >
                           <Eye className="w-5 h-5" />
                         </Link>
                         <button
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title={t.admin?.assignReader || (isAr ? "تعيين مقرئ" : "Assign Reader")}
+                          title={t.admin.assignReader}
                           onClick={() => openReassignDialog(rec.id)}
                         >
                           <UserPlus className="w-5 h-5" />
@@ -299,8 +299,8 @@ export default function AdminRecitationsPage() {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={7} className="py-20 text-center text-muted-foreground">
-                      {isAr ? "لا توجد تلاوات مطابقة للبحث" : "No matching recitations"}
+                    <td colSpan={8} className="py-20 text-center text-muted-foreground">
+                      {t.admin.noRecitationsFound}
                     </td>
                   </tr>
                 )}
@@ -312,7 +312,7 @@ export default function AdminRecitationsPage() {
         {/* Total Count */}
         <div className="bg-muted/30 px-6 py-4 border-t border-border flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            {isAr ? `إجمالي النتائج: ${recitations.length}` : `Total results: ${recitations.length}`}
+            {t.admin.totalResults.replace('{count}', recitations.length.toString())}
           </div>
         </div>
       </div>
@@ -322,12 +322,10 @@ export default function AdminRecitationsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {t.admin?.assignReader || (isAr ? "تعيين مقرئ" : "Assign Reader")}
+              {t.admin.assignReader}
             </DialogTitle>
             <DialogDescription>
-              {t.admin?.assignReaderDesc || (isAr
-                ? "اختر المقرئ المسؤول عن هذه التلاوة"
-                : "Choose the reader for this recitation")}
+              {t.admin.assignReaderDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
@@ -343,7 +341,7 @@ export default function AdminRecitationsPage() {
                     {reader.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {reader.roles || (isAr ? "مقرئ" : "Reader")}
+                    {t.auth.reader}
                   </p>
                 </div>
                 <span className="text-xs text-primary font-medium">
@@ -351,19 +349,19 @@ export default function AdminRecitationsPage() {
                 </span>
               </button>
             )) : (
-              <p className="text-center text-muted-foreground py-4">{isAr ? "لا يوجد مقرئين" : "No readers found"}</p>
+              <p className="text-center text-muted-foreground py-4">{t.admin.noReadersFound}</p>
             )}
             <button
               className="w-full flex items-center justify-center p-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors mt-4 text-sm font-bold"
               onClick={() => handleReassign("")}
               disabled={processing}
             >
-              {isAr ? "إلغاء التعيين" : "Unassign Reader"}
+              {t.admin.unassignReader}
             </button>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReassignDialog(false)}>
-              {t.cancel || (isAr ? "إلغاء" : "Cancel")}
+              {t.cancel}
             </Button>
           </DialogFooter>
         </DialogContent>

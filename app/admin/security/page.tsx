@@ -48,19 +48,19 @@ export default function AdminSecurityPage() {
             <div className="flex items-center gap-3">
                 <Shield className="w-8 h-8 text-[#0B3D2E]" />
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{isAr ? 'الأمان والحماية' : 'Security Center'}</h1>
-                    <p className="text-gray-500 text-sm">{isAr ? 'مراقبة وإدارة أمان الحسابات' : 'Monitor and manage account security'}</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t.admin.securityCenter}</h1>
+                    <p className="text-gray-500 text-sm">{t.admin.securityCenterDesc}</p>
                 </div>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {[
-                    { label: isAr ? 'تسجيل دخول اليوم' : 'Logins Today', value: stats.logins_today || 0, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: isAr ? 'فشل اليوم' : 'Failed Today', value: stats.failed_today || 0, color: 'text-red-500', bg: 'bg-red-50' },
-                    { label: isAr ? 'فشل الأسبوع' : 'Failed (7d)', value: stats.failed_week || 0, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: isAr ? 'حسابات مقفلة' : 'Locked Accounts', value: stats.locked_accounts || 0, color: 'text-red-700', bg: 'bg-red-100/50' },
-                    { label: isAr ? 'حسابات نشطة' : 'Active Accounts', value: stats.active_accounts || 0, color: 'text-[#0B3D2E]', bg: 'bg-emerald-50/50' },
+                    { label: t.admin.loginsToday, value: stats.logins_today || 0, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { label: t.admin.failedToday, value: stats.failed_today || 0, color: 'text-red-500', bg: 'bg-red-50' },
+                    { label: t.admin.failedWeek, value: stats.failed_week || 0, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: t.admin.lockedAccounts, value: stats.locked_accounts || 0, color: 'text-red-700', bg: 'bg-red-100/50' },
+                    { label: t.admin.activeAccounts, value: stats.active_accounts || 0, color: 'text-[#0B3D2E]', bg: 'bg-emerald-50/50' },
                 ].map(s => (
                     <div key={s.label} className={`${s.bg} border border-gray-100/50 rounded-2xl p-5 text-center shadow-sm`}>
                         <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -74,11 +74,11 @@ export default function AdminSecurityPage() {
                 <div className="px-6 py-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <Lock className="w-5 h-5 text-red-500" />
-                        <h2 className="font-bold text-gray-800">{isAr ? 'الحسابات المقفلة' : 'Locked Accounts'}</h2>
+                        <h2 className="font-bold text-gray-800">{t.admin.lockedAccounts}</h2>
                     </div>
                     {(data?.lockedAccounts?.length || 0) > 0 && (
                         <span className="bg-red-50 text-red-700 text-[10px] px-2 py-0.5 rounded-full font-black uppercase">
-                            {data.lockedAccounts.length} {isAr ? 'حساب' : 'Accounts'}
+                            {data.lockedAccounts.length} {t.admin.accountsCount}
                         </span>
                     )}
                 </div>
@@ -87,13 +87,13 @@ export default function AdminSecurityPage() {
                         <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100">
                             <CheckCircle className="w-8 h-8 text-emerald-500" />
                         </div>
-                        <p className="text-gray-500 font-medium">{isAr ? 'جميع الحسابات آمنة، لا توجد حسابات مقفلة حالياً' : 'All accounts are secure, no locked accounts currently'}</p>
+                        <p className="text-gray-500 font-medium">{t.admin.allAccountsSecure}</p>
                     </div>
                 ) : (
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50/50 text-gray-500 border-b border-gray-100">
                             <tr>
-                                {[isAr ? 'المستخدم' : 'User', isAr ? 'الدور' : 'Role', isAr ? 'تاريخ القفل' : 'Locked At', isAr ? 'المحاولات' : 'Attempts', isAr ? 'الإجراء' : 'Actions']
+                                {[t.admin.logUser, t.auth.role, t.admin.lockedAt, t.admin.attempts, t.admin.action]
                                     .map(h => <th key={h} className="px-5 py-4 font-bold text-start">{h}</th>)}
                             </tr>
                         </thead>
@@ -113,12 +113,12 @@ export default function AdminSecurityPage() {
                                     </td>
                                     <td className="px-5 py-4">
                                         <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${acc.role === 'admin' ? 'bg-purple-50 text-purple-600' :
-                                                acc.role === 'reader' ? 'bg-amber-50 text-amber-600' :
-                                                    'bg-blue-50 text-blue-600'
+                                            acc.role === 'reader' ? 'bg-amber-50 text-amber-600' :
+                                                'bg-blue-50 text-blue-600'
                                             }`}>
-                                            {acc.role === 'admin' ? (isAr ? 'مدير' : 'Admin') :
-                                                acc.role === 'reader' ? (isAr ? 'مقرئ' : 'Reader') :
-                                                    (isAr ? 'طالب' : 'Student')}
+                                            {acc.role === 'admin' ? t.admin.adminRole :
+                                                acc.role === 'reader' ? (t.reader?.readerLabel || t.auth.reader) :
+                                                    (t.student?.studentLabel || t.auth.student)}
                                         </span>
                                     </td>
                                     <td className="px-5 py-4 text-xs text-gray-500">
@@ -139,7 +139,7 @@ export default function AdminSecurityPage() {
                                             className="border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold rounded-lg h-8 gap-1.5"
                                         >
                                             {actionLoading === acc.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlock className="w-3.5 h-3.5" />}
-                                            {isAr ? 'إلغاء القفل' : 'Unlock'}
+                                            {t.admin.unlockBtn}
                                         </Button>
                                     </td>
                                 </tr>
@@ -153,13 +153,13 @@ export default function AdminSecurityPage() {
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-orange-500" />
-                    <h2 className="font-semibold text-gray-800">{isAr ? 'محاولات تسجيل الدخول الفاشلة' : 'Failed Login Attempts'}</h2>
+                    <h2 className="font-semibold text-gray-800">{t.admin.failedLoginAttempts}</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                             <tr>
-                                {[isAr ? 'المستخدم' : 'User', isAr ? 'التفاصيل' : 'Details', isAr ? 'IP' : 'IP', isAr ? 'الوقت' : 'Time']
+                                {[t.admin.logUser, t.admin.detailsLabel, t.admin.ipAddressLabel, t.admin.timeLabel]
                                     .map(h => <th key={h} className="px-4 py-3 text-gray-600 font-medium text-start">{h}</th>)}
                             </tr>
                         </thead>
@@ -184,13 +184,13 @@ export default function AdminSecurityPage() {
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                     <User className="w-5 h-5 text-green-500" />
-                    <h2 className="font-semibold text-gray-800">{isAr ? 'آخر عمليات تسجيل الدخول الناجحة' : 'Recent Successful Logins'}</h2>
+                    <h2 className="font-semibold text-gray-800">{t.admin.recentSuccessfulLogins}</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                             <tr>
-                                {[isAr ? 'المستخدم' : 'User', isAr ? 'الدور' : 'Role', isAr ? 'IP' : 'IP', isAr ? 'الوقت' : 'Time']
+                                {[t.admin.logUser, t.auth.role, t.admin.ipAddressLabel, t.admin.timeLabel]
                                     .map(h => <th key={h} className="px-4 py-3 text-gray-600 font-medium text-start">{h}</th>)}
                             </tr>
                         </thead>

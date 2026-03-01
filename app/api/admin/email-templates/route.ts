@@ -53,6 +53,16 @@ const DEFAULT_TEMPLATES = [
         body_ar: "السلام عليكم {{studentName}}،\\n\\nمبارك لك إتقانك سورة الفاتحة! يسرنا إبلاغك بأنه تم إصدار شهادتك الرقمية.\\n\\nيمكنك عرضها وتحميلها للطباعة من خلال الرابط التالي:\\n{{certificateLink}}\\n\\nنسأل الله أن ينفع بك،\\nفريق إتقان",
         body_en: "Hello {{studentName}},\\n\\nCongratulations on mastering Surah Al-Fatiha! We are pleased to inform you that your digital certificate has been issued.\\n\\nYou can view and download it for printing using the following link:\\n{{certificateLink}}\\n\\nBest regards,\\nItqaan Team",
         variables: ["studentName", "certificateLink"]
+    },
+    {
+        template_key: "welcome_email",
+        template_name_ar: "رسالة الترحيب",
+        template_name_en: "Welcome Email",
+        subject_ar: "أهلاً بك في منصة إتقان الفاتحة",
+        subject_en: "Welcome to Itqaan Platform",
+        body_ar: "مرحباً بك {{userName}} في منصتنا.\\nنسأل الله لك التوفيق في رحلة إتقان سورة الفاتحة.\\n\\nفريق العمل",
+        body_en: "Welcome {{userName}} to our platform.\\nWe wish you success in your journey to master Surah Al-Fatiha.\\n\\nTeam",
+        variables: ["userName"]
     }
 ]
 
@@ -119,6 +129,47 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ success: true, template: result[0] })
     } catch (error) {
         console.error("Update email template error:", error)
+        return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
+    }
+}
+export async function POST(req: NextRequest) {
+    try {
+        const session = await getSession()
+        if (!session || !requireRole(session, ["admin"])) {
+            return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+        }
+
+        const { to, subject, body, variables } = await req.json()
+
+        if (!to || !subject || !body) {
+            return NextResponse.json({ error: "بيانات الإرسال ناقصة" }, { status: 400 })
+        }
+
+        // Simple variable replacement for test
+        let finalSubject = subject
+        let finalBody = body
+        if (variables) {
+            for (const [k, v] of Object.entries(variables)) {
+                const regex = new RegExp(`{{${k}}}`, 'g')
+                finalSubject = finalSubject.replace(regex, v)
+                finalBody = finalBody.replace(regex, v)
+            }
+        }
+
+        const { sendEmail } = await import("@/lib/email")
+        const success = await sendEmail({
+            to,
+            subject: `[تجربة] ${finalSubject}`,
+            body: finalBody,
+            html: `<div dir="rtl" style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <p style="color: #666; font-size: 12px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">هذه رسالة تجريبية من لوحة تحكم إتقان</p>
+                    ${finalBody.split('\\n').map((l: string) => `<p>${l}</p>`).join('')}
+                   </div>`
+        })
+
+        return NextResponse.json({ success })
+    } catch (error) {
+        console.error("Send test email error:", error)
         return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
     }
 }

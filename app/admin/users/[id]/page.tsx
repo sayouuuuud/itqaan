@@ -28,7 +28,8 @@ import {
     Star,
     TrendingUp,
     User as UserIcon,
-    XCircle
+    XCircle,
+    ClipboardList
 } from "lucide-react"
 import {
     Bar,
@@ -117,11 +118,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         {/* User Info Left Side (RTL -> Right Side) */}
                         <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-start gap-6">
-                            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-[#0B3D2E] font-black text-4xl border border-emerald-100 shrink-0 shadow-sm">
-                                {user.avatar_url ? (
-                                    <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover rounded-2xl" />
-                                ) : (
-                                    user.name.charAt(0)
+                            <div className="relative w-24 h-24 shrink-0 shadow-sm rounded-2xl">
+                                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-[#0B3D2E] font-black text-4xl border border-emerald-100 overflow-hidden">
+                                    {user.avatar_url ? (
+                                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        user.name.charAt(0)
+                                    )}
+                                </div>
+                                {user.is_online && (
+                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" title={t.admin.onlineNow} />
                                 )}
                             </div>
                             <div className="space-y-3">
@@ -144,7 +150,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
                         {/* Actions */}
                         <div className="flex justify-center sm:justify-start gap-3 shrink-0">
-                            <Button onClick={() => setActiveTab("chat")} className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200">
+                            <Button onClick={() => router.push(`/admin/conversations?tab=chat&userId=${user.id}&userRole=${user.role}`)} className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200">
                                 <MessageSquare className="w-4 h-4" />
                                 {t.admin.messageUser}
                             </Button>
@@ -164,9 +170,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <BarChart3 className="w-4 h-4" />
                         {t.admin.statistics}
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0B3D2E] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
-                        <List className="w-4 h-4" />
-                        {user.role === 'student' ? 'سجل التلاوات' : 'سجل المراجعات'}
+                    <TabsTrigger value="history" className="flex items-center gap-2 rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                        <ClipboardList className="w-4 h-4" />
+                        {user.role === 'student' ? t.admin.studentRecitationsHistory : t.admin.readerReviewsHistory}
                     </TabsTrigger>
                     <TabsTrigger value="chat" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0B3D2E] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
                         <MessageSquare className="w-4 h-4" />
@@ -264,7 +270,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <CardHeader className="border-b border-gray-50/80 pb-4 mb-4 bg-gray-50/30">
                             <CardTitle className="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <Activity className="w-5 h-5 text-[#0B3D2E]" />
-                                {isAr ? "نشاط التلاوات خلال 14 يوم" : "Recitation Activity (Last 14 Days)"}
+                                {t.admin.recitationActivity14Days}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
@@ -325,13 +331,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                         </div>
                                         <div className="flex-grow space-y-1 relative">
                                             <Link href={`/admin/recitations/${item.id}`} className="absolute inset-0 z-10">
-                                                <span className="sr-only">عرض التفاصيل</span>
+                                                <span className="sr-only">{t.admin.viewDetails}</span>
                                             </Link>
                                             <div className="flex items-center gap-3">
                                                 <h4 className="text-lg font-bold text-gray-800 group-hover:text-[#0B3D2E] transition-colors">
-                                                    سورة {item.surah_name}
+                                                    {t.reader.surah} {item.surah_name}
                                                     <span className="text-gray-400 text-sm font-normal mr-2">
-                                                        (الآيات {item.ayah_from} - {item.ayah_to})
+                                                        ({t.reader.ayahs} {item.ayah_from} - {item.ayah_to})
                                                     </span>
                                                 </h4>
                                                 <StatusBadge status={item.status} className="h-6 relative z-20 pointer-events-none" />
@@ -340,9 +346,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                                 <span className="flex items-center gap-1.5 line-clamp-1">
                                                     <UserIcon className="w-4 h-4" />
                                                     {user.role === 'student' ? (
-                                                        item.evaluator_name ? `المُقيِّم: ${item.evaluator_name}` : 'بانتظار التقييم'
+                                                        <p className="text-xs text-gray-400 mt-1">
+                                                            {item.evaluator_name ? `${t.admin.evaluator}: ${item.evaluator_name}` : t.admin.pendingEvaluation}
+                                                        </p>
                                                     ) : (
-                                                        `الطالب: ${item.student_name}`
+                                                        `${t.admin.student}: ${item.student_name}`
                                                     )}
                                                 </span>
                                                 <span className="flex items-center gap-1.5">
@@ -363,14 +371,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         </div>
                     ) : (
                         <Card className="border border-gray-100 shadow-sm rounded-2xl bg-white text-gray-500 min-h-[300px] flex items-center justify-center relative">
-                            <div className="text-center space-y-4 z-10">
-                                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
-                                    <Mic2 className="w-8 h-8 text-gray-400" />
-                                </div>
-                                <h4 className="text-xl font-bold text-gray-700">لا توجد سجلات</h4>
-                                <p className="max-w-md mx-auto px-6">
-                                    {user.role === 'student' ? 'لم يقم هذا الطالب برفع أي تلاوات حتى الآن.' : 'لم يقم هذا المقرئ بتقييم أي تلاوات حتى الآن.'}
-                                </p>
+                            <div className="p-12 text-center text-gray-400">
+                                <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                <p>{user.role === 'student' ? t.admin.noStudentRecitations : t.admin.noReaderReviews}</p>
                             </div>
                         </Card>
                     )}
@@ -386,7 +389,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                             <div className="text-center">
                                 <h4 className="text-gray-900 font-bold text-xl mb-2">{t.admin.chatIntegration}</h4>
                                 <p className="text-sm text-gray-500 mb-6 max-w-sm">{t.admin.chatIntegrationDesc}</p>
-                                <Button onClick={() => router.push(`/admin/conversations`)} variant="outline" className="border-gray-200 hover:bg-gray-50 font-bold text-gray-700 h-11 px-6 rounded-xl">
+                                <Button onClick={() => router.push(`/admin/conversations?tab=chat&userId=${user.id}&userRole=${user.role}`)} variant="outline" className="border-gray-200 hover:bg-gray-50 font-bold text-gray-700 h-11 px-6 rounded-xl">
                                     {t.admin.openConversationsCenter}
                                 </Button>
                             </div>

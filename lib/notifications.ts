@@ -11,6 +11,12 @@ export type NotificationType =
     | "reader_approved"           // reader: admin approved
     | "reader_rejected"           // reader: admin rejected
     | "new_recitation_admin"      // admin: new unassigned recitation
+    | "new_message"               // student+reader+admin: new direct message received
+    | "new_announcement"          // student+reader: new announcement published
+    | "reschedule_request"         // student+reader: reschedule proposed
+    | "reschedule_accepted"        // student+reader: reschedule accepted
+    | "reschedule_rejected"        // student+reader: reschedule rejected
+    | "reader_reassigned"          // student+reader: admin reassigned reader
     | "general"
 
 export interface CreateNotificationInput {
@@ -18,7 +24,7 @@ export interface CreateNotificationInput {
     type: NotificationType
     title: string
     message: string
-    category?: "recitation" | "session" | "account" | "general"
+    category?: "recitation" | "session" | "account" | "general" | "message" | "announcement" | "booking"
     link?: string                 // optional navigation link
     relatedRecitationId?: string
     relatedBookingId?: string

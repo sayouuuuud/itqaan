@@ -223,7 +223,7 @@ export default function SubmitRecitationPage() {
           <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-[#D4AF37]/30 rounded-bl-xl"></div>
 
           <div className="text-center w-full max-w-lg mx-auto px-2 pt-2 pb-2 h-full flex flex-col justify-center" style={{ direction: 'rtl' }}>
-            <h3 className="text-[#D4AF37] font-bold text-base md:text-lg mb-2 shrink-0" style={{ fontFamily: "var(--font-sans)" }}>سورة الفاتحة</h3>
+            <h3 className="text-[#D4AF37] font-bold text-base md:text-lg mb-2 shrink-0" style={{ fontFamily: "var(--font-sans)" }}>{t.student.surahFatiha}</h3>
             <div className="space-y-[0.6rem] text-lg md:text-xl lg:text-[1.35rem] leading-[1.9] text-gray-800 dark:text-gray-200 grow flex flex-col justify-center" style={{ fontFamily: "var(--font-quran)" }}>
               <p className="text-center">
                 <span className="text-[#1A4D2E] dark:text-green-400">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>

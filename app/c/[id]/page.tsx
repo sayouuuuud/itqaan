@@ -28,6 +28,10 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                 if (res.ok) {
                     const data = await res.json()
                     setCert(data.certificate)
+                    // Check for auto-print parameter
+                    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('print') === '1') {
+                        setTimeout(() => window.print(), 500)
+                    }
                 } else {
                     setError(isAr ? "الشهادة غير موجودة أو لم يتم إصدارها بعد" : "Certificate not found or not yet issued")
                 }

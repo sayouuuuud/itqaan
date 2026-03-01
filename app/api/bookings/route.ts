@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     const queryParams: unknown[] = [slotStart, slotEnd, slotDate]
 
     if (studentGender) {
-      genderFilter = "AND u.gender = $4"
+      genderFilter = "AND (u.gender = $4 OR u.gender IS NULL)"
       queryParams.push(studentGender)
     }
 
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
       `SELECT u.id,
               COALESCE((SELECT COUNT(*) FROM bookings b WHERE b.reader_id = u.id AND b.status IN ('pending', 'confirmed') AND DATE(b.slot_start) = $3::date), 0) as booking_count,
               COALESCE((SELECT COUNT(*) FROM bookings b2 WHERE b2.reader_id = u.id AND b2.status IN ('pending', 'confirmed', 'completed')), 0) as total_booking_count,
-              COALESCE((SELECT AVG(rating) FROM ratings rt WHERE rt.reader_id = u.id), 0) as avg_rating
+              COALESCE((SELECT AVG(rating) FROM reader_ratings rt WHERE rt.reader_id = u.id), 0) as avg_rating
        FROM users u
        WHERE u.role = 'reader'
          AND u.is_active = true
@@ -132,6 +132,17 @@ export async function POST(req: NextRequest) {
            WHERE b.reader_id = u.id
            AND b.status IN ('pending', 'confirmed')
            AND b.slot_start < $2 AND b.slot_end > $1
+         )
+         AND EXISTS (
+           SELECT 1 FROM availability_slots a
+           WHERE a.reader_id = u.id
+             AND a.is_available = true
+             AND a.start_time = $1::time
+             AND (
+               (a.is_recurring = true AND a.specific_date IS NULL AND a.day_of_week = EXTRACT(DOW FROM $3::date)::int)
+               OR
+               (a.is_recurring = false AND a.specific_date = $3::date)
+             )
          )
        ${orderByClause}
        LIMIT 1`,

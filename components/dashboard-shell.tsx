@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/context'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { GlobalSearch } from '@/components/global-search'
+import { NotificationDropdown } from '@/components/notification-dropdown'
 import {
   LayoutDashboard, Mic, FileText, Calendar, Bell, User, LogOut,
   Menu, X, Users, Settings, BarChart3, ClipboardList, Clock, MessageSquare,
@@ -109,6 +110,23 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
   const { t } = useI18n()
   const [user, setUser] = useState<{ name: string; email: string; role: string; avatar_url?: string | null } | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadMessages, setUnreadMessages] = useState(0)
+
+  // Heartbeat to track online presence
+  useEffect(() => {
+    const pingHeartbeat = async () => {
+      try {
+        await fetch('/api/auth/heartbeat', { method: 'POST' })
+      } catch (e) { }
+    }
+
+    // Initial ping on load
+    pingHeartbeat()
+
+    // Ping every 2 minutes while dashboard is open
+    const interval = setInterval(pingHeartbeat, 2 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     async function fetchUser() {
@@ -122,24 +140,39 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         console.error("Failed to fetch user session", err)
       }
     }
-    async function fetchUnread() {
+    async function fetchCounts() {
       try {
-        const res = await fetch('/api/notifications')
+        const res = await fetch('/api/unread-counts')
         if (res.ok) {
           const data = await res.json()
-          setUnreadCount(data.unreadCount || 0)
+          setUnreadCount(data.notifications || 0)
+          setUnreadMessages(data.messages || 0)
         }
       } catch { }
     }
     fetchUser()
-    fetchUnread()
-    const interval = setInterval(fetchUnread, 60000)
+    fetchCounts()
+    const interval = setInterval(fetchCounts, 30000)
     return () => clearInterval(interval)
   }, [])
 
   const rawConfig = getRoleConfig(t)[role]
+
+  // Inject unread direct message counts into the sidebar items
+  const sectionsWithBadges = rawConfig.sections.map(section => ({
+    ...section,
+    items: section.items.map(item => {
+      // For student/reader 'chat' or admin 'admin/chat' or 'conversations'
+      const isChat = item.href.endsWith('/chat') || item.href.endsWith('/conversations')
+      if (isChat && unreadMessages > 0) {
+        return { ...item, badge: unreadMessages }
+      }
+      return item
+    })
+  }))
+
   const userName = user?.name || rawConfig.name
-  const config = { ...rawConfig, name: userName }
+  const config = { ...rawConfig, name: userName, sections: sectionsWithBadges }
   const isReader = role === 'reader'
 
   const sidebarBase = isReader
@@ -288,14 +321,19 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
               </div>
             )}
             <LanguageSwitcher variant="outline" />
-            <Link href={`/${role}/notifications`} className="relative p-2.5 text-slate-500 hover:text-[#0B3D2E] transition-colors rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200">
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -left-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 border-2 border-white shadow-sm">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </Link>
+
+            <NotificationDropdown
+              role={role}
+              unreadCount={unreadCount}
+              onRefresh={async () => {
+                const res = await fetch('/api/unread-counts')
+                if (res.ok) {
+                  const data = await res.json()
+                  setUnreadCount(data.notifications || 0)
+                }
+              }}
+            />
+
             {role === 'student' && (
               <Link href="/student/submit" className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all shadow-md shadow-[#0B3D2E]/20 text-sm">
                 <Plus className="w-4 h-4" />

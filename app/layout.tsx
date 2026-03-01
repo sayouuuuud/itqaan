@@ -40,6 +40,7 @@ export default function RootLayout({
           {children}
         </LanguageProvider>
         <Analytics />
+        {/* HMR Trigger */}
       </body>
     </html>
   )

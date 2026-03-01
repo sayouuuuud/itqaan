@@ -1,10 +1,14 @@
 import { v2 as cloudinary } from "cloudinary"
+import { getCloudinaryConfig } from "./settings"
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+async function ensureConfigured() {
+    const config = await getCloudinaryConfig()
+    cloudinary.config({
+        cloud_name: config.cloud_name,
+        api_key: config.api_key,
+        api_secret: config.api_secret,
+    })
+}
 
 export interface UploadResult {
     url: string
@@ -24,6 +28,7 @@ export async function uploadToCloudinary(
         format?: string
     } = {}
 ): Promise<UploadResult> {
+    await ensureConfigured()
     return new Promise((resolve, reject) => {
         const uploadOptions = {
             folder: options.folder || "uploads",
@@ -55,6 +60,7 @@ export async function deleteFromCloudinary(
     publicId: string,
     resourceType: "image" | "video" | "raw" = "video"
 ): Promise<{ result: string }> {
+    await ensureConfigured()
     return new Promise((resolve, reject) => {
         cloudinary.uploader.destroy(
             publicId,

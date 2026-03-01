@@ -83,7 +83,7 @@
 }
 
 @theme inline {
-  --font-sans: 'Cairo', sans-serif;
+  --font-sans: var(--font-cairo), sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --font-quran: var(--font-amiri), 'Amiri', serif;
   --color-background: var(--background);

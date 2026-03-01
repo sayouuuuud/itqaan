@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { signToken } from "@/lib/auth"
+import { sendWelcomeEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
     try {
@@ -46,6 +47,9 @@ export async function POST(req: NextRequest) {
             `UPDATE users SET email_verified = true, verification_code = NULL, verification_expires_at = NULL WHERE id = $1`,
             [user.id]
         )
+
+        // Send welcome email
+        sendWelcomeEmail(user.email, user.name)
 
         // Log the user in
         const token = await signToken({

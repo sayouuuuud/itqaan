@@ -256,7 +256,7 @@ export default function RecitationDetailPage() {
 
           {review.detailed_feedback && (
             <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
-              <p className="text-xs font-semibold text-emerald-700 mb-2">ملاحظات المقرئ</p>
+              <p className="text-xs font-semibold text-emerald-700 mb-2">{t.common.readerNotes}</p>
               <p className="text-sm text-slate-700 leading-relaxed">{review.detailed_feedback}</p>
             </div>
           )}

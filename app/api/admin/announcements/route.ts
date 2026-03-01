@@ -59,6 +59,34 @@ export async function POST(req: NextRequest) {
         ]
     )
 
+    if (is_published) {
+        // Fetch target users based on audience
+        let usersQuery = 'SELECT id FROM users WHERE is_active = true'
+        const usersParams: any[] = []
+
+        if (target_audience === 'students') {
+            usersQuery += ' AND role = $1'
+            usersParams.push('student')
+        } else if (target_audience === 'readers') {
+            usersQuery += ' AND role = $1'
+            usersParams.push('reader')
+        }
+
+        const usersData = await query<{ id: string }>(usersQuery, usersParams)
+        const userIds = usersData.map(u => u.id)
+
+        if (userIds.length > 0) {
+            const { createNotificationForMany } = await import('@/lib/notifications')
+            await createNotificationForMany(userIds, {
+                type: 'new_announcement',
+                title: 'إعلان جديد',
+                message: title_ar,
+                category: 'announcement',
+                link: '/dashboard'
+            })
+        }
+    }
+
     return NextResponse.json({ announcement: result[0] }, { status: 201 })
 }
 
@@ -87,6 +115,42 @@ export async function PATCH(req: NextRequest) {
     params.push(id)
 
     await query(`UPDATE announcements SET ${setters.join(', ')} WHERE id = $${idx}`, params)
+
+    if (fields.is_published === true) {
+        // We need to fetch the announcement details to know who to notify and what to say
+        const targetReq = await query<{ title_ar: string, content_ar: string, target_audience: string }>(
+            `SELECT title_ar, content_ar, target_audience FROM announcements WHERE id = $1`,
+            [id]
+        )
+        const announcement = targetReq[0]
+
+        if (announcement) {
+            let usersQuery = 'SELECT id FROM users WHERE is_active = true'
+            const usersParams: any[] = []
+
+            if (announcement.target_audience === 'students') {
+                usersQuery += ' AND role = $1'
+                usersParams.push('student')
+            } else if (announcement.target_audience === 'readers') {
+                usersQuery += ' AND role = $1'
+                usersParams.push('reader')
+            }
+
+            const usersData = await query<{ id: string }>(usersQuery, usersParams)
+            const userIds = usersData.map(u => u.id)
+
+            if (userIds.length > 0) {
+                const { createNotificationForMany } = await import('@/lib/notifications')
+                await createNotificationForMany(userIds, {
+                    type: 'new_announcement',
+                    title: 'إعلان جديد',
+                    message: announcement.title_ar,
+                    category: 'announcement',
+                    link: '/dashboard'
+                })
+            }
+        }
+    }
 
     return NextResponse.json({ ok: true })
 }

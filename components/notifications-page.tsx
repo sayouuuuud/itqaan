@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n/context"
 import {
     Bell, CheckCheck, Mic, Calendar, Award, MessageSquare,
     UserCheck, UserX, Loader2, BookOpen, ChevronRight
@@ -31,6 +32,8 @@ const TYPE_ICON: Record<string, React.ElementType> = {
     reader_approved: UserCheck,
     reader_rejected: UserX,
     new_recitation_admin: Mic,
+    new_message: MessageSquare,
+    new_announcement: Bell,
     general: Bell,
 }
 
@@ -44,21 +47,15 @@ const TYPE_COLOR: Record<string, string> = {
     new_reader_application: "bg-blue-50 text-blue-600",
     reader_approved: "bg-emerald-50 text-emerald-600",
     reader_rejected: "bg-red-50 text-red-600",
+    new_message: "bg-indigo-50 text-indigo-600",
+    new_announcement: "bg-rose-50 text-rose-600",
     general: "bg-slate-50 text-slate-500",
 }
 
-function timeAgo(date: string) {
-    const diff = Date.now() - new Date(date).getTime()
-    const m = Math.floor(diff / 60000)
-    const h = Math.floor(diff / 3600000)
-    const d = Math.floor(diff / 86400000)
-    if (m < 1) return "الآن"
-    if (m < 60) return `منذ ${m} دقيقة`
-    if (h < 24) return `منذ ${h} ساعة`
-    return `منذ ${d} يوم`
-}
+
 
 export default function NotificationsPage() {
+    const { t } = useI18n()
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
     const [markingAll, setMarkingAll] = useState(false)
@@ -114,6 +111,17 @@ export default function NotificationsPage() {
         setUnreadCount(prev => Math.max(0, prev - 1))
     }
 
+    const getTimeAgo = (date: string) => {
+        const diff = Date.now() - new Date(date).getTime()
+        const m = Math.floor(diff / 60000)
+        const h = Math.floor(diff / 3600000)
+        const d = Math.floor(diff / 86400000)
+        if (m < 1) return t.common.now
+        if (m < 60) return `${t.common.minutesAgo} ${m}`
+        if (h < 24) return `${t.common.hoursAgo} ${h}`
+        return `${t.common.daysAgo} ${d}`
+    }
+
     const unread = unreadCount
 
     if (loading) return (
@@ -137,7 +145,7 @@ export default function NotificationsPage() {
                             <Bell className="w-7 h-7 text-[#0B3D2E]" />
                         </div>
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">الإشعارات</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{t.notifications.title}</h1>
                             <p className="text-sm font-medium text-gray-500 mt-1 flex items-center gap-2">
                                 {unread > 0 ? (
                                     <>
@@ -145,9 +153,9 @@ export default function NotificationsPage() {
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                         </span>
-                                        لديك {unread} إشعار غير مقروء
+                                        {t.notifications.unreadCount.replace('{unread}', unread.toString())}
                                     </>
-                                ) : "جميع الإشعارات مقروءة و محدثة"}
+                                ) : t.notifications.allRead}
                             </p>
                         </div>
                     </div>
@@ -158,7 +166,7 @@ export default function NotificationsPage() {
                             className="group flex items-center gap-2 text-sm font-bold text-white bg-[#0B3D2E] px-6 py-3 rounded-xl hover:bg-[#0a3326] hover:shadow-lg hover:shadow-[#0B3D2E]/20 transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:hover:transform-none disabled:hover:shadow-none"
                         >
                             {markingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4 transition-transform group-hover:scale-110" />}
-                            تعليم الكل كمقروء
+                            {t.notifications.markAllRead}
                         </button>
                     )}
                 </div>
@@ -170,8 +178,8 @@ export default function NotificationsPage() {
                     <div className="w-24 h-24 bg-gradient-to-tr from-gray-50 to-gray-100 rounded-full flex items-center justify-center mb-6 border border-white shadow-inner relative overflow-hidden">
                         <Bell className="w-10 h-10 text-gray-300 relative z-10" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">لا توجد إشعارات حالياً</h3>
-                    <p className="text-gray-500 max-w-sm mx-auto">عندما يصلك إشعار جديد بخصوص طلباتك أو المواعيد سيظهر هنا.</p>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{t.notifications.noNotifications}</h3>
+                    <p className="text-gray-500 max-w-sm mx-auto">{t.notifications.noNotificationsDesc}</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -203,7 +211,7 @@ export default function NotificationsPage() {
                                             {n.title}
                                         </h4>
                                         <span className="text-xs font-medium text-gray-400 whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border border-gray-100/50">
-                                            {timeAgo(n.created_at)}
+                                            {getTimeAgo(n.created_at)}
                                         </span>
                                     </div>
                                     <p className={`text-sm mt-1.5 leading-relaxed ${isUnread ? "text-gray-600 font-medium" : "text-gray-500"}`}>
@@ -244,7 +252,7 @@ export default function NotificationsPage() {
                         {loadingMore ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                         ) : null}
-                        {loadingMore ? "جاري التحميل..." : "عرض المزيد من الإشعارات"}
+                        {loadingMore ? t.common.loading : t.notifications.showMore}
                     </button>
                 </div>
             )}

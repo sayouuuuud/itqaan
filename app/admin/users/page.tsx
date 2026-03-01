@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
 
   // Form state
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "student" })
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "student", gender: "" })
   const [submitting, setSubmitting] = useState(false)
 
   // Fetch users based on activeTab
@@ -70,7 +70,7 @@ export default function AdminUsersPage() {
         setUsers(users.map(u => u.id === userId ? { ...u, is_active: !currentStatus } : u))
       }
     } catch {
-      alert(isAr ? "حدث خطأ أثناء تعديل حالة المستخدم" : "Error toggling status")
+      alert(t.admin.errorTogglingStatus)
     }
   }
 
@@ -88,13 +88,13 @@ export default function AdminUsersPage() {
         fetchUsers()
       } else {
         const err = await res.json()
-        alert(err.error || "Error creating user")
+        alert(err.error || t.admin.errorCreatingUser)
       }
     } catch {
-      alert("Error")
+      alert(t.auth.errorOccurred)
     } finally {
       setSubmitting(false)
-      setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : "reader" })
+      setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : "reader", gender: "" })
     }
   }
 
@@ -118,7 +118,7 @@ export default function AdminUsersPage() {
         fetchUsers()
       } else {
         const err = await res.json()
-        alert(err.error || "Error updating user")
+        alert(err.error || t.admin.errorUpdatingUser)
       }
     } catch {
       alert("Error")
@@ -129,7 +129,7 @@ export default function AdminUsersPage() {
 
   const openEditModal = (user: any) => {
     setSelectedUser(user)
-    setFormData({ name: user.name, email: user.email, password: "", role: user.role })
+    setFormData({ name: user.name, email: user.email, password: "", role: user.role, gender: user.gender || "" })
     setIsEditUserOpen(true)
   }
 
@@ -182,14 +182,14 @@ export default function AdminUsersPage() {
             <div className="relative hidden sm:block">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={t.admin.search || (isAr ? "بحث..." : "Search...")}
+                placeholder={t.search}
                 className="pr-10 w-64 border-gray-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <Button size="sm" className="flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0a3326] text-white" onClick={() => {
-              setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : "reader" })
+              setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : "reader", gender: "" })
               setIsAddUserOpen(true)
             }}>
               <UserPlus className="w-4 h-4" />
@@ -241,10 +241,12 @@ export default function AdminUsersPage() {
                           <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${avatarColors[idx % avatarColors.length]}`}
                           >
-                            {(user.name || "م").charAt(0)}
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                            ) : (user.name || t.userFallbackLetter).charAt(0)}
                           </div>
-                          {user.is_active && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" />
+                          {user.is_online && (
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" title={t.admin.onlineNow} />
                           )}
                         </div>
                         <div>
@@ -297,7 +299,7 @@ export default function AdminUsersPage() {
                             openEditModal(user)
                           }}
                           className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                          title={isAr ? "تعديل" : "Edit"}
+                          title={t.edit}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -380,6 +382,18 @@ export default function AdminUsersPage() {
               >
                 <option value="student">{t.auth.student}</option>
                 <option value="reader">{t.auth.reader}</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t.auth.genderOptional}</Label>
+              <select
+                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                value={formData.gender}
+                onChange={e => setFormData({ ...formData, gender: e.target.value })}
+              >
+                <option value="">{t.auth.unspecified}</option>
+                <option value="male">{t.auth.male}</option>
+                <option value="female">{t.auth.female}</option>
               </select>
             </div>
           </div>

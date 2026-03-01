@@ -3,7 +3,7 @@ import { getSession, requireRole } from "@/lib/auth"
 import { query, queryOne } from "@/lib/db"
 
 // GET /api/certificate - get student's certificate data
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getSession()
   if (!session || !requireRole(session, ["student"])) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
@@ -25,7 +25,8 @@ export async function GET() {
   let enhancedCertificate = certificate ? { ...certificate } : null;
 
   if (enhancedCertificate && enhancedCertificate.certificate_issued) {
-    enhancedCertificate.certificate_url = `${process.env.NEXT_PUBLIC_APP_URL}/c/${enhancedCertificate.id}`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (req.headers.get("host") ? `http://${req.headers.get("host")}` : "");
+    enhancedCertificate.certificate_url = `${baseUrl}/c/${session.sub}`;
   }
 
   console.log('Certificate data for student', session.sub, ':', enhancedCertificate)

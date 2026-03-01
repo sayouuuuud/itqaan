@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { Send, Link2, MessageSquare, Loader2 } from "lucide-react"
+import { Send, Link2, MessageSquare, Loader2, Trash2, Edit2 } from "lucide-react"
 
 type Conversation = {
   id: string
@@ -16,6 +16,7 @@ type Conversation = {
   last_message_at: string | null
   unread_count_reader: number
   student_name: string
+  student_avatar?: string | null
 }
 
 type Message = {
@@ -23,6 +24,7 @@ type Message = {
   sender_id: string
   message_text: string
   created_at: string
+  updated_at?: string
 }
 
 export default function ReaderChatPage() {
@@ -40,10 +42,14 @@ export default function ReaderChatPage() {
   const [linkText, setLinkText] = useState("")
   const [sending, setSending] = useState(false)
 
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null)
+  const [deletingConvId, setDeletingConvId] = useState<string | null>(null)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    async function loadConversations() {
+    async function loadConversations(init = false) {
       try {
         const res = await fetch("/api/conversations")
         if (res.ok) {
@@ -53,17 +59,21 @@ export default function ReaderChatPage() {
       } catch (err) {
         console.error(err)
       } finally {
-        setLoadingConvs(false)
+        if (init) setLoadingConvs(false)
       }
     }
-    loadConversations()
+    loadConversations(true)
+    const interval = setInterval(() => loadConversations(false), 5000)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
     if (!selectedConvId) return
 
-    async function loadMessages() {
-      setLoadingMsgs(true)
+    if (pollRef.current) clearInterval(pollRef.current)
+
+    async function loadMessages(init = false) {
+      if (init) setLoadingMsgs(true)
       try {
         const res = await fetch(`/api/conversations/${selectedConvId}/messages`)
         if (res.ok) {
@@ -78,11 +88,18 @@ export default function ReaderChatPage() {
       } catch (err) {
         console.error(err)
       } finally {
-        setLoadingMsgs(false)
-        scrollToBottom()
+        if (init) {
+          setLoadingMsgs(false)
+          scrollToBottom()
+        }
       }
     }
-    loadMessages()
+    loadMessages(true)
+
+    pollRef.current = setInterval(() => loadMessages(false), 5000)
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
   }, [selectedConvId])
 
   const scrollToBottom = () => {
@@ -101,6 +118,24 @@ export default function ReaderChatPage() {
       : messageText
 
     setSending(true)
+
+    if (editingMessage) {
+      const oldMsgId = editingMessage.id
+      setMessages(p => p.map(m => m.id === oldMsgId ? { ...m, message_text: fullMessage, updated_at: new Date().toISOString() } : m))
+      setEditingMessage(null)
+      setMessageText("")
+      setLinkText("")
+
+      try {
+        await fetch(`/api/conversations/${selectedConvId}/messages/${oldMsgId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message_text: fullMessage }),
+        })
+      } finally { setSending(false) }
+      return
+    }
+
     try {
       const res = await fetch(`/api/conversations/${selectedConvId}/messages`, {
         method: "POST",
@@ -139,6 +174,27 @@ export default function ReaderChatPage() {
       alert("فشل إرسال الرسالة")
     } finally {
       setSending(false)
+    }
+  }
+
+  const handleDeleteMessage = async (msgId: string) => {
+    if (!selectedConvId || !confirm(isAr ? "هل أنت متأكد من حذف هذه الرسالة؟" : "Are you sure you want to delete this message?")) return
+    setMessages(p => p.filter(m => m.id !== msgId))
+    try {
+      await fetch(`/api/conversations/${selectedConvId}/messages/${msgId}`, { method: "DELETE" })
+    } catch { } // Optimistic update
+  }
+
+  const handleDeleteConversation = async () => {
+    if (!selectedConvId || !confirm(isAr ? "هل أنت متأكد من حذف هذه المحادثة نهائياً لكلا الطرفين؟" : "Are you sure you want to permanently delete this conversation for both parties?")) return
+    setDeletingConvId(selectedConvId)
+    try {
+      await fetch(`/api/conversations/${selectedConvId}`, { method: "DELETE" })
+      setConversations(p => p.filter(c => c.id !== selectedConvId))
+      setSelectedConvId(null)
+      setMessages([])
+    } finally {
+      setDeletingConvId(null)
     }
   }
 
@@ -193,7 +249,9 @@ export default function ReaderChatPage() {
                         }`}
                     >
                       <div className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${colorClass}`}>
-                        {(conv.student_name || "ط").charAt(0)}
+                        {conv.student_avatar ? (
+                          <img src={conv.student_avatar} alt={conv.student_name} className="w-full h-full rounded-full object-cover" />
+                        ) : (conv.student_name || "ط").charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex justify-between items-baseline mb-1">
@@ -227,12 +285,24 @@ export default function ReaderChatPage() {
             <>
               <CardHeader className="border-b border-slate-100 pb-4 bg-white flex flex-row items-center gap-3 space-y-0">
                 <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-sm bg-emerald-100 text-emerald-600`}>
-                  {(currentConv.student_name || "ط").charAt(0)}
+                  {currentConv.student_avatar ? (
+                    <img src={currentConv.student_avatar} alt={currentConv.student_name} className="w-full h-full rounded-full object-cover" />
+                  ) : (currentConv.student_name || "ط").charAt(0)}
                 </div>
-                <div>
+                <div className="flex-1">
                   <CardTitle className="text-base text-slate-800">{currentConv.student_name}</CardTitle>
                   <p className="text-xs text-slate-500">طالب</p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleDeleteConversation}
+                  disabled={deletingConvId === currentConv.id}
+                  title={isAr ? "حذف المحادثة" : "Delete Conversation"}
+                >
+                  {deletingConvId === currentConv.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                </Button>
               </CardHeader>
 
               {/* Messages */}
@@ -254,19 +324,42 @@ export default function ReaderChatPage() {
                       return (
                         <div
                           key={msg.id}
-                          className={`flex ${isReader ? "justify-start" : "justify-end"}`}
+                          className={`flex ${isReader ? "justify-start" : "justify-end"} group relative`}
                         >
+                          {isReader && (
+                            <div className="absolute -top-3 rtl:right-0 ltr:left-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden py-1 px-1 z-10">
+                              <button
+                                onClick={() => {
+                                  setEditingMessage(msg)
+                                  setMessageText(msg.message_text)
+                                  setLinkText("")
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-[#0B3D2E] hover:bg-slate-50 rounded transition-colors"
+                                title={isAr ? "تعديل" : "Edit"}
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded transition-colors"
+                                title={isAr ? "حذف" : "Delete"}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                           <div
                             className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm shadow-sm ${isReader
-                                ? "bg-[#0B3D2E] text-white rounded-br-sm"
-                                : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
+                              ? "bg-[#0B3D2E] text-white rounded-br-sm"
+                              : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
                               }`}
                           >
                             <p className="whitespace-pre-wrap leading-relaxed">{msg.message_text}</p>
-                            <p className={`text-[10px] mt-2 text-left ${isReader ? "text-emerald-100/70" : "text-slate-400"
+                            <div className={`text-[10px] mt-2 flex items-center justify-between ${isReader ? "text-emerald-100/70" : "text-slate-400"
                               }`}>
-                              {new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
+                              <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                              {msg.updated_at && <span className="ml-2 rtl:mr-2 rtl:ml-0 opacity-70 italic">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
+                            </div>
                           </div>
                         </div>
                       )
@@ -278,16 +371,29 @@ export default function ReaderChatPage() {
 
               {/* Input */}
               <div className="border-t border-slate-200 p-4 bg-white space-y-3">
-                <div className="flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-slate-400 shrink-0" />
-                  <Input
-                    placeholder={isAr ? "أضف رابطًا (ميت، زوم، إلخ) - اختياري" : "Add a link (optional)"}
-                    value={linkText}
-                    onChange={(e) => setLinkText(e.target.value)}
-                    className="h-9 text-xs bg-slate-50 border-slate-200"
-                    dir="ltr"
-                  />
-                </div>
+                {editingMessage && (
+                  <div className="flex items-center justify-between bg-amber-50 text-amber-800 p-2 rounded-lg text-xs mb-2 border border-amber-200/50">
+                    <div className="flex items-center gap-2">
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>{isAr ? "تعديل الرسالة..." : "Editing message..."}</span>
+                    </div>
+                    <button onClick={() => { setEditingMessage(null); setMessageText(""); setLinkText("") }} className="hover:underline font-bold">
+                      {isAr ? "إلغاء" : "Cancel"}
+                    </button>
+                  </div>
+                )}
+                {!editingMessage && (
+                  <div className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-slate-400 shrink-0" />
+                    <Input
+                      placeholder={isAr ? "أضف رابطًا (ميت، زوم، إلخ) - اختياري" : "Add a link (optional)"}
+                      value={linkText}
+                      onChange={(e) => setLinkText(e.target.value)}
+                      className="h-9 text-xs bg-slate-50 border-slate-200"
+                      dir="ltr"
+                    />
+                  </div>
+                )}
                 <div className="flex items-end gap-3">
                   <Textarea
                     placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}

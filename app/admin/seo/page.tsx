@@ -45,7 +45,7 @@ export default function AdminSeoPage() {
         } finally { setSaving(false) }
     }
 
-    const previewTitle = settings.seo_site_title || 'إتقان الفاتحة'
+    const previewTitle = settings.seo_site_title || t.admin.seoPreviewTitleDefault
     const previewDesc = settings.seo_site_description || ''
     const previewUrl = settings.seo_canonical_base || 'https://itqaan.com'
 
@@ -58,13 +58,13 @@ export default function AdminSeoPage() {
                 <div className="flex items-center gap-3">
                     <Globe className="w-8 h-8 text-[#0B3D2E]" />
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{isAr ? 'إعدادات SEO' : 'SEO Settings'}</h1>
-                        <p className="text-gray-500 text-sm">{isAr ? 'تحكم في ظهور الموقع في محركات البحث' : 'Control how your site appears in search engines'}</p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t.admin.seoSettings}</h1>
+                        <p className="text-gray-500 text-sm">{t.admin.seoSettingsDesc}</p>
                     </div>
                 </div>
                 <Button onClick={handleSave} disabled={saving} className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200 font-bold">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                    {saved ? (isAr ? 'تم الحفظ' : 'Saved!') : (isAr ? 'حفظ الإعدادات' : 'Save Settings')}
+                    {saved ? t.admin.savedSuccess : t.admin.saveSettings}
                 </Button>
             </div>
 
@@ -72,7 +72,7 @@ export default function AdminSeoPage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2 text-gray-800 font-bold">
                     <Search className="w-4 h-4 text-[#0B3D2E]" />
-                    {isAr ? 'معاينة في محركات البحث' : 'Search Engine Preview'}
+                    {t.admin.searchEnginePreview}
                 </div>
                 <div className="p-6">
                     <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/50 max-w-2xl shadow-inner">
@@ -80,7 +80,7 @@ export default function AdminSeoPage() {
                             {previewUrl} <ChevronRight className="w-3 h-3 opacity-30" />
                         </p>
                         <p className="text-[#1a0dab] text-xl font-medium hover:underline cursor-pointer line-clamp-1 mb-1">{previewTitle}</p>
-                        <p className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">{previewDesc || (isAr ? 'يرجى كتابة وصف للموقع لتحسين ظهوره...' : 'Please enter a description to improve SEO...')}</p>
+                        <p className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">{previewDesc || t.admin.seoDescPlaceholder}</p>
                     </div>
                 </div>
             </div>
@@ -88,45 +88,45 @@ export default function AdminSeoPage() {
             {/* Main SEO Settings */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 font-bold text-gray-800">
-                    {isAr ? 'الإعدادات الأساسية' : 'Basic Settings'}
+                    {t.admin.basicSettings}
                 </div>
                 <div className="p-6 space-y-6">
                     <div className="space-y-2">
-                        <Label className="text-sm font-bold text-gray-700">{isAr ? 'عنوان الموقع (title)' : 'Site Title'}</Label>
+                        <Label className="text-sm font-bold text-gray-700">{t.admin.siteTitle}</Label>
                         <Input
                             value={settings.seo_site_title}
                             onChange={e => setSettings(p => ({ ...p, seo_site_title: e.target.value }))}
-                            placeholder="إتقان الفاتحة | منصة تعلم القرآن"
+                            placeholder={t.admin.seoSiteTitlePlaceholder}
                             className="max-w-xl border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20"
                         />
                         <div className="flex justify-between max-w-xl px-1">
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{isAr ? 'المثالي 50-60 حرف' : 'Ideal 50-60 chars'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t.admin.idealChars.replace('{count}', '50-60')}</p>
                             <p className={`text-[10px] font-black ${settings.seo_site_title.length > 60 ? 'text-red-500' : 'text-emerald-500'}`}>{settings.seo_site_title.length} / 60</p>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-sm font-bold text-gray-700">{isAr ? 'وصف الموقع (description)' : 'Meta Description'}</Label>
+                        <Label className="text-sm font-bold text-gray-700">{t.admin.metaDescription}</Label>
                         <textarea
                             value={settings.seo_site_description}
                             onChange={e => setSettings(p => ({ ...p, seo_site_description: e.target.value }))}
                             rows={4}
                             className="w-full max-w-xl border border-gray-100 bg-gray-50/30 rounded-xl p-4 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 transition-all"
-                            placeholder="وصف الموقع يظهر في نتائج البحث..."
+                            placeholder={t.admin.seoSiteDescriptionPlaceholder}
                         />
                         <div className="flex justify-between max-w-xl px-1">
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{isAr ? 'المثالي 140-160 حرف' : 'Ideal 140-160 chars'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t.admin.idealDescChars}</p>
                             <p className={`text-[10px] font-black ${settings.seo_site_description.length > 160 ? 'text-red-500' : 'text-emerald-500'}`}>{settings.seo_site_description.length} / 160</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl">
                         <div className="space-y-2">
-                            <Label className="text-sm font-bold text-gray-700">{isAr ? 'الكلمات المفتاحية' : 'Keywords'}</Label>
-                            <Input value={settings.seo_keywords} onChange={e => setSettings(p => ({ ...p, seo_keywords: e.target.value }))} placeholder="تجويد, قرآن, فاتحة, ..." className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+                            <Label className="text-sm font-bold text-gray-700">{t.admin.keywords}</Label>
+                            <Input value={settings.seo_keywords} onChange={e => setSettings(p => ({ ...p, seo_keywords: e.target.value }))} placeholder={t.admin.seoKeywordsPlaceholder} className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-sm font-bold text-gray-700">{isAr ? 'رابط الصورة OG Image' : 'OG Image URL'}</Label>
+                            <Label className="text-sm font-bold text-gray-700">{t.admin.ogImageURL}</Label>
                             <Input value={settings.seo_og_image} onChange={e => setSettings(p => ({ ...p, seo_og_image: e.target.value }))} placeholder="https://..." className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
                         </div>
                     </div>
@@ -136,12 +136,12 @@ export default function AdminSeoPage() {
             {/* Advanced & Verification */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 font-bold text-gray-800">
-                    {isAr ? 'التحقق والشبكات الاجتماعية' : 'Verification & Social'}
+                    {t.admin.verificationSocial}
                 </div>
                 <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-sm font-bold text-gray-700">{isAr ? 'الرابط الأساسي للموقع' : 'Canonical Base URL'}</Label>
+                            <Label className="text-sm font-bold text-gray-700">{t.admin.canonicalURL}</Label>
                             <Input value={settings.seo_canonical_base} onChange={e => setSettings(p => ({ ...p, seo_canonical_base: e.target.value }))} placeholder="https://itqaan.com" className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
                         </div>
                         <div className="space-y-2">
@@ -179,11 +179,9 @@ export default function AdminSeoPage() {
                         <CheckCircle className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                        <p className="font-bold text-emerald-900 text-lg">{isAr ? 'بيانات JSON-LD جاهزة تلقائيًا' : 'JSON-LD Structured Data is ready'}</p>
+                        <p className="font-bold text-emerald-900 text-lg">{t.admin.jsonLdReady}</p>
                         <p className="text-emerald-700/80 text-sm mt-1 leading-relaxed">
-                            {isAr
-                                ? 'لقد قمنا ببرمجة النظام ليضيف وسوم Schema.org تلقائيًا لكل صفحة، مما يسهل على محركات البحث فهم محتوى إتقان الفاتحة وتحسين ترتيبه.'
-                                : 'We have automated Schema.org markup for every page, making it easier for search engines to understand Itqaan and rank it better.'}
+                            {t.admin.jsonLdDesc}
                         </p>
                     </div>
                 </div>

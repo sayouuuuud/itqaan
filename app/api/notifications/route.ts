@@ -60,3 +60,21 @@ export async function PATCH() {
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
   }
 }
+
+// DELETE /api/notifications — delete ALL for the user
+export async function DELETE() {
+  try {
+    const session = await getSession()
+    if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+
+    await query(
+      `DELETE FROM notifications WHERE user_id = $1`,
+      [session.sub]
+    )
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Delete notifications error:", error)
+    return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
+  }
+}

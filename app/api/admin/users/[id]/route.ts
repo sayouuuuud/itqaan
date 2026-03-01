@@ -16,7 +16,13 @@ export async function GET(
 
         // 1. Basic User Info (including phone)
         const user = await db.queryOne<any>(
-            'SELECT id, name, email, phone, role, avatar_url, bio, is_active, created_at, last_login_at FROM users WHERE id = $1',
+            `SELECT id, name, email, phone, role, avatar_url, bio, is_active, created_at, last_login_at,
+             EXISTS(
+                SELECT 1 FROM user_sessions us 
+                WHERE us.user_id = users.id 
+                AND us.last_active_at > NOW() - INTERVAL '5 minutes'
+             ) as is_online
+             FROM users WHERE id = $1`,
             [userId]
         )
 

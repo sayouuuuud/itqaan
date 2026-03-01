@@ -32,7 +32,12 @@ export async function GET(req: NextRequest) {
     const users = await query(
       `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
-              rp.rating, rp.total_reviews
+              rp.rating, rp.total_reviews,
+              EXISTS(
+                SELECT 1 FROM user_sessions us 
+                WHERE us.user_id = u.id 
+                AND us.last_active_at > NOW() - INTERVAL '5 minutes'
+              ) as is_online
        FROM users u
        LEFT JOIN reader_profiles rp ON u.id = rp.user_id
        ${whereClause}
@@ -55,7 +60,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
-    const { userId, isActive, role, name, email, password } = await req.json()
+    const { userId, isActive, role, name, email, password, gender } = await req.json()
 
     if (!userId) {
       return NextResponse.json({ error: "معرف المستخدم مطلوب" }, { status: 400 })
@@ -88,6 +93,11 @@ export async function PATCH(req: NextRequest) {
       const passwordHash = await bcrypt.hash(password, 10)
       values.push(passwordHash)
       updates.push(`password_hash = $${values.length}`)
+    }
+
+    if (gender) {
+      values.push(gender)
+      updates.push(`gender = $${values.length}`)
     }
 
     if (updates.length === 0) {
@@ -123,7 +133,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
-    const { name, email, password, role } = await req.json()
+    const { name, email, password, role, gender } = await req.json()
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 })
@@ -142,10 +152,10 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     const result = await query(
-      `INSERT INTO users (name, email, password_hash, role, email_verified, is_active)
-       VALUES ($1, $2, $3, $4, TRUE, TRUE)
-       RETURNING id, name, email, role, is_active, created_at`,
-      [name, email.toLowerCase(), passwordHash, role]
+      `INSERT INTO users (name, email, password_hash, role, email_verified, is_active, gender)
+       VALUES ($1, $2, $3, $4, TRUE, TRUE, $5)
+       RETURNING id, name, email, role, is_active, created_at, gender`,
+      [name, email.toLowerCase(), passwordHash, role, gender || null]
     )
 
     await logAdminAction({

@@ -19,7 +19,7 @@ export function PublicNavbar() {
 
         <div className="hidden md:flex items-center gap-4">
           <LanguageSwitcher variant="ghost" />
-           <div className="h-6 w-px bg-white/10 mx-1" />
+          <div className="h-6 w-px bg-white/10 mx-1" />
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium px-5 py-2.5 rounded-full transition-all text-white border border-[#D4A843]/40 hover:bg-[#D4A843]/10">
               {t.login}
@@ -28,11 +28,11 @@ export function PublicNavbar() {
               {t.register}
             </Link>
           </div>
-         
+
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          {!mobileOpen && <LanguageSwitcher variant="ghost" />}
+          {!mobileOpen && <LanguageSwitcher variant="ghost" className="text-white" />}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="p-2 text-white"
@@ -51,7 +51,7 @@ export function PublicNavbar() {
               <Link href="/register" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-semibold py-2.5 rounded-full bg-[#D4A843] text-white">{t.register}</Link>
             </div>
             <div className="flex justify-center pt-2 border-t border-white/5">
-              <LanguageSwitcher variant="outline" />
+              <LanguageSwitcher variant="ghost" className="text-white border border-white/10 hover:bg-white/5 rounded-full px-6 h-10" />
             </div>
           </div>
         </div>

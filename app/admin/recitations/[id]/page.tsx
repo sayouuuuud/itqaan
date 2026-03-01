@@ -52,7 +52,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-destructive">
                 <AlertCircle className="w-12 h-12" />
-                <p className="text-lg font-bold">{error || "لم يتم العثور على التلاوة"}</p>
+                <p className="text-lg font-bold">{error || t.admin.adminRecitationDetails.notFound}</p>
                 <Button onClick={() => router.back()} variant="outline">{t.back}</Button>
             </div>
         )
@@ -64,10 +64,10 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                     <button onClick={() => router.back()} className="hover:text-[#0B3D2E] transition-colors">
-                        العودة
+                        {t.back}
                     </button>
                     <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-                    <span className="font-bold text-gray-800">تفاصيل التلاوة #{id.substring(0, 8)}</span>
+                    <span className="font-bold text-gray-800">{t.admin.adminRecitationDetails.title} #{id.substring(0, 8)}</span>
                 </div>
                 <div>
                     <StatusBadge status={data.status} className="px-3 py-1 text-sm" />
@@ -86,12 +86,12 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black mb-1">
-                                    سورة {data.surah_name}
+                                    {t.admin.surah} {data.surah_name}
                                 </h2>
                                 <p className="text-white/80 flex items-center gap-2 text-sm">
-                                    <span>الآيات: {data.ayah_from} - {data.ayah_to}</span>
+                                    <span>{t.admin.adminRecitationDetails.verses}: {data.ayah_from} - {data.ayah_to}</span>
                                     <span>•</span>
-                                    <span>{data.recitation_type === 'tilawa' ? 'تلاوة' : data.recitation_type === 'hifd' ? 'تسميع حفظ' : 'مراجعة'}</span>
+                                    <span>{data.recitation_type === 'tilawa' ? t.admin.adminRecitationDetails.typeTilawa : data.recitation_type === 'hifd' ? t.admin.adminRecitationDetails.typeHifd : t.admin.adminRecitationDetails.typeMurajaa}</span>
                                 </p>
                             </div>
                         </div>
@@ -101,13 +101,13 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
                                 <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-700">
                                     <FileAudio className="w-5 h-5 text-[#0B3D2E]" />
-                                    {isAr ? "التسجيل الصوتي" : "Audio Recording"}
+                                    {t.admin.adminRecitationDetails.audioRecording}
                                 </h3>
                                 {data.audio_url ? (
                                     <AudioPlayer src={data.audio_url} />
                                 ) : (
                                     <div className="text-sm text-gray-500 italic p-4 bg-gray-100/50 rounded-xl text-center border border-dashed border-gray-200">
-                                        {isAr ? "لا يوجد ملف صوتي متاح" : "No audio file available"}
+                                        {t.admin.adminRecitationDetails.noAudio}
                                     </div>
                                 )}
                             </div>
@@ -115,8 +115,8 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                             {/* Details Grid */}
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                    <span className="text-sm text-gray-500 block mb-1">نوع التقديم</span>
-                                    <span className="font-bold text-gray-800">{data.submission_type === 'recorded' ? 'تسجيل مباشر' : 'رفع ملف'}</span>
+                                    <span className="text-sm text-gray-500 block mb-1">{t.admin.adminRecitationDetails.submissionType}</span>
+                                    <span className="font-bold text-gray-800">{data.submission_type === 'recorded' ? t.admin.adminRecitationDetails.subRecorded : t.admin.adminRecitationDetails.subUploaded}</span>
                                 </div>
                             </div>
 
@@ -125,7 +125,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                                 <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
                                     <h3 className="font-bold mb-2 flex items-center gap-2 text-blue-800">
                                         <MessageSquare className="w-4 h-4" />
-                                        ملاحظات الطالب
+                                        {t.admin.adminRecitationDetails.studentNotes}
                                     </h3>
                                     <p className="text-sm text-blue-900 leading-relaxed">{data.student_notes}</p>
                                 </div>
@@ -141,7 +141,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                     {/* Student Info */}
                     <Card className="border-gray-100 shadow-sm">
                         <CardHeader className="pb-3 border-b border-gray-50">
-                            <CardTitle className="text-sm font-bold text-gray-500 uppercase">بيانات الطالب</CardTitle>
+                            <CardTitle className="text-sm font-bold text-gray-500 uppercase">{t.admin.adminRecitationDetails.studentInfo}</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-4 space-y-4">
                             <div className="flex items-center gap-3">
@@ -161,7 +161,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                             </div>
                             <div className="pt-3 border-t border-gray-50 text-sm">
                                 <div className="flex justify-between py-1">
-                                    <span className="text-gray-500">تاريخ الرفع</span>
+                                    <span className="text-gray-500">{t.admin.adminRecitationDetails.uploadDate}</span>
                                     <span className="font-medium">{new Date(data.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}</span>
                                 </div>
                             </div>
@@ -172,7 +172,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                     {(data.reader_name || data.assigned_reader_id) && (
                         <Card className="border-gray-100 shadow-sm">
                             <CardHeader className="pb-3 border-b border-gray-50">
-                                <CardTitle className="text-sm font-bold text-gray-500 uppercase">الشيخ / المُقيّم</CardTitle>
+                                <CardTitle className="text-sm font-bold text-gray-500 uppercase">{t.admin.adminRecitationDetails.evaluator}</CardTitle>
                             </CardHeader>
                             <CardContent className="pt-4 space-y-4">
                                 <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                                     </div>
                                     <div>
                                         <Link href={`/admin/users/${data.assigned_reader_id || '#'}`} className="font-bold text-gray-800 hover:text-[#0B3D2E] hover:underline">
-                                            {data.reader_name || "مُقيّم غير محدد"}
+                                            {data.reader_name || t.admin.adminRecitationDetails.unassignedEvaluator}
                                         </Link>
                                         {data.reader_email && <p className="text-xs text-gray-500">{data.reader_email}</p>}
                                     </div>
@@ -193,7 +193,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                                 {data.reviewed_at && (
                                     <div className="pt-3 border-t border-gray-50 text-sm">
                                         <div className="flex justify-between py-1">
-                                            <span className="text-gray-500">تاريخ التقييم</span>
+                                            <span className="text-gray-500">{t.admin.adminRecitationDetails.evaluationDate}</span>
                                             <span className="font-medium">{new Date(data.reviewed_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}</span>
                                         </div>
                                     </div>

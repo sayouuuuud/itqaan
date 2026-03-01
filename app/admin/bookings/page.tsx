@@ -47,6 +47,8 @@ export default function AdminBookingsPage() {
     const [editBooking, setEditBooking] = useState<any>(null)
     const [editLink, setEditLink] = useState('')
     const [editStatus, setEditStatus] = useState('')
+    const [editReaderId, setEditReaderId] = useState('')
+    const [availableReaders, setAvailableReaders] = useState<{ id: string; name: string }[]>([])
     const [saving, setSaving] = useState(false)
 
     const fetchBookings = useCallback(async () => {
@@ -69,10 +71,19 @@ export default function AdminBookingsPage() {
 
     useEffect(() => { fetchBookings() }, [fetchBookings])
 
-    const openEdit = (b: any) => {
+    const openEdit = async (b: any) => {
         setEditBooking(b)
         setEditLink(b.meeting_link || '')
         setEditStatus(b.status)
+        setEditReaderId('')
+        // Fetch available readers for dropdown
+        try {
+            const res = await fetch('/api/admin/bookings', { method: 'PUT' })
+            if (res.ok) {
+                const d = await res.json()
+                setAvailableReaders(d.readers || [])
+            }
+        } catch { }
     }
 
     const handleSave = async () => {
@@ -82,7 +93,12 @@ export default function AdminBookingsPage() {
             await fetch('/api/admin/bookings', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: editBooking.id, status: editStatus, meeting_link: editLink }),
+                body: JSON.stringify({
+                    id: editBooking.id,
+                    status: editStatus,
+                    meeting_link: editLink,
+                    ...(editReaderId ? { reader_id: editReaderId } : {})
+                }),
             })
             setEditBooking(null)
             fetchBookings()
@@ -257,21 +273,34 @@ export default function AdminBookingsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">رابط الجلسة</label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={editLink}
-                                        onChange={e => setEditLink(e.target.value)}
-                                        placeholder="https://zoom.us/j/..."
-                                        dir="ltr"
-                                    />
-                                    {editLink && (
-                                        <a href={editLink} target="_blank" rel="noreferrer"
-                                            className="h-10 w-10 flex items-center justify-center rounded-xl border border-border hover:bg-muted">
-                                            <ExternalLink className="w-4 h-4" />
-                                        </a>
-                                    )}
-                                </div>
+                                <label className="text-sm font-medium">تغيير المقرئ (اختياري)</label>
+                                <select
+                                    className="w-full h-10 rounded-xl border border-border bg-background px-3 text-sm"
+                                    value={editReaderId}
+                                    onChange={e => setEditReaderId(e.target.value)}
+                                >
+                                    <option value="">{isAr ? 'بدون تغيير (المقرئ الحالي)' : 'No change (keep current reader)'}</option>
+                                    {availableReaders.map(r => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
+                                </select>
+                                {editReaderId && (
+                                    <p className="text-xs text-amber-600">⚠️ سيتم إشعار الطالب والمقرئ الجديد عند الحفظ.</p>
+                                )}
+                            </div>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={editLink}
+                                    onChange={e => setEditLink(e.target.value)}
+                                    placeholder="https://zoom.us/j/..."
+                                    dir="ltr"
+                                />
+                                {editLink && (
+                                    <a href={editLink} target="_blank" rel="noreferrer"
+                                        className="h-10 w-10 flex items-center justify-center rounded-xl border border-border hover:bg-muted">
+                                        <ExternalLink className="w-4 h-4" />
+                                    </a>
+                                )}
                             </div>
                         </div>
                     )}
@@ -284,6 +313,6 @@ export default function AdminBookingsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }

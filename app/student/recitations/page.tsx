@@ -118,7 +118,7 @@ export default function StudentRecitationsPage() {
                       <Mic className="w-5 h-5 text-[#0B3D2E]" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-800">{rec.surah_name || "سورة الفاتحة"}</p>
+                      <p className="font-bold text-gray-800">{rec.surah_name || t.student.surahFatiha}</p>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
                         <span>{new Date(rec.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { year: "numeric", month: "short", day: "numeric" })}</span>
                         {rec.audio_duration_seconds && <span>• {formatDuration(rec.audio_duration_seconds)}</span>}

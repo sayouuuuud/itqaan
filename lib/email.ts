@@ -33,12 +33,12 @@ export async function sendEmail({ to, subject, body, html, attachments }: EmailO
     const transporter = nodemailer.createTransport(smtpUrl)
 
     await transporter.sendMail({
-      from: '"إتقان الفاتحة" <itz4kairo@gmail.com>',
+      from: '"إتقان الفاتحة" <itz4kairo@gmail.com>', // MUST Exactly match the authenticated email when using Gmail to avoid spam filters and delivery failures
       to,
       subject,
       text: body,
       html: html || body,
-      attachments: attachments as any,
+      attachments: attachments || [],
     })
 
     return true
@@ -74,12 +74,7 @@ export function sendVerificationEmail(to: string, userName: string, code: string
 // Helper to fetch and render dynamic templates
 import { queryOne } from '@/lib/db'
 
-async function sendDynamicEmail(
-  templateKey: string,
-  to: string,
-  variables: Record<string, string>,
-  attachments?: Attachment[]
-) {
+async function sendDynamicEmail(templateKey: string, to: string, variables: Record<string, string>, attachments?: Attachment[]) {
   try {
     const template = await queryOne<{ subject_ar: string; body_ar: string; is_active: boolean }>(
       `SELECT subject_ar, body_ar, is_active FROM email_templates WHERE template_key = $1`,
@@ -118,7 +113,7 @@ async function sendDynamicEmail(
       subject,
       body,
       html: htmlBody,
-      attachments,
+      attachments
     })
   } catch (error) {
     console.error(`[Email] Error sending dynamic template ${templateKey}:`, error)

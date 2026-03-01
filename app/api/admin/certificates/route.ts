@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
             statusCondition = "AND cd.certificate_issued = true"
         }
 
-        const [applications, globalCeremonyRow] = await Promise.all([
+        const [appsData, globalCeremonyRow] = await Promise.all([
             query(
                 `SELECT cd.*, u.name as student_name, u.email as student_email,
                    (SELECT status FROM recitations r WHERE r.student_id = cd.student_id ORDER BY created_at DESC LIMIT 1) as recitation_status
@@ -38,16 +38,18 @@ export async function GET(req: NextRequest) {
 
         const globalCeremony = globalCeremonyRow?.setting_value || { date: null, message: "" }
 
-        // Add effective ceremony info to each application
-        const applicationsWithEffective = applications.map(app => ({
-            ...app,
-            effective_ceremony_date: app.ceremony_date || globalCeremony.date,
-            effective_ceremony_message: app.ceremony_date ? null : globalCeremony.message, // Only show message if using global
-            is_custom_ceremony: !!app.ceremony_date
-        }))
+        const applications = appsData.map(app => {
+            const hasCustomDate = !!app.ceremony_date
+            return {
+                ...app,
+                effective_ceremony_date: hasCustomDate ? app.ceremony_date : globalCeremony.date,
+                effective_ceremony_message: hasCustomDate ? null : globalCeremony.message,
+                is_custom_ceremony: hasCustomDate
+            }
+        })
 
         return NextResponse.json({
-            applications: applicationsWithEffective,
+            applications,
             globalCeremony
         })
     } catch (error) {

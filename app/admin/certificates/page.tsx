@@ -5,25 +5,25 @@ import { useI18n } from "@/lib/i18n/context"
 import { Award, Search, FileText, CheckCircle, ExternalLink, Loader2, Clock } from "lucide-react"
 
 interface CertificateApplication {
-  id: string
-  student_id: string
-  university?: string
-  college?: string
-  city?: string
-  gender?: string
-  pdf_file_url?: string
-  certificate_issued: boolean
-  certificate_url?: string
-  certificate_pdf_url?: string
-  student_name: string
-  student_email: string
-  ceremony_date?: string
-  effective_ceremony_date?: string
-  effective_ceremony_message?: string
-  is_custom_ceremony?: boolean
-  recitation_status?: string
-  created_at: string
-  updated_at?: string
+    id: string
+    student_id: string
+    university?: string
+    college?: string
+    city?: string
+    gender?: string
+    pdf_file_url?: string
+    certificate_issued: boolean
+    certificate_url?: string
+    certificate_pdf_url?: string
+    student_name: string
+    student_email: string
+    ceremony_date?: string
+    effective_ceremony_date?: string
+    effective_ceremony_message?: string
+    is_custom_ceremony?: boolean
+    recitation_status?: string
+    created_at: string
+    updated_at?: string
 }
 
 export default function CertificatesDashPage() {
@@ -36,6 +36,8 @@ export default function CertificatesDashPage() {
     const [expandedId, setExpandedId] = useState<string | null>(null)
     const [globalCeremony, setGlobalCeremony] = useState<{ date: string | null, message: string }>({ date: null, message: "" })
     const [settingGlobal, setSettingGlobal] = useState(false)
+    const [platformSealUrl, setPlatformSealUrl] = useState<string | null>(null)
+    const [settingSeal, setSettingSeal] = useState(false)
 
     useEffect(() => {
         async function loadCerts() {
@@ -46,6 +48,7 @@ export default function CertificatesDashPage() {
                     const data = await res.json()
                     setApplications(data.applications || [])
                     setGlobalCeremony(data.globalCeremony || { date: null, message: "" })
+                    setPlatformSealUrl(data.platformSealUrl || null)
                 }
             } catch (err) {
                 console.error(err)
@@ -105,6 +108,29 @@ export default function CertificatesDashPage() {
         }
     }
 
+    const handleSetPlatformSeal = async (url: string) => {
+        setSettingSeal(true)
+        try {
+            const res = await fetch("/api/admin/certificates", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "set_platform_seal", url })
+            })
+
+            if (!res.ok) {
+                const errData = await res.json()
+                alert(errData.error || "حدث خطأ أثناء الحفظ")
+            } else {
+                setPlatformSealUrl(url)
+                alert(isAr ? "تم حفظ ختم المنصة بنجاح" : "Platform seal saved successfully")
+            }
+        } catch {
+            alert("تعذر الاتصال بالخادم")
+        } finally {
+            setSettingSeal(false)
+        }
+    }
+
     const handleSetIndividualCeremony = async (id: string, ceremony_date: string | null) => {
         try {
             const res = await fetch("/api/admin/certificates", {
@@ -142,67 +168,33 @@ export default function CertificatesDashPage() {
 
             </div>
 
-            {/* Global Ceremony Date Management */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-slate-800 mb-4">{isAr ? "إدارة حفل الختام الموحد" : "Unified Graduation Ceremony Management"}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "تاريخ الحفل" : "Ceremony Date"}</label>
-                        <input
-                            type="datetime-local"
-                            value={globalCeremony.date || ""}
-                            onChange={(e) => setGlobalCeremony(prev => ({ ...prev, date: e.target.value }))}
-                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "رسالة إضافية (اختياري)" : "Additional Message (Optional)"}</label>
-                        <input
-                            type="text"
-                            value={globalCeremony.message}
-                            onChange={(e) => setGlobalCeremony(prev => ({ ...prev, message: e.target.value }))}
-                            placeholder={isAr ? "مثل: الموقع أو التفاصيل الإضافية" : "e.g., Location or additional details"}
-                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
-                        />
-                    </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                    <button
-                        onClick={handleSetGlobalCeremony}
-                        disabled={settingGlobal}
-                        className="bg-[#0B3D2E] hover:bg-[#0A3528] disabled:bg-slate-300 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
-                    >
-                        {settingGlobal ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                        {isAr ? "حفظ التاريخ الموحد" : "Save Unified Date"}
-                    </button>
-                </div>
-            </div>
-
             {/* Filter Tabs */}
             <div className="flex flex-wrap gap-2">
                 <button
                     onClick={() => setFilter("pending")}
                     className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "pending"
-                            ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
                     {isAr ? "بانتظار الإصدار" : "Pending Issue"}
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px]">{counts.pending}</span>
                 </button>
                 <button
                     onClick={() => setFilter("issued")}
                     className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "issued"
-                            ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
                     {isAr ? "تم الإصدار" : "Issued"}
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px]">{counts.issued}</span>
                 </button>
                 <button
                     onClick={() => setFilter("all")}
                     className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "all"
-                            ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
                     {isAr ? "الكل" : "All"}
@@ -315,7 +307,7 @@ export default function CertificatesDashPage() {
                                                     className="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
                                                 />
                                                 <button
-                                                    onClick={() => handleSetIndividualCeremony(app.id, app.ceremony_date)}
+                                                    onClick={() => handleSetIndividualCeremony(app.id, app.ceremony_date || null)}
                                                     className="mt-2 text-xs bg-[#0B3D2E] hover:bg-[#0A3528] text-white px-3 py-1 rounded-lg font-bold"
                                                 >
                                                     {isAr ? "حفظ التاريخ المخصص" : "Save Custom Date"}
@@ -360,6 +352,108 @@ export default function CertificatesDashPage() {
                         </div>
                     )
                 })}
+            </div>
+
+            {/* Platform Seal Management */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4">{isAr ? "ختم المنصة" : "Platform Seal"}</h2>
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div className="shrink-0 relative">
+                        {settingSeal && (
+                            <div className="absolute inset-0 z-10 bg-white/50 rounded-full flex items-center justify-center">
+                                <Loader2 className="w-6 h-6 animate-spin text-[#0B3D2E]" />
+                            </div>
+                        )}
+                        {/* We use input type=file approach similar to AvatarUpload */}
+                        <label className="block cursor-pointer relative group">
+                            <div className={`w-28 h-28 border-2 border-dashed rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-colors ${settingSeal ? "border-slate-200" : "border-slate-300 group-hover:border-[#0B3D2E] group-hover:bg-[#0B3D2E]/5"}`}>
+                                {platformSealUrl ? (
+                                    <img src={platformSealUrl} alt="Platform Seal" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="text-center p-2">
+                                        <Award className="w-8 h-8 text-slate-300 mx-auto mb-1" />
+                                        <span className="text-[10px] text-slate-500 font-medium block whitespace-pre-wrap">{isAr ? "اضغط لرفع\nصورة الختم" : "Click to upload\nseal image"}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <span className="text-white text-xs font-bold">{isAr ? "تغيير" : "Change"}</span>
+                            </div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={settingSeal}
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0]
+                                    if (!file) return
+                                    setSettingSeal(true)
+                                    try {
+                                        const formData = new FormData()
+                                        formData.append("image", file)
+                                        formData.append("folder", "seals")
+                                        const res = await fetch("/api/upload", { method: "POST", body: formData })
+                                        const data = await res.json()
+                                        if (res.ok && data.url) {
+                                            handleSetPlatformSeal(data.url)
+                                        } else {
+                                            throw new Error(data.error)
+                                        }
+                                    } catch (err) {
+                                        alert("Upload failed")
+                                        setSettingSeal(false)
+                                    }
+                                }}
+                            />
+                        </label>
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-slate-700 mb-1">
+                            {isAr ? "تخصيص الختم الرقمي" : "Customize Digital Seal"}
+                        </p>
+                        <p className="text-sm text-slate-500">
+                            {isAr
+                                ? "قم برفع صورة بخلفية شفافة (PNG) لختم المنصة. سيتم استخدام هذا الختم في جميع الشهادات المصدرة مستقبلاً وفي صفحة التحقق من الشهادة."
+                                : "Upload a transparent PNG image for the platform seal. This seal will be used in all newly issued certificates and on the public verification page."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Global Ceremony Date Management */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <h2 className="text-lg font-bold text-slate-800 mb-4">{isAr ? "إدارة حفل الختام الموحد" : "Unified Graduation Ceremony Management"}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "تاريخ الحفل" : "Ceremony Date"}</label>
+                        <input
+                            type="datetime-local"
+                            value={globalCeremony.date || ""}
+                            onChange={(e) => setGlobalCeremony(prev => ({ ...prev, date: e.target.value }))}
+                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "رسالة إضافية (اختياري)" : "Additional Message (Optional)"}</label>
+                        <input
+                            type="text"
+                            value={globalCeremony.message}
+                            onChange={(e) => setGlobalCeremony(prev => ({ ...prev, message: e.target.value }))}
+                            placeholder={isAr ? "مثل: الموقع أو التفاصيل الإضافية" : "e.g., Location or additional details"}
+                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                        />
+                    </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={handleSetGlobalCeremony}
+                        disabled={settingGlobal}
+                        className="bg-[#0B3D2E] hover:bg-[#0A3528] disabled:bg-slate-300 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                    >
+                        {settingGlobal ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        {isAr ? "حفظ التاريخ الموحد" : "Save Unified Date"}
+                    </button>
+                </div>
             </div>
         </div>
     )

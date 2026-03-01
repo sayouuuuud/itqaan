@@ -144,7 +144,8 @@ export async function sendCertificateIssuedEmail(
   certificateLink: string,
   ceremonyDate?: string | null,
   ceremonyMessage?: string,
-  pdfFileUrl?: string | null
+  pdfFileUrl?: string | null,
+  pdfBuffer?: Buffer | null
 ) {
   // Format ceremony info
   let ceremonyHtml = ''
@@ -168,18 +169,26 @@ export async function sendCertificateIssuedEmail(
 
   // Build attachments list if PDF available
   const attachments: Attachment[] = []
-  if (pdfFileUrl) {
+  if (pdfBuffer) {
+    attachments.push({
+      filename: `شهادة-${studentName}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf',
+    })
+    console.log('PDF buffer attached to email, size:', pdfBuffer.byteLength)
+  } else if (pdfFileUrl) {
+    // Fallback if only URL is available
     try {
       console.log('Downloading PDF for attachment:', pdfFileUrl)
       const pdfResponse = await fetch(pdfFileUrl)
       if (pdfResponse.ok) {
-        const pdfBuffer = await pdfResponse.arrayBuffer()
+        const fetchedBuffer = await pdfResponse.arrayBuffer()
         attachments.push({
           filename: `شهادة-${studentName}.pdf`,
-          content: Buffer.from(pdfBuffer),
+          content: Buffer.from(fetchedBuffer),
           contentType: 'application/pdf',
         })
-        console.log('PDF downloaded successfully, size:', pdfBuffer.byteLength)
+        console.log('PDF downloaded successfully, size:', fetchedBuffer.byteLength)
       } else {
         console.error('Failed to download PDF:', pdfResponse.status)
       }

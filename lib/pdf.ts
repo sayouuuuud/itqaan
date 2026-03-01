@@ -1,25 +1,40 @@
-import puppeteer from 'puppeteer'
 import { uploadToCloudinary } from './cloudinary'
+import { getCertificateHtml } from './pdf-html'
 
-export async function generateCertificatePDF(certificateUrl: string, studentId: string): Promise<string | null> {
+export async function generateCertificatePDF(studentId: string): Promise<{ url: string | null, buffer: Buffer | null }> {
   let browser
   try {
     console.log('Starting PDF generation for student:', studentId)
 
-    // Fetch server-rendered HTML
-    const htmlUrl = certificateUrl.replace('/c/', '/api/certificate-pdf/')
-    console.log('Fetching HTML from:', htmlUrl)
-    const htmlResponse = await fetch(htmlUrl)
-    if (!htmlResponse.ok) {
-      throw new Error(`Failed to fetch certificate HTML: ${htmlResponse.status}`)
+    // Generate server-rendered HTML directly (skip issued check since we're in the issuance flow)
+    const html = await getCertificateHtml(studentId, true)
+    if (!html) {
+      throw new Error(`Failed to generate certificate HTML for student ${studentId}`)
     }
-    const html = await htmlResponse.text()
-    console.log('HTML fetched, length:', html.length)
+    console.log('HTML generated, length:', html.length)
 
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    // Launch puppeteer based on environment
+    const isLocal = process.env.NODE_ENV === 'development' || !process.env.VERCEL
+
+    if (isLocal) {
+      console.log('Using local puppeteer...')
+      const puppeteer = (await import('puppeteer')).default
+      browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true
+      })
+    } else {
+      console.log('Using sparticuz/chromium for serverless...')
+      const chromium = (await import('@sparticuz/chromium')).default
+      const puppeteerCore = (await import('puppeteer-core')).default
+
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      })
+    }
 
     const page = await browser.newPage()
 
@@ -53,10 +68,13 @@ export async function generateCertificatePDF(certificateUrl: string, studentId: 
 
     console.log('PDF generated, buffer length:', pdfBuffer.length)
 
+    // Ensure it's a proper Node.js Buffer (puppeteer may return Uint8Array)
+    const nodeBuffer = Buffer.from(pdfBuffer)
+
     // Upload to Cloudinary
     const fileName = `certificate-${studentId}-${Date.now()}.pdf`
     console.log('Uploading to Cloudinary...')
-    const uploadResult = await uploadToCloudinary(pdfBuffer, {
+    const uploadResult = await uploadToCloudinary(nodeBuffer, {
       folder: 'certificates',
       resource_type: 'raw', // PDF is raw file
       public_id: fileName
@@ -64,11 +82,14 @@ export async function generateCertificatePDF(certificateUrl: string, studentId: 
 
     console.log('Upload result:', uploadResult)
 
-    return uploadResult?.url || null
+    return {
+      url: uploadResult?.url || null,
+      buffer: nodeBuffer
+    }
 
   } catch (error) {
     console.error('Error generating certificate PDF:', error)
-    return null
+    return { url: null, buffer: null }
   } finally {
     if (browser) {
       await browser.close()

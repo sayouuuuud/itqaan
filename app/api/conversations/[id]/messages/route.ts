@@ -54,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
 
         // Get the other participant
-        const conv = await query(
+        const conv = await query<{ student_id: string, reader_id: string }>(
             `SELECT student_id, reader_id FROM conversations WHERE id = $1`,
             [id]
         )

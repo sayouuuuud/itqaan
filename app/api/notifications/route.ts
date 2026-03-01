@@ -3,10 +3,15 @@ import { getSession } from "@/lib/auth"
 import { query } from "@/lib/db"
 
 // GET /api/notifications
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = 10
+    const offset = (page - 1) * limit
 
     const notifications = await query(
       `SELECT id, type, title, message, category, link, is_read, created_at,
@@ -14,13 +19,24 @@ export async function GET() {
        FROM notifications
        WHERE user_id = $1
        ORDER BY created_at DESC
-       LIMIT 50`,
-      [session.sub]
+       LIMIT $2 OFFSET $3`,
+      [session.sub, limit + 1, offset] // Fetch one extra to check if there are more
     )
 
-    const unreadCount = (notifications as { is_read: boolean }[]).filter(n => !n.is_read).length
+    const unreadCountRow = await query(
+      `SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false`,
+      [session.sub]
+    )
+    const unreadCount = parseInt((unreadCountRow as any)[0]?.count || '0')
 
-    return NextResponse.json({ notifications, unreadCount })
+    const hasMore = notifications.length > limit
+    const paginatedNotifications = notifications.slice(0, limit)
+
+    return NextResponse.json({
+      notifications: paginatedNotifications,
+      unreadCount,
+      hasMore
+    })
   } catch (error) {
     console.error("Get notifications error:", error)
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })

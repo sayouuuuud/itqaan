@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
             statusCondition = "AND cd.certificate_issued = true"
         }
 
-        const [appsData, globalCeremonyRow] = await Promise.all([
+        const [appsData, globalCeremonyRow, platformSealRow] = await Promise.all([
             query(
                 `SELECT cd.*, u.name as student_name, u.email as student_email,
                    (SELECT status FROM recitations r WHERE r.student_id = cd.student_id ORDER BY created_at DESC LIMIT 1) as recitation_status
@@ -33,10 +33,14 @@ export async function GET(req: NextRequest) {
             ),
             queryOne<{ setting_value: any }>(
                 `SELECT setting_value FROM system_settings WHERE setting_key = 'global_ceremony_date'`
+            ),
+            queryOne<{ setting_value: any }>(
+                `SELECT setting_value FROM system_settings WHERE setting_key = 'platform_seal'`
             )
         ])
 
         const globalCeremony = globalCeremonyRow?.setting_value || { date: null, message: "" }
+        const platformSealUrl = platformSealRow?.setting_value?.url || null
 
         const applications = appsData.map(app => {
             const hasCustomDate = !!app.ceremony_date
@@ -50,7 +54,8 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             applications,
-            globalCeremony
+            globalCeremony,
+            platformSealUrl
         })
     } catch (error) {
         console.error("Get certificates error:", error)
@@ -76,6 +81,18 @@ export async function PUT(req: NextRequest) {
             await query(
                 `UPDATE system_settings SET setting_value = $1, updated_at = NOW() WHERE setting_key = 'global_ceremony_date'`,
                 [JSON.stringify({ date: date || null, message: message || "" })]
+            )
+            return NextResponse.json({ success: true })
+        }
+
+        // --- Set Platform Seal ---
+        if (action === "set_platform_seal") {
+            const { url } = body
+            await query(
+                `INSERT INTO system_settings (setting_key, setting_value, updated_at) 
+                 VALUES ('platform_seal', $1, NOW()) 
+                 ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
+                [JSON.stringify({ url: url || null })]
             )
             return NextResponse.json({ success: true })
         }
@@ -131,7 +148,9 @@ export async function PUT(req: NextRequest) {
             const certificateUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${cert.student_id}`
 
             // Generate certificate PDF
-            const certificatePdfUrl = await generateCertificatePDF(certificateUrl, cert.student_id)
+            const pdfResult = await generateCertificatePDF(cert.student_id)
+            const certificatePdfUrl = pdfResult?.url || null
+            const certificatePdfBuffer = pdfResult?.buffer || null
 
             await query(
                 `UPDATE certificate_data SET certificate_issued = true, certificate_url = $1, certificate_pdf_url = $2, updated_at = NOW() WHERE id = $3`,
@@ -146,7 +165,8 @@ export async function PUT(req: NextRequest) {
                     certificateUrl,
                     ceremonyDate,
                     ceremonyMessage,
-                    certificatePdfUrl
+                    certificatePdfUrl,
+                    certificatePdfBuffer
                 )
             }
 

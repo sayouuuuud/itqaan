@@ -62,99 +62,190 @@ export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
     const [markingAll, setMarkingAll] = useState(false)
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(false)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [unreadCount, setUnreadCount] = useState(0)
 
-    const load = useCallback(async () => {
-        const res = await fetch("/api/notifications")
+    const load = useCallback(async (pageNum = 1) => {
+        if (pageNum === 1) setLoading(true)
+        else setLoadingMore(true)
+
+        const res = await fetch(`/api/notifications?page=${pageNum}`)
         if (res.ok) {
             const d = await res.json()
-            setNotifications(d.notifications || [])
+            if (pageNum === 1) {
+                setNotifications(d.notifications || [])
+            } else {
+                setNotifications(prev => {
+                    // Prevent duplicates in case of double fetch
+                    const existingIds = new Set(prev.map(n => n.id))
+                    const newNotifs = (d.notifications || []).filter((n: Notification) => !existingIds.has(n.id))
+                    return [...prev, ...newNotifs]
+                })
+            }
+            setHasMore(d.hasMore || false)
+            setUnreadCount(d.unreadCount || 0)
         }
-        setLoading(false)
+
+        if (pageNum === 1) setLoading(false)
+        else setLoadingMore(false)
     }, [])
 
-    useEffect(() => { load() }, [load])
+    useEffect(() => {
+        load(1)
+        setPage(1)
+    }, [load])
 
     const markAllRead = async () => {
         setMarkingAll(true)
         await fetch("/api/notifications", { method: "PATCH" })
         setNotifications(p => p.map(n => ({ ...n, is_read: true })))
+        setUnreadCount(0)
         setMarkingAll(false)
     }
 
     const markOneRead = async (id: string) => {
+        const notif = notifications.find(n => n.id === id)
+        if (!notif || notif.is_read) return
+
         await fetch(`/api/notifications/${id}`, { method: "PATCH" })
         setNotifications(p => p.map(n => n.id === id ? { ...n, is_read: true } : n))
+        setUnreadCount(prev => Math.max(0, prev - 1))
     }
 
-    const unread = notifications.filter(n => !n.is_read).length
+    const unread = unreadCount
 
     if (loading) return (
-        <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+        <div className="flex justify-center items-center min-h-[400px]">
+            <div className="relative">
+                <Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" />
+                <div className="absolute inset-0 bg-[#0B3D2E] opacity-20 blur-xl rounded-full" />
+            </div>
+        </div>
     )
 
     return (
-        <div className="max-w-2xl">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800">الإشعارات</h1>
-                    <p className="text-sm text-slate-500 mt-1">
-                        {unread > 0 ? `لديك ${unread} إشعار غير مقروء` : "جميع الإشعارات مقروءة"}
-                    </p>
+        <div className="max-w-3xl mx-auto pb-12">
+            {/* Premium Header Zone */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100/60 rounded-3xl p-8 mb-8 shadow-sm">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#0B3D2E] opacity-[0.03] blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
+
+                <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-[#0B3D2E]/5 rounded-2xl flex items-center justify-center border border-[#0B3D2E]/10">
+                            <Bell className="w-7 h-7 text-[#0B3D2E]" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">الإشعارات</h1>
+                            <p className="text-sm font-medium text-gray-500 mt-1 flex items-center gap-2">
+                                {unread > 0 ? (
+                                    <>
+                                        <span className="flex h-2 w-2 relative">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                        لديك {unread} إشعار غير مقروء
+                                    </>
+                                ) : "جميع الإشعارات مقروءة و محدثة"}
+                            </p>
+                        </div>
+                    </div>
+                    {unread > 0 && (
+                        <button
+                            onClick={markAllRead}
+                            disabled={markingAll}
+                            className="group flex items-center gap-2 text-sm font-bold text-white bg-[#0B3D2E] px-6 py-3 rounded-xl hover:bg-[#0a3326] hover:shadow-lg hover:shadow-[#0B3D2E]/20 transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:hover:transform-none disabled:hover:shadow-none"
+                        >
+                            {markingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4 transition-transform group-hover:scale-110" />}
+                            تعليم الكل كمقروء
+                        </button>
+                    )}
                 </div>
-                {unread > 0 && (
-                    <button
-                        onClick={markAllRead}
-                        disabled={markingAll}
-                        className="flex items-center gap-2 text-sm font-medium text-[#0B3D2E] border border-[#0B3D2E]/30 px-4 py-2 rounded-xl hover:bg-[#0B3D2E]/5 transition-colors disabled:opacity-50"
-                    >
-                        {markingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4" />}
-                        تعليم الكل كمقروء
-                    </button>
-                )}
             </div>
 
+            {/* Notifications List */}
             {notifications.length === 0 ? (
-                <div className="bg-white border border-slate-200 rounded-2xl py-16 text-center shadow-sm">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Bell className="w-7 h-7 text-slate-300" />
+                <div className="bg-white border border-gray-100 rounded-3xl p-16 text-center shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+                    <div className="w-24 h-24 bg-gradient-to-tr from-gray-50 to-gray-100 rounded-full flex items-center justify-center mb-6 border border-white shadow-inner relative overflow-hidden">
+                        <Bell className="w-10 h-10 text-gray-300 relative z-10" />
                     </div>
-                    <p className="text-slate-400 font-medium">لا توجد إشعارات</p>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">لا توجد إشعارات حالياً</h3>
+                    <p className="text-gray-500 max-w-sm mx-auto">عندما يصلك إشعار جديد بخصوص طلباتك أو المواعيد سيظهر هنا.</p>
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {notifications.map(n => {
                         const Icon = TYPE_ICON[n.type] || Bell
-                        const iconClass = TYPE_COLOR[n.type] || "bg-slate-50 text-slate-500"
+                        const iconClass = TYPE_COLOR[n.type] || "bg-gray-50 text-gray-500 border-gray-100"
                         const isUnread = !n.is_read
 
                         const inner = (
                             <div
-                                className={`flex items-start gap-4 bg-white border rounded-2xl p-4 shadow-sm transition-colors hover:border-[#0B3D2E]/20 cursor-pointer ${isUnread ? "border-[#0B3D2E]/20 bg-[#0B3D2E]/[0.02]" : "border-slate-200"}`}
+                                className={`group relative flex items-start gap-5 bg-white rounded-2xl p-5 transition-all duration-300 cursor-pointer overflow-hidden
+                                    ${isUnread
+                                        ? "border-transparent ring-1 ring-[#0B3D2E]/20 shadow-[0_4px_20px_-4px_rgba(11,61,46,0.08)] bg-gradient-to-l from-white to-[#0B3D2E]/[0.02]"
+                                        : "border border-gray-100/80 shadow-sm hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5 bg-white"
+                                    }`}
                                 onClick={() => { if (isUnread) markOneRead(n.id) }}
                             >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconClass}`}>
+                                {/* Unread indicator stripe */}
+                                {isUnread && (
+                                    <div className="absolute right-0 top-0 bottom-0 w-1 bg-[#0B3D2E] rounded-r-2xl" />
+                                )}
+
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-105 ${iconClass}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <p className={`text-sm font-semibold ${isUnread ? "text-slate-800" : "text-slate-600"}`}>{n.title}</p>
-                                        {isUnread && <div className="w-2 h-2 rounded-full bg-[#0B3D2E] shrink-0 mt-1.5" />}
+                                <div className="flex-1 min-w-0 py-0.5">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <h4 className={`text-base font-bold truncate leading-tight ${isUnread ? "text-gray-900" : "text-gray-700 hover:text-gray-900 transition-colors"}`}>
+                                            {n.title}
+                                        </h4>
+                                        <span className="text-xs font-medium text-gray-400 whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border border-gray-100/50">
+                                            {timeAgo(n.created_at)}
+                                        </span>
                                     </div>
-                                    <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{n.message}</p>
-                                    <p className="text-xs text-slate-400 mt-2">{timeAgo(n.created_at)}</p>
+                                    <p className={`text-sm mt-1.5 leading-relaxed ${isUnread ? "text-gray-600 font-medium" : "text-gray-500"}`}>
+                                        {n.message}
+                                    </p>
                                 </div>
-                                {n.link && <ChevronRight className="w-4 h-4 text-slate-300 shrink-0 mt-1 rotate-180" />}
+                                {n.link && (
+                                    <div className="shrink-0 self-center flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-400 group-hover:bg-[#0B3D2E]/5 group-hover:text-[#0B3D2E] transition-colors border border-transparent group-hover:border-[#0B3D2E]/10">
+                                        <ChevronRight className="w-4 h-4 rotate-180 transition-transform group-hover:-translate-x-0.5" />
+                                    </div>
+                                )}
                             </div>
                         )
 
                         return n.link ? (
-                            <Link key={n.id} href={n.link} onClick={() => { if (isUnread) markOneRead(n.id) }}>
+                            <Link key={n.id} href={n.link} onClick={() => { if (isUnread) markOneRead(n.id) }} className="block outline-none focus-visible:ring-2 focus-visible:ring-[#0B3D2E]/50 rounded-2xl">
                                 {inner}
                             </Link>
                         ) : (
                             <div key={n.id}>{inner}</div>
                         )
                     })}
+                </div>
+            )}
+
+            {/* Load More Button */}
+            {hasMore && (
+                <div className="pt-8 pb-4 flex justify-center">
+                    <button
+                        onClick={() => {
+                            const nextPage = page + 1
+                            setPage(nextPage)
+                            load(nextPage)
+                        }}
+                        disabled={loadingMore}
+                        className="group relative flex items-center justify-center gap-2 text-sm font-bold text-[#0B3D2E] bg-white border-2 border-[#0B3D2E]/10 px-8 py-3.5 rounded-xl hover:border-[#0B3D2E]/30 hover:bg-[#0B3D2E]/[0.02] hover:shadow-sm transition-all active:scale-95 disabled:opacity-50 min-w-[160px]"
+                    >
+                        {loadingMore ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : null}
+                        {loadingMore ? "جاري التحميل..." : "عرض المزيد من الإشعارات"}
+                    </button>
                 </div>
             )}
         </div>

@@ -9,6 +9,7 @@ type CertificateData = {
     university: string
     city: string
     issued_date: string
+    platform_seal_url?: string
 }
 
 export default function PublicCertificatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -148,9 +149,15 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                     {/* Footer Seals */}
                     <div className="mt-auto mb-20 w-full flex justify-between items-end">
                         <div className="text-center">
-                            <div className="w-24 h-24 border-2 border-slate-200 rounded-full flex items-center justify-center mb-2 opacity-50 grayscale">
-                                <img src="/logo.png" alt="" className="w-12 h-12 grayscale" />
-                            </div>
+                            {cert.platform_seal_url ? (
+                                <div className="w-24 h-24 mb-2 mx-auto">
+                                    <img src={cert.platform_seal_url} alt="Platform Seal" className="w-full h-full object-contain drop-shadow-sm" />
+                                </div>
+                            ) : (
+                                <div className="w-24 h-24 border-2 border-slate-200 rounded-full flex items-center justify-center mb-2 mx-auto opacity-50 grayscale">
+                                    <img src="/logo.png" alt="Platform Seal" className="w-12 h-12 grayscale" />
+                                </div>
+                            )}
                             <p className="text-xs font-bold text-slate-400">{isAr ? "ختم المنصة" : "Platform Seal"}</p>
                         </div>
 

@@ -22,7 +22,13 @@ export async function GET() {
     [session.sub]
   )
 
-  console.log('Certificate data for student', session.sub, ':', certificate)
+  let enhancedCertificate = certificate ? { ...certificate } : null;
+
+  if (enhancedCertificate && enhancedCertificate.certificate_issued) {
+    enhancedCertificate.certificate_url = `${process.env.NEXT_PUBLIC_APP_URL}/c/${enhancedCertificate.id}`;
+  }
+
+  console.log('Certificate data for student', session.sub, ':', enhancedCertificate)
 
   // Check if student is mastered
   const latestRecitation = await queryOne<{ status: string }>(
@@ -31,7 +37,7 @@ export async function GET() {
   )
 
   return NextResponse.json({
-    certificate: certificate || null,
+    certificate: enhancedCertificate || null,
     certificateEnabled,
     isMastered: latestRecitation?.status === 'mastered'
   })

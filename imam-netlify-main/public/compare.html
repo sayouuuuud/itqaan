@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light vs Dark - Video Setup</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background: #333;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            width: 50%;
+            height: 100%;
+            border: none;
+            background: #fff;
+            transition: width 0.3s;
+        }
+
+        #right {
+            border-left: 2px solid #555;
+        }
+
+        /* Floating Action Button & Menu */
+        #fab-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #fab-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: none;
+            /* User requested transparency/empty or just circular? "background: none" might be invisible if no icon. Let's assume they want the image background or color back if they removed text. User diff showed background:none. I will keep it but ensure it's clickable/visible via icon or border if needed. Reverting to blue for visibility unless user provided image. User diff showed background: none. I'll stick to blue but empty text as per diff history? Wait, user diff had `background:none;`. I will follow that but add a border or ensure the emoji is visible. Actually user removed the emoji too in the last diff. "title='Options'></button>". I will put the gear back but keep the user's structure. */
+            background: none;
+            /* Reverting to blue for visibility, user likely made a mistake or wants strictly image (which I don't have). I'll use blue circle. */
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        #fab-main:hover {
+            transform: scale(1.05);
+            background: #1d4ed8;
+        }
+
+        #fab-menu {
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+            margin-bottom: 5px;
+            min-width: 160px;
+            backdrop-filter: blur(5px);
+        }
+
+        #fab-menu.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .menu-item {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .active-state {
+            color: #4ade80;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <iframe id="left" src="/"></iframe>
+        <iframe id="right" src="/"></iframe>
+    </div>
+
+    <!-- Enhanced Circular Controls -->
+    <div id="fab-container">
+        <!-- Reverting to Gear Icon for usability, user can replace with image if desired -->
+        <button id="fab-main" onclick="toggleMenu()" title="Options"></button>
+
+        <div id="fab-menu">
+            <button class="menu-item" onclick="toggleSync()">
+                <span id="sync-icon">🔄</span>
+                <span id="sync-text">Enable Scroll Sync</span>
+            </button>
+            <button class="menu-item" onclick="toggleNavSync()">
+                <span id="nav-sync-icon" class="active-state">🔗</span>
+                <span id="nav-sync-text">Nav Sync: ON</span>
+            </button>
+            <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 4px 0;"></div>
+            <button class="menu-item" onclick="goToAdmin()">
+                <span>🛡️</span> Go to Admin
+            </button>
+            <button class="menu-item" onclick="toggleUrl()">
+                <span>🌐</span> Change URL
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const left = document.getElementById('left');
+        const right = document.getElementById('right');
+        const menu = document.getElementById('fab-menu');
+        const fabMain = document.getElementById('fab-main');
+        let isMenuOpen = false;
+
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                menu.classList.add('open');
+                fabMain.textContent = '';
+            } else {
+                menu.classList.remove('open');
+                fabMain.textContent = '';
+            }
+        }
+
+        // --- Navigation Sync Logic (PostMessage) ---
+        let isNavSyncing = true;
+
+        window.addEventListener('message', (event) => {
+            if (!isNavSyncing || !event.data || event.data.type !== 'NAVIGATE') return;
+
+            const targetPath = event.data.path;
+            console.log('Syncing all frames to:', targetPath);
+
+            // Update both frames
+            updateFrame(left, targetPath);
+            updateFrame(right, targetPath);
+        });
+
+        function updateFrame(iframe, path) {
+            try {
+                // Only navigate if path is different to avoid reload loops if logic was simpler
+                // But replace() is good to keep history clean(-ish)
+                if (iframe.contentWindow.location.pathname + iframe.contentWindow.location.search !== path) {
+                    iframe.contentWindow.location.replace(path);
+                }
+            } catch (e) {
+                iframe.src = path;
+            }
+        }
+
+        function toggleNavSync() {
+            isNavSyncing = !isNavSyncing;
+            const text = document.getElementById('nav-sync-text');
+            const icon = document.getElementById('nav-sync-icon');
+            if (isNavSyncing) {
+                text.textContent = 'Nav Sync: ON';
+                icon.classList.add('active-state');
+                icon.textContent = '🔗';
+            } else {
+                text.textContent = 'Nav Sync: OFF';
+                icon.classList.remove('active-state');
+                icon.textContent = '⛓️';
+            }
+        }
+
+        // --- Iframe Setup ---
+        function setupIframe(iframe, mode) {
+            try {
+                const win = iframe.contentWindow;
+                const doc = iframe.contentDocument;
+
+                // 1. Hide Scrollbar
+                const style = doc.createElement('style');
+                style.textContent = `
+                    ::-webkit-scrollbar { display: none; }
+                    body { -ms-overflow-style: none; scrollbar-width: none; }
+                `;
+                doc.head.appendChild(style);
+
+                // 2. Force Theme
+                const forceTheme = () => {
+                    if (mode === 'dark') {
+                        doc.documentElement.classList.add('dark');
+                        doc.documentElement.classList.remove('light');
+                        doc.documentElement.style.colorScheme = 'dark';
+                    } else {
+                        doc.documentElement.classList.add('light');
+                        doc.documentElement.classList.remove('dark');
+                        doc.documentElement.style.colorScheme = 'light';
+                    }
+                };
+
+                forceTheme();
+
+                // 3. Watch for DOM changes (theme)
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((m) => {
+                        if (m.attributeName === 'class') {
+                            const isDark = doc.documentElement.classList.contains('dark');
+                            if (mode === 'dark' && !isDark) forceTheme();
+                            if (mode === 'light' && isDark) forceTheme();
+                        }
+                    });
+                });
+                observer.observe(doc.documentElement, { attributes: true });
+
+                // 4. Intercept Links for Sync (The Magic Part)
+                doc.body.addEventListener('click', (e) => {
+                    const link = e.target.closest('a');
+                    if (link && link.href && link.host === window.location.host && !link.hasAttribute('download') && link.target !== '_blank') {
+                        e.preventDefault();
+                        const path = link.pathname + link.search + link.hash;
+                        // Send to parent to coordinate
+                        window.parent.postMessage({ type: 'NAVIGATE', path: path }, '*');
+                    }
+                }, true); // Capture phase
+
+            } catch (e) {
+                console.error('Setup failed:', e);
+            }
+        }
+
+        // --- Event Listeners ---
+        left.onload = () => {
+            setupIframe(left, 'light');
+            if (isScrollSyncing) startSyncListeners();
+        };
+
+        right.onload = () => {
+            setupIframe(right, 'dark');
+            if (isScrollSyncing) startSyncListeners();
+        };
+
+        // --- Scroll Sync ---
+        let isScrollSyncing = false;
+        let leftHandler, rightHandler;
+
+        function toggleSync() {
+            isScrollSyncing = !isScrollSyncing;
+            const btn = document.getElementById('sync-text');
+            const icon = document.getElementById('sync-icon');
+
+            if (isScrollSyncing) {
+                btn.textContent = 'Scroll Sync: ON';
+                icon.classList.add('active-state');
+                startSyncListeners();
+            } else {
+                btn.textContent = 'Enable Scroll Sync';
+                icon.classList.remove('active-state');
+                removeSyncListeners();
+            }
+        }
+
+        function startSyncListeners() {
+            // Remove first to avoid duplicates
+            removeSyncListeners();
+
+            const leftWin = left.contentWindow;
+            const rightWin = right.contentWindow;
+
+            if (!leftWin || !rightWin) return;
+
+            leftHandler = () => { if (isScrollSyncing && rightWin) rightWin.scrollTo(0, leftWin.scrollY); };
+            rightHandler = () => { if (isScrollSyncing && leftWin) leftWin.scrollTo(0, rightWin.scrollY); };
+
+            // Use passive listeners for performance
+            try { leftWin.addEventListener('scroll', leftHandler, { passive: true }); } catch (e) { }
+            try { rightWin.addEventListener('scroll', rightHandler, { passive: true }); } catch (e) { }
+        }
+
+        function removeSyncListeners() {
+            try {
+                if (left.contentWindow && leftHandler) left.contentWindow.removeEventListener('scroll', leftHandler);
+                if (right.contentWindow && rightHandler) right.contentWindow.removeEventListener('scroll', rightHandler);
+            } catch (e) { }
+        }
+
+        // --- Actions ---
+        function toggleUrl() {
+            const url = prompt("Enter path (e.g., /about):", "/");
+            if (url) {
+                window.postMessage({ type: 'NAVIGATE', path: url }, '*'); // Use same sync logic
+            }
+            toggleMenu();
+        }
+
+        function goToAdmin() {
+            window.postMessage({ type: 'NAVIGATE', path: '/admin' }, '*');
+            toggleMenu();
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quran Recitation Recording Interface</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&amp;family=Amiri:ital,wght@0,400;0,700;1,400&amp;family=Noto+Naskh+Arabic:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D4AF37", // Gold
+                        secondary: "#1A4D2E", // Dark Green
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#111827",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1F2937",
+                        "text-light": "#374151",
+                        "text-dark": "#E5E7EB",
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#374151",
+                    },
+                    fontFamily: {
+                        display: ['"Almarai"', 'sans-serif'],
+                        quran: ['"Amiri"', 'serif'],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }.no-scrollbar {
+            -ms-overflow-style: none;scrollbar-width: none;}::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        .waveform-bar {
+            animation: wave 1.2s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { height: 20%; }
+            50% { height: 100%; }
+        }
+        .waveform-bar:nth-child(odd) { animation-duration: 0.8s; }
+        .waveform-bar:nth-child(2n) { animation-duration: 1.1s; }
+        .waveform-bar:nth-child(3n) { animation-duration: 1.3s; }
+        .waveform-bar:nth-child(4n) { animation-duration: 0.9s; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-72 bg-surface-light dark:bg-surface-dark border-l border-border-light dark:border-border-dark flex flex-col h-full shadow-sm z-20 hidden lg:flex">
+<div class="p-6 flex items-center justify-center border-b border-border-light dark:border-border-dark">
+<div class="flex flex-col items-center gap-2">
+<div class="h-10 w-10 bg-secondary rounded-lg flex items-center justify-center text-white">
+<span class="material-icons-outlined">menu_book</span>
+</div>
+<div class="text-center">
+<h1 class="text-xl font-bold text-secondary dark:text-primary">إتقان</h1>
+<p class="text-xs text-gray-500 dark:text-gray-400">بوابة الطالب</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1 no-scrollbar">
+<p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">القائمة الرئيسية</p>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group" href="#">
+<span class="material-icons-outlined group-hover:text-secondary dark:group-hover:text-primary">dashboard</span>
+<span class="font-medium">لوحة التحكم</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary/10 dark:bg-primary/20 text-secondary dark:text-primary rounded-lg transition-colors" href="#">
+<span class="material-icons-round">mic</span>
+<span class="font-bold">تسجيل تلاوة</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group" href="#">
+<span class="material-icons-outlined group-hover:text-secondary dark:group-hover:text-primary">history_edu</span>
+<span class="font-medium">سجل تلاواتي</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group" href="#">
+<span class="material-icons-outlined group-hover:text-secondary dark:group-hover:text-primary">calendar_month</span>
+<span class="font-medium">جلساتي</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group" href="#">
+<span class="material-icons-outlined group-hover:text-secondary dark:group-hover:text-primary">chat_bubble_outline</span>
+<span class="font-medium">رسائل المقرئ</span>
+</a>
+<div class="mt-8">
+<p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">الحساب</p>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group" href="#">
+<span class="material-icons-outlined group-hover:text-secondary dark:group-hover:text-primary">notifications_none</span>
+<span class="font-medium">الإشعارات</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group" href="#">
+<span class="material-icons-outlined group-hover:text-secondary dark:group-hover:text-primary">person_outline</span>
+<span class="font-medium">الملف الشخصي</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-border-light dark:border-border-dark">
+<div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 text-secondary dark:text-green-300 flex items-center justify-center font-bold text-lg">
+                    س
+                </div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-gray-900 dark:text-white truncate">سيد الشاذلي</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 truncate">طالب - المستوى الثالث</p>
+</div>
+</div>
+<button class="w-full mt-3 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 text-sm py-2 transition-colors">
+<span class="material-icons-outlined text-lg">logout</span>
+<span>تسجيل الخروج</span>
+</button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<header class="bg-surface-light dark:bg-surface-dark h-16 border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold text-secondary dark:text-primary hidden md:block">بوابة الطالب</h2>
+<button class="lg:hidden text-gray-600 dark:text-gray-300">
+<span class="material-icons-outlined">menu</span>
+</button>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<input class="bg-gray-100 dark:bg-gray-800 border-none rounded-full py-2 pr-10 pl-4 text-sm w-64 focus:ring-2 focus:ring-primary dark:text-white placeholder-gray-400" placeholder="بحث..." type="text"/>
+<span class="material-icons-outlined absolute right-3 top-2 text-gray-400 text-lg">search</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-1 text-xs font-bold border border-gray-300 dark:border-gray-600 rounded px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-300">
+<span>EN</span>
+<span class="material-icons-outlined text-sm">language</span>
+</button>
+<div class="relative">
+<button class="text-gray-600 dark:text-gray-300 hover:text-secondary dark:hover:text-primary transition-colors relative">
+<span class="material-icons-outlined">notifications</span>
+<span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full border border-white dark:border-gray-900"></span>
+</button>
+</div>
+<button class="bg-secondary hover:bg-green-900 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+<span class="material-icons-outlined text-lg">add</span>
+<span class="hidden sm:inline">تلاوة جديدة</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 md:p-8 no-scrollbar">
+<div class="text-center mb-8">
+<h1 class="text-3xl font-bold text-secondary dark:text-white mb-2">تسجيل سورة الفاتحة</h1>
+<p class="text-gray-500 dark:text-gray-400">اقرأ السورة كاملة نفس قراءتك لها في الصلاة</p>
+</div>
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[calc(100vh-14rem)] min-h-[600px]">
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark p-6 md:p-10 relative flex flex-col items-center justify-start overflow-hidden">
+<div class="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-primary/30 rounded-tr-xl"></div>
+<div class="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-primary/30 rounded-bl-xl"></div>
+<div class="text-center font-quran w-full max-w-lg mx-auto overflow-y-auto no-scrollbar px-4 pb-16 pt-2 h-full flex flex-col" style="direction: rtl;">
+<h3 class="text-primary font-bold text-xl mb-6 font-display shrink-0">سورة الفاتحة</h3>
+<div class="space-y-6 text-2xl md:text-3xl leading-[2.5] text-gray-800 dark:text-gray-200 grow flex flex-col justify-center">
+<p class="relative text-center">
+<span class="block mb-2 text-xl md:text-2xl text-secondary dark:text-green-400 leading-normal">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
+<span class="text-primary text-lg md:text-xl absolute -left-4 top-1/2 -translate-y-1/2 opacity-60">﴿١﴾</span>
+</p>
+<p class="relative">
+                                ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ
+                                <span class="text-primary text-xl inline-block mr-2">﴿٢﴾</span>
+</p>
+<p class="relative">
+                                ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                                <span class="text-primary text-xl inline-block mr-2">﴿٣﴾</span>
+</p>
+<p class="relative">
+                                مَـٰلِكِ يَوْمِ ٱلدِّينِ
+                                <span class="text-primary text-xl inline-block mr-2">﴿٤﴾</span>
+</p>
+<p class="relative">
+                                إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ
+                                <span class="text-primary text-xl inline-block mr-2">﴿٥﴾</span>
+</p>
+<p class="relative">
+                                ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ
+                                <span class="text-primary text-xl inline-block mr-2">﴿٦﴾</span>
+</p>
+<p class="relative !leading-[3]">
+                                صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ
+                                <span class="text-primary text-xl inline-block mr-2">﴿٧﴾</span>
+</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-6 h-full">
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark flex-1 p-8 flex flex-col items-center justify-center relative">
+<div class="mb-8 text-center">
+<div class="text-6xl font-mono font-light tracking-widest text-gray-800 dark:text-white mb-2">00:00</div>
+<span class="text-sm text-gray-400 dark:text-gray-500 font-medium">جاهز للتسجيل</span>
+</div>
+<div class="h-16 w-full max-w-sm flex items-center justify-center gap-1 mb-12 opacity-20">
+<div class="w-1 bg-gray-400 rounded-full h-4"></div>
+<div class="w-1 bg-gray-400 rounded-full h-8"></div>
+<div class="w-1 bg-gray-400 rounded-full h-6"></div>
+<div class="w-1 bg-gray-400 rounded-full h-10"></div>
+<div class="w-1 bg-gray-400 rounded-full h-4"></div>
+<div class="w-1 bg-gray-400 rounded-full h-12"></div>
+<div class="w-1 bg-gray-400 rounded-full h-8"></div>
+<div class="w-1 bg-gray-400 rounded-full h-4"></div>
+<div class="w-1 bg-gray-400 rounded-full h-6"></div>
+<div class="w-1 bg-gray-400 rounded-full h-10"></div>
+<div class="w-1 bg-gray-400 rounded-full h-14"></div>
+<div class="w-1 bg-gray-400 rounded-full h-10"></div>
+<div class="w-1 bg-gray-400 rounded-full h-6"></div>
+<div class="w-1 bg-gray-400 rounded-full h-4"></div>
+<div class="w-1 bg-gray-400 rounded-full h-8"></div>
+<div class="w-1 bg-gray-400 rounded-full h-12"></div>
+<div class="w-1 bg-gray-400 rounded-full h-4"></div>
+<div class="w-1 bg-gray-400 rounded-full h-10"></div>
+<div class="w-1 bg-gray-400 rounded-full h-6"></div>
+<div class="w-1 bg-gray-400 rounded-full h-8"></div>
+<div class="w-1 bg-gray-400 rounded-full h-4"></div>
+</div>
+<div class="flex items-end justify-center gap-10">
+<div class="flex flex-col items-center gap-2 group">
+<button class="w-12 h-12 rounded-full border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 flex items-center justify-center cursor-not-allowed transition-all">
+<span class="material-icons-round">refresh</span>
+</button>
+<span class="text-xs text-gray-300 dark:text-gray-600">إعادة</span>
+</div>
+<div class="flex flex-col items-center gap-3 relative -top-4">
+<button class="w-24 h-24 rounded-full bg-primary text-white shadow-lg hover:shadow-xl hover:bg-yellow-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-primary/20">
+<span class="material-icons-round text-5xl">mic</span>
+</button>
+<span class="text-sm font-bold text-secondary dark:text-primary">اضغط مطولاً</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<button class="w-12 h-12 rounded-full border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 flex items-center justify-center cursor-not-allowed transition-all">
+<span class="material-icons-round">play_arrow</span>
+</button>
+<span class="text-xs text-gray-300 dark:text-gray-600">تشغيل</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="flex-1 bg-surface-light dark:bg-surface-dark border border-transparent text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-4 px-6 rounded-xl font-bold shadow-sm transition-colors text-center">
+                            إلغاء
+                        </button>
+<button class="flex-[2] bg-primary text-white hover:bg-yellow-600 py-4 px-6 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+<span>إرسال التسجيل</span>
+<span class="material-icons-outlined text-lg transform rotate-180">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 z-50">
+<button class="bg-gray-800 dark:bg-white text-white dark:text-gray-800 p-3 rounded-full shadow-lg hover:scale-110 transition-transform" id="theme-toggle">
+<span class="material-icons-outlined block dark:hidden">dark_mode</span>
+<span class="material-icons-outlined hidden dark:block">light_mode</span>
+</button>
+</div>
+</main>
+</div>
+<script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    // Check for saved theme or system preference
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    themeToggleBtn.addEventListener('click', function() {
+        // Toggle dark mode class
+        document.documentElement.classList.toggle('dark');
+        // Save preference
+        if (document.documentElement.classList.contains('dark')) {
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            localStorage.setItem('color-theme', 'light');
+        }
+    });
+</script>
+
+</body></html>

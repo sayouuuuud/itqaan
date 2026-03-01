@@ -1,0 +1,464 @@
+@layer theme, base, components, utilities;
+
+@import "tailwindcss";
+/* @import "tw-animate-css"; */
+
+@custom-variant dark (&:is(.dark *));
+
+
+/* ========== LIGHT MODE COLORS - EXPLICIT CSS RULES ========== */
+:root,
+.light {
+  /* Fonts */
+  --font-sans: var(--font-cairo), "Cairo", sans-serif;
+  --font-serif: var(--font-amiri), "Amiri", serif;
+
+  /* ========== BRAND COLORS (Consistent across modes) ========== */
+  --color-primary: #035d44;
+  --color-primary-hover: #047857;
+  --color-primary-light: #059669;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #d4af37;
+  --color-secondary-hover: #b58842;
+  --color-secondary-light: #e5c85c;
+  --color-secondary-foreground: #1f2937;
+
+  /* ========== LIGHT MODE COLORS ========== */
+  /* Backgrounds - High contrast for readability */
+  --color-background: #f8fafc;
+  --color-background-alt: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+  --color-popover: #ffffff;
+  --color-sidebar: #f8fafc;
+
+  /* Text - WCAG 2.1 AA compliant contrast ratios */
+  --color-foreground: #1e293b;
+  /* 7.5:1 contrast on white */
+  --color-text-main: #1e293b;
+  --color-text-muted: #64748b;
+  /* 4.8:1 contrast on white */
+  --color-text-subtext: #64748b;
+  --color-card-foreground: #1e293b;
+  --color-popover-foreground: #1e293b;
+  --color-sidebar-foreground: #1e293b;
+  --color-muted-foreground: #64748b;
+  --color-sidebar-accent-foreground: #1e293b;
+
+  /* Borders - Visible but not harsh */
+  --color-border: #cbd5e1;
+  --color-border-light: #f1f5f9;
+  --color-input: #e2e8f0;
+  --color-sidebar-border: #e2e8f0;
+
+  /* Interactive Elements */
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #1e293b;
+  --color-muted: #f8fafc;
+  --color-sidebar-accent: #f1f5f9;
+  --color-ring: #035d44;
+
+  /* Status Colors */
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-islamic-green: #16a085;
+  --color-islamic-green-light: #e8f5f0;
+
+  /* ========== SHADOW SYSTEM - LIGHT MODE ========== */
+  --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --color-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* ========== RADIUS SYSTEM ========== */
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* ========== SIDEBAR VARIABLES (Shadcn/Legacy) ========== */
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+  /* Maps to variables defined above for Tailwind v4 compatibility */
+  --color-background: var(--color-background);
+  --color-background-alt: var(--color-background-alt);
+  --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
+  --color-popover: var(--color-popover);
+  --color-sidebar: var(--color-sidebar);
+
+  --color-foreground: var(--color-foreground);
+  --color-text-main: var(--color-text-main);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtext: var(--color-text-subtext);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-popover-foreground: var(--color-popover-foreground);
+  --color-sidebar-foreground: var(--color-sidebar-foreground);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-sidebar-accent-foreground: var(--color-sidebar-accent-foreground);
+
+  --color-border: var(--color-border);
+  --color-border-light: var(--color-border-light);
+  --color-input: var(--color-input);
+  --color-sidebar-border: var(--color-sidebar-border);
+
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-muted: var(--color-muted);
+  --color-sidebar-accent: var(--color-sidebar-accent);
+  --color-ring: var(--color-ring);
+
+  /* Brand colors */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-foreground: var(--color-primary-foreground);
+
+  --color-secondary: var(--color-secondary);
+  --color-secondary-hover: var(--color-secondary-hover);
+  --color-secondary-light: var(--color-secondary-light);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+
+  /* Status colors */
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-islamic-green: var(--color-islamic-green);
+  --color-islamic-green-light: var(--color-islamic-green-light);
+
+  /* Fonts */
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+
+  /* Shadows */
+  --color-shadow-sm: var(--color-shadow-sm);
+  --color-shadow: var(--color-shadow);
+  --color-shadow-md: var(--color-shadow-md);
+  --color-shadow-lg: var(--color-shadow-lg);
+  --color-shadow-xl: var(--color-shadow-xl);
+
+  /* Radius */
+  --radius: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+}
+
+
+
+/* ========== DARK MODE COLORS - COMPLETELY INDEPENDENT ========== */
+.dark {
+  /* Backgrounds - Dark slate system for better contrast */
+  --color-background: #0f172a;
+  --color-background-alt: #1e293b;
+  --color-surface: #1e293b;
+  --color-card: #1e293b;
+  --color-popover: #1e293b;
+  --color-sidebar: #0f172a;
+
+  /* Text - High contrast for dark backgrounds */
+  --color-foreground: #f8fafc;
+  /* 8.2:1 contrast on #0f172a */
+  --color-text-main: #f8fafc;
+  --color-text-muted: #94a3b8;
+  /* 5.1:1 contrast on #0f172a */
+  --color-text-subtext: #94a3b8;
+  --color-card-foreground: #f8fafc;
+  --color-popover-foreground: #f8fafc;
+  --color-sidebar-foreground: #f8fafc;
+  --color-muted-foreground: #94a3b8;
+  --color-sidebar-accent-foreground: #f8fafc;
+
+  /* Borders - Enhanced visibility for dark mode */
+  --color-border: #334155;
+  --color-border-light: #1e293b;
+  --color-input: #334155;
+  --color-sidebar-border: #334155;
+
+  /* Interactive Elements - Dark mode optimized */
+  --color-accent: #1e293b;
+  --color-accent-foreground: #f8fafc;
+  --color-muted: #0f172a;
+  --color-sidebar-accent: #0f172a;
+  --color-ring: #035d44;
+
+  /* Status Colors - Dark mode adjusted */
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-islamic-green: #16a085;
+  --color-islamic-green-light: #1e293b;
+
+  /* ========== SHADOW SYSTEM - DARK MODE ========== */
+  --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --color-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/* ========== UIVERSE TOGGLE COMPONENT STYLES ========== */
+.switch {
+  --button-width: 52px;
+  --button-height: 28px;
+  --toggle-diameter: 22px;
+  --toggle-wider: 42px;
+  --color-grey: #e2e8f0;
+  --color-green: #035d44;
+  position: relative;
+  display: inline-block;
+  width: var(--button-width);
+  height: var(--button-height);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.switch input[type="checkbox"] {
+  display: none;
+}
+
+.switch .slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-grey);
+  border-radius: var(--button-height);
+  transition: 0.3s;
+}
+
+.switch .slider::before {
+  content: "";
+  position: absolute;
+  height: var(--toggle-diameter);
+  width: var(--toggle-diameter);
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switch input[type="checkbox"]:checked+.slider {
+  background-color: var(--color-green);
+}
+
+.switch input[type="checkbox"]:checked+.slider::before {
+  transform: translateX(24px);
+}
+
+.switch input[type="checkbox"]:active+.slider::before {
+  width: var(--toggle-wider);
+}
+
+.switch input[type="checkbox"]:checked:active+.slider::before {
+  transform: translateX(8px);
+}
+
+/* Dark mode toggle styles */
+.dark .switch {
+  --color-grey: #475569;
+  --color-green: #059669;
+}
+
+/* Disabled state */
+.switch input[type="checkbox"]:disabled+.slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Center in tables */
+.switch {
+  margin: 0 auto;
+}
+
+/* Ensure no overflow in any container */
+td .switch,
+div .switch {
+  overflow: hidden;
+}
+
+/* ========== CLEAN IMPLEMENTATION - NO OVERRIDES NEEDED ========== */
+/* Text selection */
+::selection {
+  background: color-mix(in srgb, var(--color-secondary) 35%, transparent);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: "Cairo", sans-serif;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* ========== SHADOW CLASSES USING CSS VARIABLES ========== */
+  .shadow-sm {
+    box-shadow: var(--color-shadow-sm);
+  }
+
+  .shadow {
+    box-shadow: var(--color-shadow);
+  }
+
+  .shadow-md {
+    box-shadow: var(--color-shadow-md);
+  }
+
+  .shadow-lg {
+    box-shadow: var(--color-shadow-lg);
+  }
+
+  .shadow-xl {
+    box-shadow: var(--color-shadow-xl);
+  }
+
+  /* Cards use shadow-sm by default */
+  .bg-card {
+    box-shadow: var(--color-shadow-sm);
+  }
+
+  /* Khutba page border customization */
+  .khutba-actions-border {
+    border-top-color: rgba(30, 41, 57, 0.1);
+  }
+
+  .dark .khutba-actions-border {
+    border-top-color: rgb(31 41 55);
+  }
+}
+
+/* Ensure switch is visible in tables */
+td [data-slot="switch"] {
+  margin: 0;
+}
+
+/* ========== ABOUT PAGE ANIMATIONS ========== */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-slow {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-fade-in-delayed {
+  animation: fade-in 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delayed-2 {
+  animation: fade-in 0.8s ease-out 0.6s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delayed-3 {
+  animation: fade-in 0.8s ease-out 0.9s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delayed-4 {
+  animation: fade-in 0.8s ease-out 1.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delayed-5 {
+  animation: fade-in 0.8s ease-out 1.5s forwards;
+  opacity: 0;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite;
+}
+
+/* ========== MARQUEE ANIMATION (Manually added for hot-reload support) ========== */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+
+  /* Moves one full width of the content set */
+}
+
+.animate-scroll {
+  animation: scroll 500s linear infinite;
+  /* Increased to 350s for even slower speed */
+  display: flex;
+  width: max-content;
+}
+
+/* Pause on hover for better readability */
+.animate-scroll:hover {
+  animation-play-state: paused;
+}

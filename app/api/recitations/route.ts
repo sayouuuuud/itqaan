@@ -93,6 +93,22 @@ export async function POST(req: NextRequest) {
       [session.sub, audioUrl, audioDuration || null, notes || null, qiraah || 'حفص عن عاصم']
     )
 
+    // Auto-assign a reader matching the student's gender
+    const student = await query<{ gender: string }>("SELECT gender FROM users WHERE id = $1", [session.sub])
+    if (student.length > 0 && student[0].gender) {
+      const reader = await query<{ id: string }>(
+        `SELECT u.id FROM users u
+         JOIN reader_profiles rp ON u.id = rp.user_id
+         WHERE u.role = 'reader' AND u.approval_status = 'approved' AND u.is_active = true AND rp.is_accepting_students = true AND u.gender = $1
+         ORDER BY RANDOM() LIMIT 1`,
+        [student[0].gender]
+      )
+      if (reader.length > 0) {
+        await query("UPDATE recitations SET assigned_reader_id = $1, assigned_at = NOW() WHERE id = $2", [reader[0].id, result[0].id])
+        // Optionally notify the reader here
+      }
+    }
+
     // Notify student that submission was received
     await createNotification({
       userId: session.sub,

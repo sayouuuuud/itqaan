@@ -68,13 +68,14 @@ export async function POST(req: NextRequest) {
 
     // Create reader profile with professional details
     await query(
-      `INSERT INTO reader_profiles (user_id, full_name_triple, phone, city, qualification, memorized_parts, years_of_experience)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO reader_profiles (user_id, full_name_triple, phone, city, nationality, qualification, memorized_parts, years_of_experience)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         user.id,
         full_name_triple,
         phone,
         city,
+        nationality,
         qualification || null,
         memorized_parts || 0,
         years_of_experience || null,

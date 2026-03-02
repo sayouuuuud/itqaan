@@ -220,6 +220,11 @@ export default function AdminUsersPage() {
                   <th className="px-6 py-4">
                     {t.auth.role}
                   </th>
+                  {activeTab === 'readers' && (
+                    <th className="px-6 py-4">
+                      {t.readerRegister.nationality}
+                    </th>
+                  )}
                   <th className="px-6 py-4">
                     {t.reader.status}
                   </th>
@@ -280,6 +285,11 @@ export default function AdminUsersPage() {
                         </span>
                       )}
                     </td>
+                    {activeTab === 'readers' && (
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {user.nationality || '-'}
+                      </td>
+                    )}
                     <td className="px-6 py-4">
                       {user.is_active ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">

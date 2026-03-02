@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const users = await query(
       `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
-              rp.rating, rp.total_reviews,
+              rp.rating, rp.total_reviews, rp.nationality,
               EXISTS(
                 SELECT 1 FROM user_sessions us 
                 WHERE us.user_id = u.id 

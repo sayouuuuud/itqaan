@@ -204,6 +204,7 @@ export const en = {
     city: 'City *',
     selectCity: 'Select City',
     gender: 'Gender *',
+    nationality: 'Nationality *',
     professionalInfo: 'Professional Information (Optional)',
     qualification: 'Academic Qualification',
     qualificationPlaceholder: 'e.g., Bachelor of Sharia',

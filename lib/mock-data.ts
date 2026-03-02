@@ -25,6 +25,12 @@ export const SAUDI_CITIES = [
   'أخرى'
 ]
 
+export const NATIONALITIES = [
+  'سعودي', 'مصري', 'أردني', 'فلسطيني', 'سوري', 'عراقي', 'كويتي',
+  'إماراتي', 'قطري', 'بحريني', 'عماني', 'لبناني', 'مغربي', 'تونسي',
+  'جزائري', 'ليبي', 'سوداني', 'يمني', 'أخرى'
+]
+
 export const mockStudents = [
   { id: '1', name: 'أحمد محمد', email: 'ahmed@example.com', role: 'student' as const, createdAt: '2025-12-01', isActive: true, avatar: null, recitationsCount: 12 },
   { id: '2', name: 'فاطمة علي', email: 'fatma@example.com', role: 'student' as const, createdAt: '2025-12-10', isActive: true, avatar: null, recitationsCount: 8 },

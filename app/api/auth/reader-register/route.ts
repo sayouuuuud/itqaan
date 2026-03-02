@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
       phone,
       city,
       gender,
+      nationality,
       qualification,
       memorized_parts,
       years_of_experience,

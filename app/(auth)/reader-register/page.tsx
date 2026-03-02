@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ChevronDown, BookOpen, Award, CheckCircle } from 'lucide-react'
-import { SAUDI_CITIES } from '@/lib/mock-data'
+import { SAUDI_CITIES, NATIONALITIES } from '@/lib/mock-data'
 
 export default function ReaderRegisterPage() {
   const [showPw, setShowPw] = useState(false)
@@ -20,6 +20,7 @@ export default function ReaderRegisterPage() {
     phone: '',
     city: '',
     gender: '',
+    nationality: '',
     qualification: '',
     memorized_parts: '',
     years_of_experience: '',
@@ -182,6 +183,18 @@ export default function ReaderRegisterPage() {
                       <option value="">{t.auth.selectGender}</option>
                       <option value="male">{t.auth.male}</option>
                       <option value="female">{t.auth.female}</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="reader_nationality" className="block text-sm font-medium text-gray-700 mb-1">{t.readerRegister.nationality}</label>
+                  <div className="relative">
+                    <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                    <select id="reader_nationality" value={form.nationality} onChange={(e) => updateField('nationality', e.target.value)} className="w-full pr-4 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm appearance-none" required>
+                      <option value="">اختر الجنسية</option>
+                      {NATIONALITIES.map(nat => (
+                        <option key={nat} value={nat}>{nat}</option>
+                      ))}
                     </select>
                   </div>
                 </div>

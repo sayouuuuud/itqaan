@@ -136,14 +136,14 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
-          
+
           {/* Link to Reader Registration */}
           <div className="mt-6 text-center border-t border-gray-100 pt-6">
             <p className="text-sm text-gray-600 mb-2">
-              {locale === 'ar' ? 'هل أنت مقرئ وترغب بالانضمام إلينا؟' : 'Are you a reciter and want to join us?'}
+              {t.locale === 'ar' ? 'هل أنت مقرئ وترغب بالانضمام إلينا؟' : 'Are you a reciter and want to join us?'}
             </p>
             <Link href="/reader-register" className="inline-flex items-center justify-center text-sm font-bold text-[#0B3D2E] hover:text-[#0B3D2E]/80 transition-colors">
-              {locale === 'ar' ? 'سجل كمقرئ من هنا' : 'Register as a Reciter here'}
+              {t.locale === 'ar' ? 'سجل كمقرئ من هنا' : 'Register as a Reciter here'}
             </Link>
           </div>
         </div>

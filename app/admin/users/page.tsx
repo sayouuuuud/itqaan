@@ -21,7 +21,7 @@ export default function AdminUsersPage() {
   const isAr = t.locale === "ar"
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState<"students" | "readers">("students")
+  const [activeTab, setActiveTab] = useState<"students" | "readers" | "admins">("students")
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const role = activeTab === "students" ? "student" : "reader"
+      const role = activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin"
       const res = await fetch(`/api/admin/users?role=${role}`)
       if (res.ok) {
         const data = await res.json()
@@ -94,7 +94,7 @@ export default function AdminUsersPage() {
       alert(t.auth.errorOccurred)
     } finally {
       setSubmitting(false)
-      setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : "reader", gender: "" })
+      setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin", gender: "" })
     }
   }
 
@@ -102,11 +102,13 @@ export default function AdminUsersPage() {
     if (!selectedUser) return
     setSubmitting(true)
     try {
-      const { name, email, password } = formData
+      const { name, email, password, role, gender } = formData
       const body: any = { userId: selectedUser.id }
       if (name) body.name = name
       if (email) body.email = email
       if (password) body.password = password
+      if (role) body.role = role
+      if (gender) body.gender = gender
 
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
@@ -121,7 +123,7 @@ export default function AdminUsersPage() {
         alert(err.error || t.admin.errorUpdatingUser)
       }
     } catch {
-      alert("Error")
+      alert(t.admin.connectionError || "Error connecting to server")
     } finally {
       setSubmitting(false)
     }
@@ -177,6 +179,15 @@ export default function AdminUsersPage() {
             >
               {t.admin.readers}
             </button>
+            <button
+              onClick={() => setActiveTab("admins")}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "admins"
+                ? "bg-white text-[#0B3D2E] shadow-sm"
+                : "text-gray-500 hover:text-gray-900"
+                }`}
+            >
+              {t.admin.admins}
+            </button>
           </div>
           <div className="flex gap-3">
             <div className="relative hidden sm:block">
@@ -189,7 +200,7 @@ export default function AdminUsersPage() {
               />
             </div>
             <Button size="sm" className="flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0a3326] text-white" onClick={() => {
-              setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : "reader", gender: "" })
+              setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin", gender: "" })
               setIsAddUserOpen(true)
             }}>
               <UserPlus className="w-4 h-4" />
@@ -277,6 +288,11 @@ export default function AdminUsersPage() {
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                           {t.auth.student}
+                        </span>
+                      ) : user.role === 'admin' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          {t.auth.admin}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20">
@@ -392,6 +408,7 @@ export default function AdminUsersPage() {
               >
                 <option value="student">{t.auth.student}</option>
                 <option value="reader">{t.auth.reader}</option>
+                <option value="admin">{t.auth.admin}</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -448,6 +465,30 @@ export default function AdminUsersPage() {
                 onChange={e => setFormData({ ...formData, password: e.target.value })}
                 dir="ltr"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>{t.auth.role}</Label>
+              <select
+                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                value={formData.role}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
+              >
+                <option value="student">{t.auth.student}</option>
+                <option value="reader">{t.auth.reader}</option>
+                <option value="admin">{t.auth.admin}</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t.auth.genderOptional}</Label>
+              <select
+                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                value={formData.gender || ""}
+                onChange={e => setFormData({ ...formData, gender: e.target.value })}
+              >
+                <option value="">{t.auth.unspecified}</option>
+                <option value="male">{t.auth.male}</option>
+                <option value="female">{t.auth.female}</option>
+              </select>
             </div>
           </div>
           <DialogFooter>

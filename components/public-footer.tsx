@@ -36,8 +36,8 @@ export function PublicFooter() {
             <h4 className="font-bold text-foreground mb-4">{t.footer.support}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="#" className="hover:text-[#0B3D2E] transition-colors">{t.footer.faq}</Link></li>
-              <li><Link href="#" className="hover:text-[#0B3D2E] transition-colors">{t.footer.terms}</Link></li>
-              <li><Link href="#" className="hover:text-[#0B3D2E] transition-colors">{t.footer.privacy}</Link></li>
+              <li><Link href="/terms" className="hover:text-[#0B3D2E] transition-colors">{t.footer.terms}</Link></li>
+              <li><Link href="/privacy" className="hover:text-[#0B3D2E] transition-colors">{t.footer.privacy}</Link></li>
               <li><Link href="/contact" className="hover:text-[#0B3D2E] transition-colors">{t.contact}</Link></li>
             </ul>
           </div>

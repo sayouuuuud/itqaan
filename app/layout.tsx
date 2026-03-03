@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   title: 'إتقان | منصة تحسين التلاوة',
   description: 'منصة متكاملة لتحسين تلاوة القرآن الكريم - سجّل تلاوتك واحصل على تقييم من مقرئين معتمدين',
   generator: 'v0.app',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/logo.png',
+  },
 }
 
 export const viewport: Viewport = {

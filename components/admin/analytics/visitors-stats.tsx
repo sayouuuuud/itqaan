@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts"
 import { Globe, Smartphone, Monitor, Tablet } from "lucide-react"
+import { useI18n } from "@/lib/i18n/context"
 
 interface VisitorStatsProps {
     countryData: { country: string; count: number }[]
@@ -24,6 +25,9 @@ const DeviceIcon = ({ type }: { type: string }) => {
 }
 
 export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
+    const { t } = useI18n()
+    const isAr = t.locale === 'ar'
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Countries Stats */}
@@ -32,7 +36,7 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
                     <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
                         <Globe className="h-5 w-5" />
                     </div>
-                    <h3 className="font-bold text-gray-900">أعلى الدول</h3>
+                    <h3 className="font-bold text-gray-900">{t.admin.analytics.topCountries}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -46,11 +50,11 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
                                     {(() => {
                                         try {
                                             if (item.country === "Unknown" || !item.country || item.country.length !== 2) {
-                                                return "غير معروف"
+                                                return t.admin.analytics.unknown
                                             }
-                                            return new Intl.DisplayNames(['ar'], { type: 'region' }).of(item.country) || item.country
+                                            return new Intl.DisplayNames([t.locale], { type: 'region' }).of(item.country) || item.country
                                         } catch {
-                                            return item.country === "Unknown" ? "غير معروف" : item.country
+                                            return item.country === "Unknown" ? t.admin.analytics.unknown : item.country
                                         }
                                     })()}
                                 </span>
@@ -72,7 +76,7 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
                     ))}
 
                     {countryData.length === 0 && (
-                        <div className="text-center py-8 text-gray-400">لا توجد بيانات</div>
+                        <div className="text-center py-8 text-gray-400">{t.admin.analytics.noData}</div>
                     )}
                 </div>
             </div>
@@ -83,7 +87,7 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
                     <div className="p-2 bg-green-50 rounded-lg text-green-600">
                         <Smartphone className="h-5 w-5" />
                     </div>
-                    <h3 className="font-bold text-gray-900">الأجهزة المستخدمة</h3>
+                    <h3 className="font-bold text-gray-900">{t.admin.analytics.usedDevices}</h3>
                 </div>
 
                 <div className="h-[250px] w-full">
@@ -109,9 +113,10 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
                                 layout="vertical"
                                 verticalAlign="middle"
                                 align="right"
-                                formatter={(value, entry: any) => (
-                                    <span className="text-sm text-gray-700 mr-2">{value === 'desktop' ? 'كمبيوتر' : value === 'mobile' ? 'موبايل' : 'تابلت'} ({entry.payload.percentage || 0}%)</span>
-                                )}
+                                formatter={(value, entry: any) => {
+                                    const label = value === 'desktop' ? t.admin.analytics.desktop : value === 'mobile' ? t.admin.analytics.mobile : t.admin.analytics.tablet;
+                                    return <span className={`text-sm text-gray-700 ${isAr ? 'mr-2' : 'ml-2'}`}>{label} ({entry.payload.percentage || 0}%)</span>
+                                }}
                             />
                         </PieChart>
                     </ResponsiveContainer>

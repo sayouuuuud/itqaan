@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     MessagesSquare, Search, MessageCircle, ChevronLeft,
     CheckCircle, XCircle, Loader2, User, BookOpen,
-    Shield, Send, MessageSquare
+    Shield, Send, MessageSquare, Mail
 } from "lucide-react"
 
 // --- TYPES ---
@@ -230,6 +230,125 @@ function SupervisionTab({ isAr, t }: { isAr: boolean, t: any }) {
                     </div>
                 </DialogContent>
             </Dialog>
+        </div>
+    )
+}
+
+function ContactMessagesTab({ isAr, t }: { isAr: boolean, t: any }) {
+    const [messages, setMessages] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchMessages = useCallback(async () => {
+        setLoading(true)
+        try {
+            const res = await fetch('/api/admin/contact-messages')
+            if (res.ok) {
+                const data = await res.json()
+                setMessages(data.messages)
+            }
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        fetchMessages()
+    }, [fetchMessages])
+
+    const updateStatus = async (id: string, status: string) => {
+        const res = await fetch('/api/admin/contact-messages', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status }),
+        })
+        if (res.ok) {
+            fetchMessages()
+        }
+    }
+
+    const deleteMessage = async (id: string) => {
+        if (!confirm(isAr ? 'هل أنت متأكد من حذف هذه الرسالة؟' : 'Are you sure you want to delete this message?')) return
+        const res = await fetch(`/api/admin/contact-messages?id=${id}`, {
+            method: 'DELETE',
+        })
+        if (res.ok) {
+            fetchMessages()
+        }
+    }
+
+    return (
+        <div className="space-y-6 text-right" dir={isAr ? 'rtl' : 'ltr'}>
+            <div className="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
+                    <h3 className="font-bold text-gray-800">
+                        {t.admin.contactMessages} <span className="text-gray-400 font-normal text-sm">({messages.length})</span>
+                    </h3>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-[#0B3D2E]" /></div>
+                ) : messages.length === 0 ? (
+                    <div className="p-12 text-center text-gray-400 font-medium">{isAr ? 'لا توجد رسائل' : 'No messages found'}</div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="bg-gray-50/50 text-gray-400 text-[11px] font-black uppercase tracking-widest border-b border-gray-50">
+                                    <th className="px-6 py-4 font-black">{t.admin.senderName}</th>
+                                    <th className="px-6 py-4 font-black">{t.admin.contactSubject}</th>
+                                    <th className="px-6 py-4 font-black">{t.admin.contactMessage}</th>
+                                    <th className="px-6 py-4 font-black">{t.admin.date}</th>
+                                    <th className="px-6 py-4 font-black text-center">{t.admin.status}</th>
+                                    <th className="px-6 py-4 font-black text-center">{t.admin.action}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {messages.map((m) => (
+                                    <tr key={m.id} className="hover:bg-gray-50/30 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-gray-800 whitespace-nowrap">{m.name}</div>
+                                            <div className="text-[11px] text-gray-400 font-medium">{m.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-bold text-gray-700">{m.subject || '-'}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm text-gray-500 max-w-md line-clamp-2 leading-relaxed" title={m.message}>
+                                                {m.message}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 whitespace-nowrap">
+                                            {new Date(m.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${m.status === 'unread' ? 'bg-orange-100 text-orange-700' :
+                                                    m.status === 'read' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                                                }`}>
+                                                {t.admin[m.status]}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-center gap-2">
+                                                {m.status === 'unread' && (
+                                                    <Button variant="ghost" size="sm" onClick={() => updateStatus(m.id, 'read')} className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg" title={t.admin.markAsRead}>
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+                                                {m.status !== 'replied' && (
+                                                    <Button variant="ghost" size="sm" onClick={() => updateStatus(m.id, 'replied')} className="h-8 w-8 p-0 text-emerald-600 hover:bg-emerald-50 rounded-lg" title={t.admin.markAsReplied}>
+                                                        <MessageSquare className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+                                                <Button variant="ghost" size="sm" onClick={() => deleteMessage(m.id)} className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg" title={t.delete}>
+                                                    <XCircle className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
@@ -540,7 +659,15 @@ function AdminConversationsContent() {
                         <Shield className="w-4 h-4" />
                         {t.admin.supervision}
                     </TabsTrigger>
+                    <TabsTrigger value="contact" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#0B3D2E] data-[state=active]:text-white transition-all">
+                        <Mail className="w-4 h-4" />
+                        {t.admin.contactMessages}
+                    </TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="contact" className="space-y-6">
+                    <ContactMessagesTab isAr={isAr} t={t} />
+                </TabsContent>
 
                 <TabsContent value="supervision" className="space-y-6">
                     <SupervisionTab isAr={isAr} t={t} />

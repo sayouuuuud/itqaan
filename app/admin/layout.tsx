@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
   if (!session || session.role !== 'admin') {
-    redirect('/login')
+    redirect('/login-admin')
   }
 
   return <DashboardShell role="admin">{children}</DashboardShell>

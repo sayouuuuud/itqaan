@@ -3,14 +3,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ChevronDown, BookOpen, Award, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ChevronDown, BookOpen, Award, CheckCircle, Check, ChevronsUpDown } from 'lucide-react'
 import { SAUDI_CITIES, NATIONALITIES } from '@/lib/mock-data'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { cn } from '@/lib/utils'
 
 export default function ReaderRegisterPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [nationalityOpen, setNationalityOpen] = useState(false)
   const { t } = useI18n()
 
   const [form, setForm] = useState({
@@ -162,19 +166,7 @@ export default function ReaderRegisterPage() {
                     <input id="reader_phone" type="tel" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={t.readerRegister.phonePlaceholder} dir="ltr" className="w-full pr-10 pl-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm" required />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="reader_city" className="block text-sm font-medium text-gray-700 mb-1">{t.readerRegister.city}</label>
-                  <div className="relative">
-                    <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-                    <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-                    <select id="reader_city" value={form.city} onChange={(e) => updateField('city', e.target.value)} className="w-full pr-10 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm appearance-none" required>
-                      <option value="">{t.readerRegister.selectCity}</option>
-                      {SAUDI_CITIES.map(city => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+
                 <div>
                   <label htmlFor="reader_gender" className="block text-sm font-medium text-gray-700 mb-1">{t.readerRegister.gender}</label>
                   <div className="relative">
@@ -189,13 +181,51 @@ export default function ReaderRegisterPage() {
                 <div>
                   <label htmlFor="reader_nationality" className="block text-sm font-medium text-gray-700 mb-1">{t.readerRegister.nationality}</label>
                   <div className="relative">
-                    <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-                    <select id="reader_nationality" value={form.nationality} onChange={(e) => updateField('nationality', e.target.value)} className="w-full pr-4 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm appearance-none" required>
-                      <option value="">اختر الجنسية</option>
-                      {NATIONALITIES.map(nat => (
-                        <option key={nat} value={nat}>{nat}</option>
-                      ))}
-                    </select>
+                    <Popover open={nationalityOpen} onOpenChange={setNationalityOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full pr-4 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm text-right flex items-center justify-between",
+                            !form.nationality && "text-gray-500"
+                          )}
+                        >
+                          {form.nationality ? form.nationality : "اختر الجنسية"}
+                          <ChevronsUpDown className="w-4 h-4 opacity-50 shrink-0" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="end">
+                        <Command>
+                          <CommandInput placeholder="ابحث عن جنسية..." className="text-right" />
+                          <CommandList className="max-h-[200px] overflow-y-auto">
+                            <CommandEmpty className="py-6 text-center text-sm">لا توجد نتائج.</CommandEmpty>
+                            <CommandGroup>
+                              {NATIONALITIES.map((nat) => (
+                                <CommandItem
+                                  key={nat}
+                                  value={nat}
+                                  onSelect={(currentValue) => {
+                                    updateField('nationality', currentValue === form.nationality ? "" : currentValue)
+                                    setNationalityOpen(false)
+                                  }}
+                                  className="text-right flex items-center justify-between cursor-pointer"
+                                >
+                                  {nat}
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      form.nationality === nat ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {/* Hidden input to ensure HTML5 validation required works */}
+                    <input type="hidden" name="nationality" value={form.nationality} required />
                   </div>
                 </div>
               </div>

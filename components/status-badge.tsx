@@ -1,9 +1,12 @@
 import { cn } from "@/lib/utils"
-import { type RecitationStatus, statusLabels, statusColors } from "@/lib/mock-data"
+import { type RecitationStatus, statusColors } from "@/lib/mock-data"
+import { useI18n } from "@/lib/i18n/context"
 
 export function StatusBadge({ status, className }: { status: RecitationStatus | string; className?: string }) {
-  const label = statusLabels[status as RecitationStatus] || status
+  const { t } = useI18n()
+  const label = (t.admin.statuses as any)[status] || status
   const color = statusColors[status as RecitationStatus] || "bg-muted text-muted-foreground border-border"
+
   return (
     <span
       className={cn(

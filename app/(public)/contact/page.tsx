@@ -1,24 +1,71 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Mail, Phone, MapPin, CheckCircle, Send } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [contactInfo, setContactInfo] = useState({
+    email: 'info@itqaan.com',
+    phone: '+966 50 000 0000',
+    address: 'الرياض، المملكة العربية السعودية'
+  })
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    async function fetchInfo() {
+      try {
+        const res = await fetch('/api/public-settings')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.contactInfo) {
+            setContactInfo(data.contactInfo)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching contact info:", error)
+      }
+    }
+    fetchInfo()
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
+
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      subject: formData.get('subject'),
+      message: formData.get('message'),
+    }
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      if (res.ok) {
+        setSubmitted(true)
+        toast.success("تم إرسال رسالتك بنجاح")
+      } else {
+        const err = await res.json()
+        toast.error(err.error || "حدث خطأ أثناء إرسال الرسالة")
+      }
+    } catch (error) {
+      toast.error("حدث خطأ في الاتصال بالخادم")
+    } finally {
       setLoading(false)
-      setSubmitted(true)
-    }, 1500)
+    }
   }
 
   return (
@@ -39,7 +86,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground text-sm">البريد الإلكتروني</p>
-                  <p className="text-sm text-muted-foreground mt-1">info@hanalazan.com</p>
+                  <p className="text-sm text-muted-foreground mt-1">{contactInfo.email}</p>
                 </div>
               </CardContent>
             </Card>
@@ -50,7 +97,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground text-sm">الهاتف</p>
-                  <p className="text-sm text-muted-foreground mt-1 direction-ltr text-end" dir="ltr">+966 50 000 0000</p>
+                  <p className="text-sm text-muted-foreground mt-1 direction-ltr text-end" dir="ltr">{contactInfo.phone}</p>
                 </div>
               </CardContent>
             </Card>
@@ -61,7 +108,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground text-sm">العنوان</p>
-                  <p className="text-sm text-muted-foreground mt-1">الرياض، المملكة العربية السعودية</p>
+                  <p className="text-sm text-muted-foreground mt-1">{contactInfo.address}</p>
                 </div>
               </CardContent>
             </Card>
@@ -77,8 +124,8 @@ export default function ContactPage() {
               <CardContent>
                 {submitted ? (
                   <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="w-8 h-8 text-success" />
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-emerald-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-foreground mb-2">تم إرسال رسالتك بنجاح</h3>
                     <p className="text-sm text-muted-foreground mb-6">شكرًا لتواصلك معنا. سنرد عليك في أقرب وقت ممكن.</p>
@@ -91,20 +138,20 @@ export default function ContactPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">الاسم الكامل *</Label>
-                        <Input id="name" placeholder="أدخل اسمك" required />
+                        <Input id="name" name="name" placeholder="أدخل اسمك" required />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">البريد الإلكتروني *</Label>
-                        <Input id="email" type="email" placeholder="example@email.com" dir="ltr" className="text-start" required />
+                        <Input id="email" name="email" type="email" placeholder="example@email.com" dir="ltr" className="text-start" required />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="subject">الموضوع *</Label>
-                      <Input id="subject" placeholder="موضوع رسالتك" required />
+                      <Input id="subject" name="subject" placeholder="موضوع رسالتك" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="message">الرسالة *</Label>
-                      <Textarea id="message" placeholder="اكتب رسالتك هنا..." rows={5} required />
+                      <Textarea id="message" name="message" placeholder="اكتب رسالتك هنا..." rows={5} required />
                     </div>
                     <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                       {loading ? (

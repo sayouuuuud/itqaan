@@ -8,7 +8,6 @@ export async function GET() {
         if (!session || session.role !== 'admin') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
-
         const rows = await query(
             `SELECT setting_key, setting_value FROM system_settings
        WHERE setting_type = 'homepage' ORDER BY setting_key`

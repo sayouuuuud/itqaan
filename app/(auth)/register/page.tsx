@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
@@ -16,6 +16,23 @@ export default function RegisterPage() {
   const [gender, setGender] = useState('')
   const router = useRouter()
   const { t } = useI18n()
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.user) {
+            router.push(`/${data.user.role}`)
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    checkAuth()
+  }, [router])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

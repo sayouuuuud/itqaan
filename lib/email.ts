@@ -292,3 +292,53 @@ export function sendSessionLinkEmail(
     html,
   })
 }
+
+export function sendSessionReminderEmail(
+  to: string,
+  studentName: string,
+  readerName: string,
+  sessionDate: string,
+  sessionTime: string,
+  meetingLink: string
+) {
+  const html = `
+    <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; border: 1px solid #e2e8f0; border-radius: 12px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: #0B3D2E; font-size: 24px; margin-bottom: 4px;">إتقان الفاتحة</h1>
+        <p style="color: #64748b; font-size: 13px;">تذكير باقتراب موعد الجلسة</p>
+      </div>
+
+      <h2 style="color: #0B3D2E; font-size: 18px;">أهلاً ${studentName} 👋</h2>
+      <p style="color: #475569; line-height: 1.7;">
+        نود تذكيرك بأن جلسة التسميع الخاصة بك ستبدأ خلال أقل من 24 ساعة.
+      </p>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 20px 0;">
+        <p style="margin: 8px 0;"><strong>📖 المقرئ:</strong> ${readerName}</p>
+        <p style="margin: 8px 0;"><strong>📅 التاريخ:</strong> ${sessionDate}</p>
+        <p style="margin: 8px 0;"><strong>🕐 الوقت:</strong> ${sessionTime}</p>
+      </div>
+
+      <div style="margin: 24px 0; text-align: center;">
+        <a href="${meetingLink}" target="_blank"
+           style="display: inline-block; background-color: #0B3D2E; color: white; text-decoration: none;
+                  padding: 14px 36px; border-radius: 10px; font-weight: bold; font-size: 16px;">
+          🔗 رابط الجلسة
+        </a>
+      </div>
+
+      <p style="color: #64748b; font-size: 13px; text-align: center;">
+        يرجى الحرص على الانضمام في الموعد المحدد. بالتوفيق! 🌟
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+      <p style="font-size: 12px; color: #94a3b8; text-align: center;">منصة إتقان الفاتحة — جميع الحقوق محفوظة</p>
+    </div>
+  `
+  return sendEmail({
+    to,
+    subject: `⏰ تذكير: اقترب موعد جلستك مع ${readerName} — إتقان الفاتحة`,
+    body: `تذكير بموعد جلسة التسميع خلال 24 ساعة. المقرئ: ${readerName}، التاريخ: ${sessionDate}، الوقت: ${sessionTime}. رابط الجلسة: ${meetingLink}`,
+    html,
+  })
+}

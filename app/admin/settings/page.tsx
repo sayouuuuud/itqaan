@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Save, User, Settings2, Loader2, CheckCircle, Mail, Image as ImageIcon } from "lucide-react"
+import { Save, User, Settings2, Loader2, CheckCircle, Mail, Image as ImageIcon, Phone } from "lucide-react"
 import { AvatarUpload } from "@/components/avatar-upload"
 
 export default function AdminSettingsPage() {
@@ -31,6 +31,16 @@ export default function AdminSettingsPage() {
     const [cloudinary, setCloudinary] = useState({ cloudName: "", apiKey: "", apiSecret: "" })
     const [cloudinarySaving, setCloudinarySaving] = useState(false)
     const [cloudinarySaved, setCloudinarySaved] = useState(false)
+
+    /* ──────────────── Contact Information ──────────────── */
+    const [contactInfo, setContactInfo] = useState({ email: "", phone: "", address: "" })
+    const [contactSaving, setContactSaving] = useState(false)
+    const [contactSaved, setContactSaved] = useState(false)
+
+    /* ──────────────── Branding ──────────────── */
+    const [branding, setBranding] = useState({ logoUrl: "", faviconUrl: "" })
+    const [brandingSaving, setBrandingSaving] = useState(false)
+    const [brandingSaved, setBrandingSaved] = useState(false)
 
     const [loading, setLoading] = useState(true)
 
@@ -59,7 +69,7 @@ export default function AdminSettingsPage() {
                     if (d.settings?.smtp_config) {
                         try {
                             const parsedSmtp = typeof d.settings.smtp_config === 'string' ? JSON.parse(d.settings.smtp_config) : d.settings.smtp_config;
-                            setSmtp(prev => ({ ...prev, ...parsedSmtp }));
+                            setSmtp((prev: any) => ({ ...prev, ...parsedSmtp }));
                         } catch (e) { console.error("Could not parse SMTP settings", e) }
                     }
 
@@ -67,8 +77,24 @@ export default function AdminSettingsPage() {
                     if (d.settings?.cloudinary_config) {
                         try {
                             const parsedCloudinary = typeof d.settings.cloudinary_config === 'string' ? JSON.parse(d.settings.cloudinary_config) : d.settings.cloudinary_config;
-                            setCloudinary(prev => ({ ...prev, ...parsedCloudinary }));
+                            setCloudinary((prev: any) => ({ ...prev, ...parsedCloudinary }));
                         } catch (e) { console.error("Could not parse Cloudinary settings", e) }
+                    }
+
+                    // Parse Contact Info
+                    if (d.settings?.contact_info) {
+                        try {
+                            const parsedContact = typeof d.settings.contact_info === 'string' ? JSON.parse(d.settings.contact_info) : d.settings.contact_info;
+                            setContactInfo((prev: any) => ({ ...prev, ...parsedContact }));
+                        } catch (e) { console.error("Could not parse Contact Info", e) }
+                    }
+
+                    // Parse Branding
+                    if (d.settings?.branding) {
+                        try {
+                            const parsedBranding = typeof d.settings.branding === 'string' ? JSON.parse(d.settings.branding) : d.settings.branding;
+                            setBranding((prev: any) => ({ ...prev, ...parsedBranding }));
+                        } catch (e) { console.error("Could not parse Branding", e) }
                     }
                 }
             } catch (err) {
@@ -136,7 +162,7 @@ export default function AdminSettingsPage() {
                 setSmtpSaved(true)
                 setTimeout(() => setSmtpSaved(false), 3000)
             } else { alert(t.admin.errorSaving) }
-        } catch { alert(t.auth.errorOccurred) }
+        } catch { alert(t.auth.errorOccurred || t.admin.connectionError) }
         finally { setSmtpSaving(false) }
     }
 
@@ -154,6 +180,38 @@ export default function AdminSettingsPage() {
             } else { alert(t.admin.errorSaving) }
         } catch { alert(t.auth.errorOccurred) }
         finally { setCloudinarySaving(false) }
+    }
+
+    const handleContactSave = async () => {
+        setContactSaving(true)
+        try {
+            const res = await fetch("/api/admin/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ settings: { contact_info: contactInfo } }),
+            })
+            if (res.ok) {
+                setContactSaved(true)
+                setTimeout(() => setContactSaved(false), 3000)
+            } else { alert(t.admin.errorSaving) }
+        } catch { alert(t.auth.errorOccurred) }
+        finally { setContactSaving(false) }
+    }
+
+    const handleBrandingSave = async () => {
+        setBrandingSaving(true)
+        try {
+            const res = await fetch("/api/admin/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ settings: { branding: branding } }),
+            })
+            if (res.ok) {
+                setBrandingSaved(true)
+                setTimeout(() => setBrandingSaved(false), 3000)
+            } else { alert(t.admin.errorSaving) }
+        } catch { alert(t.auth.errorOccurred) }
+        finally { setBrandingSaving(false) }
     }
 
     if (loading) {
@@ -376,10 +434,10 @@ export default function AdminSettingsPage() {
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
-                                {isAr ? "إعدادات البريد الإلكتروني (SMTP)" : "Email Settings (SMTP)"}
+                                {t.admin.emailSettings}
                             </CardTitle>
                             <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
-                                {isAr ? "بيانات الإرسال عبر البريد الإلكتروني للمنصة." : "Platform email sending credentials."}
+                                {t.admin.emailSettingsDesc}
                             </CardDescription>
                         </div>
                     </div>
@@ -408,7 +466,7 @@ export default function AdminSettingsPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{isAr ? "البريد الإلكتروني للإرسال" : "User Email"}</Label>
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.userEmail}</Label>
                             <Input
                                 dir="ltr"
                                 type="email"
@@ -419,7 +477,7 @@ export default function AdminSettingsPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{isAr ? "كلمة المرور (App Password)" : "Password"}</Label>
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.smtpPasswordLabel}</Label>
                             <Input
                                 dir="ltr"
                                 type="password"
@@ -430,7 +488,7 @@ export default function AdminSettingsPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{isAr ? "اسم المرسل" : "From Name"}</Label>
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.fromName}</Label>
                             <Input
                                 value={smtp.fromName}
                                 onChange={e => setSmtp({ ...smtp, fromName: e.target.value })}
@@ -439,7 +497,7 @@ export default function AdminSettingsPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{isAr ? "بريد المرسل المعروض" : "From Email"}</Label>
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.fromEmail}</Label>
                             <Input
                                 dir="ltr"
                                 type="email"
@@ -458,7 +516,7 @@ export default function AdminSettingsPage() {
                             className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {smtpSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : smtpSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                            <span className="mx-2">{smtpSaved ? t.admin.savedSuccess : (isAr ? "حفظ إعدادات البريد" : "Save Email Settings")}</span>
+                            <span className="mx-2">{smtpSaved ? t.admin.savedSuccess : t.admin.saveEmailSettings}</span>
                         </Button>
                     </div>
                 </CardContent>
@@ -473,10 +531,10 @@ export default function AdminSettingsPage() {
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
-                                {isAr ? "إعدادات تخزين الملفات والصور (Cloudinary)" : "Storage Settings (Cloudinary)"}
+                                {t.admin.storageSettings}
                             </CardTitle>
                             <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
-                                {isAr ? "بيانات ربط خدمة Cloudinary لرفع الصور والتسجيلات." : "Cloudinary credentials for media upload."}
+                                {t.admin.storageSettingsDesc}
                             </CardDescription>
                         </div>
                     </div>
@@ -523,7 +581,124 @@ export default function AdminSettingsPage() {
                             className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {cloudinarySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : cloudinarySaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                            <span className="mx-2">{cloudinarySaved ? t.admin.savedSuccess : (isAr ? "حفظ إعدادات التخزين" : "Save Storage Settings")}</span>
+                            <span className="mx-2">{cloudinarySaved ? t.admin.savedSuccess : t.admin.saveStorageSettings}</span>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* ── Contact Settings ── */}
+            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
+                            <Phone className="w-5 h-5 text-[#0B3D2E]" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg font-bold text-gray-800">
+                                {t.admin.contactSettings}
+                            </CardTitle>
+                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                                {t.admin.contactSettingsDesc}
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.auth.email}</Label>
+                            <Input
+                                dir="ltr"
+                                value={contactInfo.email}
+                                onChange={e => setContactInfo({ ...contactInfo, email: e.target.value })}
+                                placeholder="info@itqaan.com"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.phone}</Label>
+                            <Input
+                                dir="ltr"
+                                value={contactInfo.phone}
+                                onChange={e => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                                placeholder="+966 50 000 0000"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                            />
+                        </div>
+                        <div className="space-y-2 sm:col-span-2">
+                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.address}</Label>
+                            <Input
+                                value={contactInfo.address}
+                                onChange={e => setContactInfo({ ...contactInfo, address: e.target.value })}
+                                placeholder="الرياض، المملكة العربية السعودية"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button
+                            onClick={handleContactSave}
+                            disabled={contactSaving}
+                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                        >
+                            {contactSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : contactSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                            <span className="mx-2">{contactSaved ? t.admin.savedSuccess : t.admin.saveContactSettings}</span>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* ── Branding Settings ── */}
+            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
+                            <ImageIcon className="w-5 h-5 text-[#0B3D2E]" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg font-bold text-gray-800">
+                                {t.admin.brandingTitle}
+                            </CardTitle>
+                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                                {t.admin.brandingDesc}
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <p className="text-sm font-semibold text-foreground">{t.admin.logoLabel}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{t.admin.logoDesc}</p>
+                            <AvatarUpload
+                                currentUrl={branding.logoUrl}
+                                name="Logo"
+                                size="md"
+                                onUploaded={(url) => setBranding(prev => ({ ...prev, logoUrl: url }))}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-semibold text-foreground">{t.admin.faviconLabel}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{t.admin.faviconDesc}</p>
+                            <AvatarUpload
+                                currentUrl={branding.faviconUrl}
+                                name="Favicon"
+                                size="sm"
+                                onUploaded={(url) => setBranding(prev => ({ ...prev, faviconUrl: url }))}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button
+                            onClick={handleBrandingSave}
+                            disabled={brandingSaving}
+                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                        >
+                            {brandingSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : brandingSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                            <span className="mx-2">{brandingSaved ? t.admin.savedSuccess : "Save Branding"}</span>
                         </Button>
                     </div>
                 </CardContent>

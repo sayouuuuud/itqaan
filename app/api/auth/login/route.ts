@@ -7,7 +7,7 @@ const MAX_FAILED_ATTEMPTS = 5
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json()
+    const { email, password, loginType } = await req.json()
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || null
 
     if (!email || !password) {
@@ -118,6 +118,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Role assignment based on login context
+    let activeRole = user.role;
+
+    if (loginType === "admin") {
+      // Admin login page check
+      if (user.role !== "admin") {
+        return NextResponse.json(
+          { error: "غير مصرح لك بالدخول كمدير" },
+          { status: 403 }
+        );
+      }
+      activeRole = "admin";
+    } else {
+      // Normal login page check: Force admin to student
+      if (user.role === "admin") {
+        activeRole = "student";
+      }
+    }
+
     // Successful login — reset failed count
     await query(
       `UPDATE users SET failed_login_count = 0, last_login_at = NOW() WHERE id = $1`,
@@ -134,7 +153,7 @@ export async function POST(req: NextRequest) {
     const token = await signToken({
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role: activeRole,
       name: user.name,
     })
 
@@ -150,7 +169,7 @@ export async function POST(req: NextRequest) {
     })
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, role: activeRole },
     })
 
     response.cookies.set("auth-token", token, {

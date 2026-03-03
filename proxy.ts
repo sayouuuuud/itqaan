@@ -5,7 +5,7 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "hana-lazan-secret-key-change-in-production"
 )
 
-const publicPaths = ["/", "/about", "/contact", "/sitemap-page", "/login", "/register", "/reset-password", "/maintenance"]
+const publicPaths = ["/", "/about", "/contact", "/sitemap-page", "/login", "/login-admin", "/register", "/reset-password", "/maintenance"]
 const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics"]
 
 function getDeviceType(ua: string): string {
@@ -22,44 +22,6 @@ export async function proxy(req: NextRequest) {
   // Skip static assets early
   if (pathname.startsWith("/_next") || pathname.startsWith("/uploads") || pathname.includes(".")) {
     return NextResponse.next()
-  }
-
-  // === Page tracking (fire-and-forget for non-bot page visits) ===
-  const ua = req.headers.get("user-agent") || ""
-  const isPage = !pathname.startsWith("/api/")
-  if (isPage && !/bot|crawl|spider/i.test(ua)) {
-    const origin = req.nextUrl.origin
-    fetch(`${origin}/api/admin/analytics`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: pathname,
-        referrer: req.headers.get("referer") || null,
-      }),
-    }).catch(() => { })
-  }
-
-  // === Maintenance mode check for public pages ===
-  const isPublicFacing = !pathname.startsWith("/admin") &&
-    !pathname.startsWith("/student") &&
-    !pathname.startsWith("/reader") &&
-    !pathname.startsWith("/api") &&
-    pathname !== "/login" &&
-    pathname !== "/maintenance"
-
-  if (isPublicFacing && process.env.DATABASE_URL) {
-    try {
-      const res = await fetch(`${req.nextUrl.origin}/api/admin/homepage`)
-      if (res.ok) {
-        const data = await res.json()
-        const s = data?.settings || {}
-        const isOn = s.maintenance_mode === true || s.maintenance_mode === "true"
-        const fullPage = s.maintenance_full_page === true || s.maintenance_full_page === "true"
-        if (isOn && fullPage && pathname !== "/") {
-          return NextResponse.redirect(new URL("/maintenance", req.url))
-        }
-      }
-    } catch { /* ignore */ }
   }
 
   // In development/demo mode, skip auth for dashboard pages
@@ -84,6 +46,10 @@ export async function proxy(req: NextRequest) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
+    // If trying to access admin panel, redirect to login-admin
+    if (pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/login-admin", req.url))
+    }
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
@@ -99,7 +65,7 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
     if (pathname.startsWith("/admin") && role !== "admin") {
-      return NextResponse.redirect(new URL("/login", req.url))
+      return NextResponse.redirect(new URL("/login-admin", req.url))
     }
 
     // Add user info to headers for API routes
@@ -107,10 +73,19 @@ export async function proxy(req: NextRequest) {
     response.headers.set("x-user-id", payload.sub as string)
     response.headers.set("x-user-role", role)
     return response
-  } catch {
+  } catch (err) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
+
+    // If it's a public path, just show it anyway (even if token is bad)
+    const normalizedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+    if (publicPaths.includes(normalizedPath || '/')) {
+      const response = NextResponse.next()
+      response.cookies.delete("auth-token")
+      return response
+    }
+
     const response = NextResponse.redirect(new URL("/login", req.url))
     response.cookies.delete("auth-token")
     return response

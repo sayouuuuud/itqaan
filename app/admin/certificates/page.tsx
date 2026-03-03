@@ -60,7 +60,7 @@ export default function CertificatesDashPage() {
     }, [filter])
 
     const handleIssue = async (id: string) => {
-        if (!confirm(isAr ? "تأكيد إصدار الشهادة لهذا الطالب؟ سيتم إرسال بريد إلكتروني تلقائياً للمستخدم." : "Confirm issuing certificate? An email will be sent automatically.")) return
+        if (!confirm(t.admin.certificates.confirmIssue)) return
 
         setIssuingId(id)
         try {
@@ -77,10 +77,10 @@ export default function CertificatesDashPage() {
                 ))
             } else {
                 const errData = await res.json()
-                alert(errData.error || "حدث خطأ أثناء الإصدار")
+                alert(errData.error || t.admin.certificates.issueError)
             }
         } catch {
-            alert("تعذر الاتصال بالخادم")
+            alert(t.admin.certificates.connectionError)
         } finally {
             setIssuingId(null)
         }
@@ -97,12 +97,12 @@ export default function CertificatesDashPage() {
 
             if (!res.ok) {
                 const errData = await res.json()
-                alert(errData.error || "حدث خطأ أثناء الحفظ")
+                alert(errData.error || t.admin.certificates.issueError)
             } else {
-                alert(isAr ? "تم حفظ التاريخ الموحد بنجاح" : "Unified date saved successfully")
+                alert(t.admin.certificates.saveSuccess)
             }
         } catch {
-            alert("تعذر الاتصال بالخادم")
+            alert(t.admin.certificates.connectionError)
         } finally {
             setSettingGlobal(false)
         }
@@ -160,9 +160,9 @@ export default function CertificatesDashPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800">{isAr ? "طلبات الشهادات" : "Certificate Requests"}</h1>
+                    <h1 className="text-2xl font-bold text-slate-800">{t.admin.certificates.title}</h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        {isAr ? "مراجعة واعتماد طلبات إصدار الشهادة للمتقنين" : "Review and approve certificate requests for mastered students"}
+                        {t.admin.certificates.subtitle}
                     </p>
                 </div>
 
@@ -177,7 +177,7 @@ export default function CertificatesDashPage() {
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
-                    {isAr ? "بانتظار الإصدار" : "Pending Issue"}
+                    {t.admin.certificates.pendingIssue}
                     <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px]">{counts.pending}</span>
                 </button>
                 <button
@@ -187,7 +187,7 @@ export default function CertificatesDashPage() {
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
-                    {isAr ? "تم الإصدار" : "Issued"}
+                    {t.admin.certificates.issued}
                     <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px]">{counts.issued}</span>
                 </button>
                 <button
@@ -197,7 +197,7 @@ export default function CertificatesDashPage() {
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
-                    {isAr ? "الكل" : "All"}
+                    {t.admin.certificates.all}
                 </button>
             </div>
 
@@ -210,7 +210,7 @@ export default function CertificatesDashPage() {
                 ) : applications.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
                         <Award className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                        <p className="text-slate-500 font-medium">{isAr ? "لا توجد طلبات في هذه الفئة" : "No applications in this category"}</p>
+                        <p className="text-slate-500 font-medium">{t.admin.certificates.noApplications}</p>
                     </div>
                 ) : applications.map((app) => {
                     const isExpanded = expandedId === app.id
@@ -229,10 +229,10 @@ export default function CertificatesDashPage() {
                                     <div>
                                         <h3 className="font-bold text-slate-800">{app.student_name}</h3>
                                         <div className="flex items-center gap-3 text-sm text-slate-500 mt-1 font-medium">
-                                            <span className="flex items-center gap-1.5">{app.university || "جهة غير محددة"}</span>
+                                            <span className="flex items-center gap-1.5">{app.university || t.admin.certificates.notSet}</span>
                                             {app.recitation_status === 'mastered' && (
                                                 <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                                    {isAr ? "متقن" : "Mastered"}
+                                                    {t.admin.statuses.mastered}
                                                 </span>
                                             )}
                                         </div>
@@ -243,12 +243,12 @@ export default function CertificatesDashPage() {
                                     {app.certificate_issued ? (
                                         <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
                                             <CheckCircle className="w-3.5 h-3.5" />
-                                            {isAr ? "تم الإصدار" : "Issued"}
+                                            {t.admin.certificates.issued}
                                         </span>
                                     ) : (
                                         <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
                                             <Clock className="w-3.5 h-3.5" />
-                                            {isAr ? "قيد المراجعة" : "Pending"}
+                                            {t.admin.certificates.pendingIssue}
                                         </span>
                                     )}
 
@@ -259,7 +259,7 @@ export default function CertificatesDashPage() {
                                             className="bg-[#0B3D2E] hover:bg-[#0A3528] disabled:bg-slate-300 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
                                         >
                                             {issuingId === app.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
-                                            {isAr ? "إصدار الشهادة" : "Issue"}
+                                            {t.admin.certificates.issueCertificate}
                                         </button>
                                     )}
                                 </div>
@@ -270,31 +270,31 @@ export default function CertificatesDashPage() {
                                 <div className="border-t border-slate-100 bg-slate-50/50">
                                     <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                                         <div>
-                                            <p className="text-xs text-slate-500 font-medium mb-1">{isAr ? "البريد الإلكتروني" : "Email"}</p>
+                                            <p className="text-xs text-slate-500 font-medium mb-1">{t.admin.certificates.email}</p>
                                             <p className="text-sm font-bold text-slate-800 dir-ltr text-left">{app.student_email}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-medium mb-1">{isAr ? "المدينة" : "City"}</p>
+                                            <p className="text-xs text-slate-500 font-medium mb-1">{t.admin.certificates.city}</p>
                                             <p className="text-sm font-bold text-slate-800">{app.city || "---"}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-medium mb-1">{isAr ? "الكلية / التخصص" : "College"}</p>
+                                            <p className="text-xs text-slate-500 font-medium mb-1">{t.admin.certificates.college}</p>
                                             <p className="text-sm font-bold text-slate-800">{app.college || "---"}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-medium mb-1">{isAr ? "الجنس" : "Gender"}</p>
+                                            <p className="text-xs text-slate-500 font-medium mb-1">{t.admin.certificates.gender}</p>
                                             <p className="text-sm font-bold text-slate-800">{app.gender === 'male' ? (isAr ? "ذكر" : "Male") : (app.gender === 'female' ? (isAr ? "أنثى" : "Female") : "---")}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-medium mb-1">{isAr ? "تاريخ حفل الختام (المطبق)" : "Ceremony Date (Applied)"}</p>
-                                            <p className="text-sm font-bold text-slate-800 mb-2">{app.effective_ceremony_date ? new Date(app.effective_ceremony_date).toLocaleString(isAr ? 'ar-SA' : 'en-US') : (isAr ? "غير محدد" : "Not set")}</p>
+                                            <p className="text-xs text-slate-500 font-medium mb-1">{t.admin.certificates.ceremonyDateApplied}</p>
+                                            <p className="text-sm font-bold text-slate-800 mb-2">{app.effective_ceremony_date ? new Date(app.effective_ceremony_date).toLocaleString(isAr ? 'ar-SA' : 'en-US') : t.admin.certificates.notSet}</p>
                                             {app.is_custom_ceremony ? (
-                                                <span className="text-xs text-amber-600 font-medium">{isAr ? "مخصص لهذا الطالب" : "Custom for this student"}</span>
+                                                <span className="text-xs text-amber-600 font-medium">{t.admin.certificates.customForStudent}</span>
                                             ) : (
-                                                <span className="text-xs text-slate-500 font-medium">{isAr ? "من التاريخ الموحد" : "From global date"}</span>
+                                                <span className="text-xs text-slate-500 font-medium">{t.admin.certificates.fromGlobalDate}</span>
                                             )}
                                             <div className="mt-2">
-                                                <p className="text-xs text-slate-500 font-medium mb-1">{isAr ? "تاريخ مخصص (اختياري)" : "Custom Date (Optional)"}</p>
+                                                <p className="text-xs text-slate-500 font-medium mb-1">{t.admin.certificates.customDateOptional}</p>
                                                 <input
                                                     type="datetime-local"
                                                     value={app.ceremony_date || ""}
@@ -310,7 +310,7 @@ export default function CertificatesDashPage() {
                                                     onClick={() => handleSetIndividualCeremony(app.id, app.ceremony_date || null)}
                                                     className="mt-2 text-xs bg-[#0B3D2E] hover:bg-[#0A3528] text-white px-3 py-1 rounded-lg font-bold"
                                                 >
-                                                    {isAr ? "حفظ التاريخ المخصص" : "Save Custom Date"}
+                                                    {t.admin.certificates.saveCustomDate}
                                                 </button>
                                             </div>
                                         </div>
@@ -325,12 +325,12 @@ export default function CertificatesDashPage() {
                                                 className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-4 py-2 rounded-lg border border-blue-100"
                                             >
                                                 <FileText className="w-4 h-4" />
-                                                {isAr ? "إثبات الانتماء للجهة المرفق" : "Attached Proof File"}
+                                                {t.admin.certificates.attachedProof}
                                                 <ExternalLink className="w-3.5 h-3.5 ml-1 rtl:mr-1 rtl:ml-0" />
                                             </a>
                                         ) : (
                                             <span className="text-sm text-slate-500 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
-                                                {isAr ? "لا توجد مرفقات مع هذا الطلب" : "No attachments provided"}
+                                                {t.admin.certificates.noAttachments}
                                             </span>
                                         )}
 
@@ -342,7 +342,7 @@ export default function CertificatesDashPage() {
                                                 className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-800 font-bold bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100"
                                             >
                                                 <Award className="w-4 h-4" />
-                                                {isAr ? "الشهادة الرقمية المصدرة" : "Digital Certificate Link"}
+                                                {t.admin.certificates.digitalCertLink}
                                                 <ExternalLink className="w-3.5 h-3.5 ml-1 rtl:mr-1 rtl:ml-0" />
                                             </a>
                                         )}
@@ -356,7 +356,7 @@ export default function CertificatesDashPage() {
 
             {/* Platform Seal Management */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-slate-800 mb-4">{isAr ? "ختم المنصة" : "Platform Seal"}</h2>
+                <h2 className="text-lg font-bold text-slate-800 mb-4">{t.admin.certificates.platformSeal}</h2>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="shrink-0 relative">
                         {settingSeal && (
@@ -372,12 +372,12 @@ export default function CertificatesDashPage() {
                                 ) : (
                                     <div className="text-center p-2">
                                         <Award className="w-8 h-8 text-slate-300 mx-auto mb-1" />
-                                        <span className="text-[10px] text-slate-500 font-medium block whitespace-pre-wrap">{isAr ? "اضغط لرفع\nصورة الختم" : "Click to upload\nseal image"}</span>
+                                        <span className="text-[10px] text-slate-500 font-medium block whitespace-pre-wrap">{t.admin.certificates.clickToUploadSeal}</span>
                                     </div>
                                 )}
                             </div>
                             <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <span className="text-white text-xs font-bold">{isAr ? "تغيير" : "Change"}</span>
+                                <span className="text-white text-xs font-bold">{t.admin.certificates.change}</span>
                             </div>
                             <input
                                 type="file"
@@ -409,12 +409,10 @@ export default function CertificatesDashPage() {
                     </div>
                     <div>
                         <p className="text-sm font-bold text-slate-700 mb-1">
-                            {isAr ? "تخصيص الختم الرقمي" : "Customize Digital Seal"}
+                            {t.admin.certificates.customizeSeal}
                         </p>
                         <p className="text-sm text-slate-500">
-                            {isAr
-                                ? "قم برفع صورة بخلفية شفافة (PNG) لختم المنصة. سيتم استخدام هذا الختم في جميع الشهادات المصدرة مستقبلاً وفي صفحة التحقق من الشهادة."
-                                : "Upload a transparent PNG image for the platform seal. This seal will be used in all newly issued certificates and on the public verification page."}
+                            {t.admin.certificates.sealDesc}
                         </p>
                     </div>
                 </div>
@@ -422,10 +420,10 @@ export default function CertificatesDashPage() {
 
             {/* Global Ceremony Date Management */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-slate-800 mb-4">{isAr ? "إدارة حفل الختام الموحد" : "Unified Graduation Ceremony Management"}</h2>
+                <h2 className="text-lg font-bold text-slate-800 mb-4">{t.admin.certificates.unifiedCeremony}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "تاريخ الحفل" : "Ceremony Date"}</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">{t.admin.certificates.ceremonyDate}</label>
                         <input
                             type="datetime-local"
                             value={globalCeremony.date || ""}
@@ -434,12 +432,12 @@ export default function CertificatesDashPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "رسالة إضافية (اختياري)" : "Additional Message (Optional)"}</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">{t.admin.certificates.additionalMessage}</label>
                         <input
                             type="text"
                             value={globalCeremony.message}
                             onChange={(e) => setGlobalCeremony(prev => ({ ...prev, message: e.target.value }))}
-                            placeholder={isAr ? "مثل: الموقع أو التفاصيل الإضافية" : "e.g., Location or additional details"}
+                            placeholder={t.admin.certificates.ceremonyPlaceholder}
                             className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
                         />
                     </div>
@@ -451,7 +449,7 @@ export default function CertificatesDashPage() {
                         className="bg-[#0B3D2E] hover:bg-[#0A3528] disabled:bg-slate-300 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
                     >
                         {settingGlobal ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                        {isAr ? "حفظ التاريخ الموحد" : "Save Unified Date"}
+                        {t.admin.certificates.saveUnifiedDate}
                     </button>
                 </div>
             </div>

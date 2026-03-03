@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     } = await req.json()
 
     // Validate required fields
-    if (!full_name_triple || !email || !password || !phone || !city || !gender) {
+    if (!full_name_triple || !email || !password || !phone || !gender) {
       return NextResponse.json(
         { error: "جميع الحقول الإلزامية مطلوبة" },
         { status: 400 }
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         user.id,
         full_name_triple,
         phone,
-        city,
+        city || null,
         nationality,
         qualification || null,
         memorized_parts || 0,

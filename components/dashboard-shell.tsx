@@ -73,7 +73,7 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin', { section
           { href: '/admin/recitations', label: t.admin.recitations, icon: FileText },
           { href: '/admin/bookings', label: t.admin.bookings, icon: CalendarDays },
           { href: '/admin/conversations', label: t.admin.conversations, icon: MessagesSquare },
-          { href: '/admin/certificates', label: t.admin.certificates, icon: Award },
+          { href: '/admin/certificates', label: t.admin.certificates.title, icon: Award },
         ]
       },
       {
@@ -194,28 +194,14 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
       )}>
         {/* Logo */}
         <div className={cn('p-6 flex items-center gap-3', isReader ? 'border-b border-white/10' : 'border-b border-gray-100')}>
-          {isReader ? (
+          {role === 'admin' ? (
             <>
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                <span className="font-bold text-xl text-white">{t.appLogoLetter}</span>
+              <div className="w-11 h-11 shrink-0 bg-white shadow-sm rounded-md p-1">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-2xl font-bold tracking-tight text-white">{t.appName}</span>
+              <span className="font-bold text-2xl text-slate-700">{t.shell.sidebarTitle}</span>
             </>
-          ) : (
-            <>
-              <div className={cn('rounded-xl p-2.5', role === 'admin' ? 'bg-gradient-to-br from-[#0B3D2E] to-[#16503A] shadow-lg shadow-[#0B3D2E]/20' : 'bg-[#0B3D2E]/10')}>
-                {role === 'admin' ? (
-                  <span className="font-bold text-xl text-white">{t.appLogoLetter}</span>
-                ) : (
-                  <BookOpen className="w-6 h-6 text-[#0B3D2E]" />
-                )}
-              </div>
-              <div>
-                <h1 className="text-[#0B3D2E] text-2xl font-bold">{t.appName}</h1>
-                <p className="text-slate-500 text-xs font-medium">{config.label}</p>
-              </div>
-            </>
-          )}
+          ) : null}
           <button className="lg:hidden mr-auto p-1" onClick={() => setSidebarOpen(false)} aria-label="close">
             <X className={cn('w-5 h-5', isReader ? 'text-white' : 'text-slate-500')} />
           </button>
@@ -224,7 +210,15 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         {/* Reader user avatar section */}
         {isReader && (
           <div className="px-6 pt-6 pb-2">
-            <div className="flex items-center gap-4 mb-6">
+            <div
+              className="flex items-center gap-4 mb-6 relative group cursor-pointer hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors"
+              onClick={async () => {
+                const res = await fetch('/api/auth/logout', { method: 'POST' });
+                if (res.ok) {
+                  window.location.href = '/login';
+                }
+              }}
+            >
               <div className="w-12 h-12 rounded-full overflow-hidden bg-emerald-100 text-[#0B3D2E] flex items-center justify-center font-bold text-xl border-2 border-white/20 shrink-0">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
@@ -232,10 +226,13 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                   <span>{(config.name || t.userFallbackLetter)[0]}</span>
                 )}
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="font-bold text-sm text-white">{config.name}</h3>
                 <span className="text-xs text-teal-200">{config.sublabel}</span>
               </div>
+              <button type="button" className="p-1 rounded-md text-teal-200 hover:text-white hover:bg-white/10 transition-colors" title="تسجيل الخروج">
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -277,7 +274,15 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         {/* Bottom section */}
         <div className={cn('p-4', isReader ? 'border-t border-white/10' : 'border-t border-gray-100')}>
           {!isReader && (
-            <div className={cn('flex items-center gap-3 px-4 py-3 rounded-xl mb-2', role === 'admin' ? 'hover:bg-gray-50 cursor-pointer' : 'bg-slate-50 border border-slate-100')}>
+            <div
+              className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 hover:bg-gray-50 bg-slate-50 border border-slate-100 cursor-pointer transition-colors"
+              onClick={async () => {
+                const res = await fetch('/api/auth/logout', { method: 'POST' });
+                if (res.ok) {
+                  window.location.href = '/login';
+                }
+              }}
+            >
               <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 text-[#0B3D2E] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm shrink-0">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
@@ -289,15 +294,29 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                 <p className="text-sm font-bold text-slate-800 truncate">{config.name}</p>
                 <p className="text-xs text-slate-500 truncate">{config.sublabel}</p>
               </div>
-              {role === 'admin' && <LogOut className="w-4 h-4 text-gray-400" />}
+              <button
+                type="button"
+                title="تسجيل الخروج"
+                className="p-1 hover:bg-gray-200 rounded-md transition-colors"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const res = await fetch('/api/auth/logout', { method: 'POST' });
+                  if (res.ok) {
+                    window.location.href = '/login';
+                  }
+                }}
+              >
+                <LogOut className="w-4 h-4 text-gray-500 hover:text-red-500 transition-colors" />
+              </button>
             </div>
           )}
-          <Link href="/login" className={cn(
+
+          <Link href="/" className={cn(
             'flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm',
             isReader ? 'text-teal-200 hover:text-white' : 'text-slate-500 hover:text-[#0B3D2E]'
           )}>
-            <LogOut className="w-4 h-4" />
-            <span>{t.logout}</span>
+            <Globe className="w-4 h-4" />
+            <span>عرض الموقع</span>
           </Link>
         </div>
       </aside>

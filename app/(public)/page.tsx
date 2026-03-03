@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { PublicNavbar } from '@/components/public-navbar'
 import { Mic, CheckCircle, Calendar, ArrowLeft, ChevronDown, BookOpen, Shield, Award, Star } from 'lucide-react'
 
 export default function LandingPage() {
@@ -21,7 +20,6 @@ export default function LandingPage() {
     <div className="overflow-hidden">
       {/* ========== HERO (unchanged) ========== */}
       <section className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden px-4 py-20 text-center text-white bg-[#0B3D2E]">
-        <PublicNavbar />
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 opacity-5" style={{ background: 'radial-gradient(circle at center, #D4A843 0%, transparent 50%)' }} />
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D4A843] rounded-full mix-blend-multiply blur-3xl opacity-5 animate-blob-float" />

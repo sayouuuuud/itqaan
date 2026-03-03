@@ -170,13 +170,13 @@ export default function ReaderApplicationsPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold text-lg shrink-0">
-                    {(app.name || "م").charAt(0)}
+                    {(app.name || t.user).charAt(0)}
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">{app.name}</h3>
                     <div className="flex items-center gap-3 text-sm text-gray-500 mt-1 font-medium">
-                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{app.city || "غير محدد"}</span>
-                      <span className="flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{app.qualification || "غير محدد"}</span>
+                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{app.city || t.admin.notSpecified}</span>
+                      <span className="flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{app.qualification || t.admin.notSpecified}</span>
                     </div>
                   </div>
                 </div>
@@ -239,7 +239,7 @@ export default function ReaderApplicationsPage() {
                   {app.certificate_file_url && (
                     <div className="px-6 pb-2">
                       <a href={app.certificate_file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:text-blue-800 underline font-medium">
-                        عرض الشهادة / المرفقات
+                        {t.admin.viewCertificate}
                       </a>
                     </div>
                   )}

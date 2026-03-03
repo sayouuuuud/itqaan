@@ -48,11 +48,11 @@ export default function AdminReportsPage() {
       [t.admin.reportsPage.certificatesIssued, data.certificates],
       [t.admin.reportsPage.emailsSent, data.emailsSent],
       ['', ''], // Empty row for separation
-      [isAr ? 'إحصائيات الأخطاء' : 'Errors Statistics', ''],
-      [isAr ? 'إجمالي الأخطاء المسجلة' : 'Total Recorded Mistakes', data.wordMistakes?.summary?.total_mistakes || 0],
-      [isAr ? 'عدد الطلاب المخطئين' : 'Students with Mistakes', data.wordMistakes?.summary?.total_students_with_mistakes || 0],
+      [t.admin.reportsPage.mistakesStats, ''],
+      [t.admin.reportsPage.totalMistakesLabel, data.wordMistakes?.summary?.total_mistakes || 0],
+      [t.admin.reportsPage.studentsWithMistakes, data.wordMistakes?.summary?.total_students_with_mistakes || 0],
       ['', ''], // Empty row for separation
-      [isAr ? 'الكلمة' : 'Word', isAr ? 'مرات التكرار' : 'Frequency', isAr ? 'عدد الطلاب' : 'Students Count'],
+      [t.admin.reportsPage.word, t.admin.reportsPage.frequency, t.admin.reportsPage.studentsCount],
       ...(data.wordMistakes?.topWords || []).map((w: any) => [w.word, w.frequency, w.students_count])
     ]
     const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n')
@@ -140,7 +140,7 @@ export default function AdminReportsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-red-50 rounded-2xl border border-red-100 p-6 flex items-center justify-between shadow-sm">
             <div>
-              <p className="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-2">{isAr ? 'إجمالي الأخطاء' : 'Total Mistakes'}</p>
+              <p className="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-2">{t.admin.reportsPage.totalMistakesLabel}</p>
               <p className="text-3xl font-black text-red-700">{data.wordMistakes.summary.total_mistakes}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm">
@@ -149,7 +149,7 @@ export default function AdminReportsPage() {
           </div>
           <div className="bg-orange-50 rounded-2xl border border-orange-100 p-6 flex items-center justify-between shadow-sm">
             <div>
-              <p className="text-[11px] font-bold text-orange-600 uppercase tracking-wider mb-2">{isAr ? 'الطلاب ذوي الأخطاء' : 'Students w/ Mistakes'}</p>
+              <p className="text-[11px] font-bold text-orange-600 uppercase tracking-wider mb-2">{t.admin.reportsPage.studentsWithMistakes}</p>
               <p className="text-3xl font-black text-orange-700">{data.wordMistakes.summary.total_students_with_mistakes}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm">
@@ -161,7 +161,7 @@ export default function AdminReportsPage() {
             <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-red-500" />
-                <h3 className="font-bold text-gray-800 text-sm">{isAr ? 'أكثر الكلمات خطأً' : 'Top Mistaken Words'}</h3>
+                <h3 className="font-bold text-gray-800 text-sm">{t.admin.reportsPage.topMistakenWords}</h3>
               </div>
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -169,8 +169,8 @@ export default function AdminReportsPage() {
                 <div key={i} className="flex flex-col border border-gray-100 rounded-xl p-3 bg-white">
                   <span className="font-bold text-red-700 mb-1">{w.word}</span>
                   <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium mt-auto">
-                    <span>{w.frequency} {isAr ? 'مرات' : 'times'}</span>
-                    <span>{w.students_count} {isAr ? 'طلاب' : 'students'}</span>
+                    <span>{w.frequency} {t.admin.reportsPage.times}</span>
+                    <span>{w.students_count} {t.admin.reportsPage.students}</span>
                   </div>
                 </div>
               ))}
@@ -185,8 +185,8 @@ export default function AdminReportsPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-bold text-gray-800">{isAr ? 'نشاط التلاوات اليومي' : 'Daily Recitations Activity'}</h3>
-              <p className="text-xs text-gray-500 mt-1">{isAr ? 'آخر 30 يومًا' : 'Last 30 days'}</p>
+              <h3 className="font-bold text-gray-800">{t.admin.reportsPage.dailyActivity}</h3>
+              <p className="text-xs text-gray-500 mt-1">{t.admin.reportsPage.last30Days}</p>
             </div>
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
@@ -197,7 +197,7 @@ export default function AdminReportsPage() {
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                <Bar dataKey="count" fill="#0B3D2E" radius={[4, 4, 0, 0]} name={isAr ? 'التلاوات' : 'Recitations'} />
+                <Bar dataKey="count" fill="#0B3D2E" radius={[4, 4, 0, 0]} name={t.admin.reportsPage.recitations} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -206,8 +206,8 @@ export default function AdminReportsPage() {
         {/* Status Distribution */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-gray-800 mb-2">{isAr ? 'توزيع الحالات' : 'Status Distribution'}</h3>
-            <p className="text-sm text-gray-500 mb-6">{isAr ? 'الإجمالي حسب الحالة' : 'Total by status'}</p>
+            <h3 className="font-bold text-gray-800 mb-2">{t.admin.reportsPage.statusDistribution}</h3>
+            <p className="text-sm text-gray-500 mb-6">{t.admin.reportsPage.totalByStatus}</p>
           </div>
 
           <div className="flex items-center justify-center mb-6">
@@ -237,7 +237,7 @@ export default function AdminReportsPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <span className="text-2xl font-bold text-gray-900">{totalPie}</span>
-                  <span className="block text-xs text-gray-400 uppercase tracking-tighter">{isAr ? 'الإجمالي' : 'Total'}</span>
+                  <span className="block text-xs text-gray-400 uppercase tracking-tighter">{t.admin.reportsPage.total}</span>
                 </div>
               </div>
             </div>

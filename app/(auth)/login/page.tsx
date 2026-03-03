@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
@@ -14,6 +14,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const router = useRouter()
   const { t } = useI18n()
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.user) {
+            router.push(`/${data.user.role}`)
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    checkAuth()
+  }, [router])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -54,7 +71,9 @@ export default function LoginPage() {
 
       {/* Nav */}
       <nav className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 max-w-7xl mx-auto w-full">
-        <Link href="/" className="text-3xl font-bold tracking-tighter text-[#D4A843] hover:opacity-80 transition-opacity">{t.appName}</Link>
+        <Link href="/" className="w-12 h-12 rounded-xl overflow-hidden hover:opacity-80 transition-opacity">
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+        </Link>
         <Link href="/register" className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-2">
           <span>{t.auth.noAccount}</span>
           <span className="text-[#D4A843] font-bold">{t.register}</span>

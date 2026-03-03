@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChevronDown, Download, TrendingUp, Eye, Users } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { useI18n } from "@/lib/i18n/context"
 
 interface AnalyticsData {
     date: string
@@ -16,13 +17,14 @@ interface ViewsChartProps {
 }
 
 export function ViewsChart({ data }: ViewsChartProps) {
+    const { t } = useI18n()
+    const isAr = t.locale === "ar"
     const [selectedDay, setSelectedDay] = useState<number | null>(null)
     const [hoveredDay, setHoveredDay] = useState<number | null>(null)
     const [metric, setMetric] = useState<"views" | "visitors">("views")
-    const [period, setPeriod] = useState("آخر 30 يوم")
+    const [period, setPeriod] = useState(t.admin.analytics.last30Days)
 
-    // Generate chart data ensuring all days in the period are represented
-    const totalDays = period === "آخر 7 أيام" ? 7 : period === "آخر 30 يوم" ? 30 : 90
+    const totalDays = period === t.admin.analytics.last7Days ? 7 : period === t.admin.analytics.last30Days ? 30 : 90
 
     const chartData = Array.from({ length: totalDays }, (_, i) => {
         const d = new Date()
@@ -37,7 +39,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
             value: matchingItem
                 ? (metric === "views" ? (matchingItem.views_count || 0) : ((matchingItem as any).visitors_count || matchingItem.views_count || 0))
                 : 0,
-            date: d.toLocaleDateString("ar-EG", {
+            date: d.toLocaleDateString(isAr ? "ar-EG" : "en-US", {
                 month: "short",
                 day: "numeric",
             }),
@@ -66,9 +68,10 @@ export function ViewsChart({ data }: ViewsChartProps) {
             >
                 {/* Tooltip */}
                 {isHovered && (
-                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 shadow-lg">
-                        {chartData[day - 1]?.date}: {value.toLocaleString("ar-EG")}{" "}
-                        {metric === "views" ? "مشاهدة" : "زائر"}
+                    <div className={`absolute bottom-full mb-2 ${day > totalDays - 3 ? "left-0" : day < 4 ? "right-0" : "left-1/2 -translate-x-1/2"
+                        } bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 shadow-lg`}>
+                        {chartData[day - 1]?.date}: {value.toLocaleString(isAr ? "ar-EG" : "en-US")}{" "}
+                        {metric === "views" ? t.admin.analytics.view : t.admin.analytics.visitor}
                     </div>
                 )}
                 {Array.from({ length: dotsPerColumn }).map((_, index) => (
@@ -99,11 +102,11 @@ export function ViewsChart({ data }: ViewsChartProps) {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h3 className="font-bold text-lg text-gray-900">
-                        إحصائيات الزيارات
+                        {t.admin.analytics.viewsStats}
                     </h3>
                     <p className="text-sm text-gray-500">
-                        الإجمالي: {totalValue.toLocaleString("ar-EG")} | المتوسط:{" "}
-                        {avgValue.toLocaleString("ar-EG")} يومياً
+                        {t.admin.analytics.total}: {totalValue.toLocaleString(isAr ? "ar-EG" : "en-US")} | {t.admin.analytics.average}:{" "}
+                        {avgValue.toLocaleString(isAr ? "ar-EG" : "en-US")} {t.admin.analytics.dailySuffix}
                     </p>
                 </div>
 
@@ -118,7 +121,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
                                 }`}
                         >
                             <Eye className="h-4 w-4" />
-                            المشاهدات
+                            {t.admin.analytics.views}
                         </button>
                         <button
                             onClick={() => setMetric("visitors")}
@@ -128,7 +131,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
                                 }`}
                         >
                             <Users className="h-4 w-4" />
-                            الزوار
+                            {t.admin.analytics.visitors}
                         </button>
                     </div>
 
@@ -140,14 +143,14 @@ export function ViewsChart({ data }: ViewsChartProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="font-sans text-right" align="end">
-                            <DropdownMenuItem onClick={() => setPeriod("آخر 7 أيام")} className="cursor-pointer justify-end">
-                                آخر 7 أيام
+                            <DropdownMenuItem onClick={() => setPeriod(t.admin.analytics.last7Days)} className="cursor-pointer justify-end">
+                                {t.admin.analytics.last7Days}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setPeriod("آخر 30 يوم")} className="cursor-pointer justify-end">
-                                آخر 30 يوم
+                            <DropdownMenuItem onClick={() => setPeriod(t.admin.analytics.last30Days)} className="cursor-pointer justify-end">
+                                {t.admin.analytics.last30Days}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setPeriod("آخر 90 يوم")} className="cursor-pointer justify-end">
-                                آخر 90 يوم
+                            <DropdownMenuItem onClick={() => setPeriod(t.admin.analytics.last90Days)} className="cursor-pointer justify-end">
+                                {t.admin.analytics.last90Days}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -162,25 +165,25 @@ export function ViewsChart({ data }: ViewsChartProps) {
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
                     <p className="text-2xl font-bold text-gray-900">
-                        {totalValue.toLocaleString("ar-EG")}
+                        {totalValue.toLocaleString(isAr ? "ar-EG" : "en-US")}
                     </p>
                     <p className="text-xs text-gray-500">
-                        إجمالي {metric === "views" ? "المشاهدات" : "الزوار"}
+                        {t.admin.analytics.total} {metric === "views" ? t.admin.analytics.views : t.admin.analytics.visitors}
                     </p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
                     <p className="text-2xl font-bold text-gray-900">
-                        {avgValue.toLocaleString("ar-EG")}
+                        {avgValue.toLocaleString(isAr ? "ar-EG" : "en-US")}
                     </p>
-                    <p className="text-xs text-gray-500">متوسط يومي</p>
+                    <p className="text-xs text-gray-500">{t.admin.analytics.dailyAverage}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
                     <p className="text-2xl font-bold text-gray-900">
-                        {Math.max(...chartData.map((d) => d.value)).toLocaleString("ar-EG")}
+                        {Math.max(...chartData.map((d) => d.value)).toLocaleString(isAr ? "ar-EG" : "en-US")}
                     </p>
-                    <p className="text-xs text-gray-500">أعلى يوم</p>
+                    <p className="text-xs text-gray-500">{t.admin.analytics.highestDay}</p>
                 </div>
             </div>
 

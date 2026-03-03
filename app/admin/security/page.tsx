@@ -172,7 +172,7 @@ export default function AdminSecurityPage() {
                                     </td>
                                     <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{log.description || '—'}</td>
                                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">{log.ip_address || '—'}</td>
-                                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(log.created_at).toLocaleString('ar-EG')}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(log.created_at).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -203,11 +203,11 @@ export default function AdminSecurityPage() {
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`px-2 py-1 rounded-full text-xs ${log.user_role === 'admin' ? 'bg-purple-100 text-purple-700' : log.user_role === 'reader' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-                                            {log.user_role}
+                                            {log.user_role === 'admin' ? t.auth.admin : log.user_role === 'reader' ? t.auth.reader : t.auth.student}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 font-mono text-xs text-gray-500">{log.ip_address || '—'}</td>
-                                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(log.created_at).toLocaleString('ar-EG')}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(log.created_at).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</td>
                                 </tr>
                             ))}
                         </tbody>

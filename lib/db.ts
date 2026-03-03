@@ -1,6 +1,6 @@
 // Database connection helper
 // Replace with your actual database connection string
-// Compatible with: Supabase, Neon, Vercel Postgres, any PostgreSQL
+// Compatible with: Supabase, Vercel Postgres, any PostgreSQL
 
 import { Pool } from "pg"
 import dns from "dns"

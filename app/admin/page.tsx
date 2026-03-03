@@ -94,7 +94,7 @@ export default function AdminDashboard() {
             <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
               {totalViews.toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">{t.admin.totalViews} (30 {isAr ? 'يوم' : 'Days'})</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t.admin.totalViews} (30 {isAr ? t.admin.daysAgo : 'Days'})</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
@@ -136,6 +136,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
+          const isTime = stat.label === t.admin.avgReviewTime;
+          const displayValue = isTime && data.stats.avgReviewTimeUnit
+            ? `${stat.value} ${t[data.stats.avgReviewTimeUnit as keyof typeof t] || stat.value}`
+            : stat.value?.toLocaleString(isAr ? "ar-EG" : "en-US");
+
           return (
             <div
               key={stat.label}
@@ -146,7 +151,7 @@ export default function AdminDashboard() {
                   <Icon className="h-5 w-5" />
                 </div>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{displayValue}</h3>
               <p className="text-xs sm:text-sm text-gray-500 font-medium">{stat.label}</p>
             </div>
           );

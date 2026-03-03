@@ -80,7 +80,8 @@ export async function GET() {
         totalStudents: parseInt(totalStudentsData?.count || "0"),
         totalReaders: parseInt(totalReadersData?.count || "0"),
         recitationsToday: parseInt(todayRecitationsData?.count || "0"),
-        avgReviewTime: "24 ساعة", // mock for now, difficult to calculate without timestamp diffs simply
+        avgReviewTime: "24",
+        avgReviewTimeUnit: "hour",
         pendingReaderApps: parseInt(pendingAppsData?.count || "0"),
         statusDistribution,
         recitationsOverTime,

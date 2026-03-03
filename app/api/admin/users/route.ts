@@ -110,6 +110,18 @@ export async function PATCH(req: NextRequest) {
       values
     )
 
+    if (role === 'reader') {
+      const existingProfile = await query("SELECT id FROM reader_profiles WHERE user_id = $1", [userId])
+      if (existingProfile.length === 0) {
+        const userRec = await query("SELECT name FROM users WHERE id = $1", [userId])
+        const userName = name || (userRec[0] as any)?.name || 'Unknown'
+        await query(
+          `INSERT INTO reader_profiles (user_id, full_name_triple) VALUES ($1, $2)`,
+          [userId, userName]
+        )
+      }
+    }
+
     await logAdminAction({
       userId: session!.sub,
       action: typeof isActive === 'boolean' ? (isActive ? 'user_activated' : 'user_deactivated') : 'user_updated',
@@ -157,6 +169,13 @@ export async function POST(req: NextRequest) {
        RETURNING id, name, email, role, is_active, created_at, gender`,
       [name, email.toLowerCase(), passwordHash, role, gender || null]
     )
+
+    if (role === 'reader') {
+      await query(
+        `INSERT INTO reader_profiles (user_id, full_name_triple) VALUES ($1, $2)`,
+        [(result[0] as any).id, name]
+      )
+    }
 
     await logAdminAction({
       userId: session!.sub,

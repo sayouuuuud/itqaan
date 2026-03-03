@@ -71,7 +71,7 @@ export default function LoginPage() {
 
       {/* Nav */}
       <nav className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 max-w-7xl mx-auto w-full">
-        <Link href="/" className="w-12 h-12 rounded-xl overflow-hidden hover:opacity-80 transition-opacity">
+        <Link href="/" className="w-16 h-16 pd overflow-hidden hover:opacity-80 transition-opacity">
           <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
         </Link>
         <Link href="/register" className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-2">

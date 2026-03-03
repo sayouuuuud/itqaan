@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Mail, Phone, MapPin, CheckCircle, Send } from 'lucide-react'
+import { Mail, Phone, MapPin, CheckCircle, Send, Bell } from 'lucide-react'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [contactInfo, setContactInfo] = useState({
     email: 'info@itqaan.com',
     phone: '+966 50 000 0000',
@@ -32,7 +34,22 @@ export default function ContactPage() {
         console.error("Error fetching contact info:", error)
       }
     }
+
+    // Check if user is admin
+    async function checkAdmin() {
+      try {
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const data = await res.json()
+          setIsAdmin(data.role === 'admin')
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error)
+      }
+    }
+
     fetchInfo()
+    checkAdmin()
   }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -129,9 +146,19 @@ export default function ContactPage() {
                     </div>
                     <h3 className="text-lg font-semibold text-foreground mb-2">تم إرسال رسالتك بنجاح</h3>
                     <p className="text-sm text-muted-foreground mb-6">شكرًا لتواصلك معنا. سنرد عليك في أقرب وقت ممكن.</p>
-                    <Button variant="outline" onClick={() => setSubmitted(false)}>
-                      إرسال رسالة أخرى
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button variant="outline" onClick={() => setSubmitted(false)}>
+                        إرسال رسالة أخرى
+                      </Button>
+                      {isAdmin && (
+                        <Link href="/admin/notifications">
+                          <Button variant="default" className="flex items-center gap-2">
+                            <Bell className="w-4 h-4" />
+                            عرض الإشعارات
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">

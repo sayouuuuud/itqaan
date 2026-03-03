@@ -20,6 +20,9 @@ interface EmailOptions {
 import nodemailer from 'nodemailer'
 import { getSmtpUrl, getSmtpFromEmail } from './settings'
 
+let cachedTransporter: nodemailer.Transporter | null = null
+let cachedSmtpUrl: string | undefined = undefined
+
 export async function sendEmail({ to, subject, body, html, attachments }: EmailOptions): Promise<boolean> {
   const smtpUrl = await getSmtpUrl()
 
@@ -31,10 +34,19 @@ export async function sendEmail({ to, subject, body, html, attachments }: EmailO
   }
 
   try {
-    const transporter = nodemailer.createTransport(smtpUrl)
+    // Cache the transporter to avoid repeated handshake overhead
+    if (!cachedTransporter || smtpUrl !== cachedSmtpUrl) {
+      if (cachedTransporter) {
+        cachedTransporter.close()
+      }
+      cachedSmtpUrl = smtpUrl
+      cachedTransporter = nodemailer.createTransport(smtpUrl)
+      console.log("[Email] New transporter created and cached.")
+    }
+
     const fromStr = await getSmtpFromEmail()
 
-    await transporter.sendMail({
+    await cachedTransporter.sendMail({
       from: fromStr, // MUST Exactly match the authenticated email when using Gmail to avoid spam filters and delivery failures
       to,
       subject,
@@ -46,6 +58,9 @@ export async function sendEmail({ to, subject, body, html, attachments }: EmailO
     return true
   } catch (error) {
     console.error("[Email] Failed to send:", error)
+    // Clear cache on error to ensure we try fresh on next attempt
+    cachedTransporter = null
+    cachedSmtpUrl = undefined
     return false
   }
 }

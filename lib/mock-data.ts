@@ -28,7 +28,7 @@ export const SAUDI_CITIES = [
 export const NATIONALITIES = [
   'أفغاني', 'ألباني', 'جزائري', 'أمريكي', 'أندوري', 'أنغولي', 'أنتيغوي', 'أرجنتيني', 'أرميني', 'أسترالي',
   'نمساوي', 'أذربيجاني', 'بهامي', 'بحريني', 'بنغلاديشي', 'باربادوسي', 'بيلاروسي', 'بلجيكي', 'بليزي', 'بنيني',
-  'بوتاني', 'بوليفي', 'بوسني', 'بوتسواني', 'برازيلي', 'بروناي', 'بلغاري', 'بوركينابي', 'بوروندي', 'كمبودي',
+  'بوتاني', 'بوليفي', 'بوسني', 'برازيلي', 'بروناي', 'بلغاري', 'بوركينابي', 'بوروندي', 'كمبودي',
   'كاميروني', 'كندي', 'الرأس الأخضر', 'أفريقيا الوسطى', 'تشادي', 'تشيلي', 'صيني', 'كولومبي', 'قمري', 'كونغولي',
   'كوستاريكي', 'كرواتي', 'كوبي', 'قبرصي', 'تشيكي', 'دنماركي', 'جيبوتي', 'دومينيكاني', 'إكوادوري', 'مصري',
   'سلفادوري', 'غيني استوائي', 'إريتري', 'إستوني', 'إسواتيني', 'إثيوبي', 'فيجي', 'فنلندي', 'فرنسي', 'غابوني',
@@ -47,6 +47,29 @@ export const NATIONALITIES = [
   'أوغندي', 'أوكراني', 'إماراتي', 'بريطاني', 'أوروغواياني', 'أوزبكي', 'فانواتي', 'فنزويلي', 'فيتنامي', 'يمني',
   'زامبي', 'زيمبابوي'
 ].sort((a, b) => a.localeCompare(b, 'ar'))
+
+export const NATIONALITIES_EN = [
+  'Afghan', 'Albanian', 'Algerian', 'American', 'Andorran', 'Angolan', 'Antiguan', 'Argentine', 'Armenian', 'Australian',
+  'Austrian', 'Azerbaijani', 'Bahamian', 'Bahraini', 'Bangladeshi', 'Barbadian', 'Belarusian', 'Belgian', 'Belizean', 'Beninese',
+  'Botswanan', 'Bolivian', 'Bosnian', 'Brazilian', 'Bruneian', 'Bulgarian', 'Burkinabé', 'Burundian', 'Cambodian',
+  'Cameroonian', 'Canadian', 'Cape Verdean', 'Central African', 'Chadian', 'Chilean', 'Chinese', 'Colombian', 'Comorian', 'Congolese',
+  'Costa Rican', 'Croatian', 'Cuban', 'Cypriot', 'Czech', 'Danish', 'Djiboutian', 'Dominican', 'Ecuadorian', 'Egyptian',
+  'Salvadoran', 'Equatorial Guinean', 'Eritrean', 'Estonian', 'Eswatini', 'Ethiopian', 'Fijian', 'Finnish', 'French', 'Gabonese',
+  'Gambian', 'Georgian', 'German', 'Ghanaian', 'Greek', 'Grenadian', 'Guatemalan', 'Guinean', 'Guinea-Bissauan', 'Guyanese',
+  'Haitian', 'Honduran', 'Hungarian', 'Icelandic', 'Indian', 'Indonesian', 'Iranian', 'Iraqi', 'Irish', 'Israeli',
+  'Italian', 'Ivorian', 'Jamaican', 'Japanese', 'Jordanian', 'Kazakhstani', 'Kenyan', 'Kiribati', 'Kuwaiti', 'Kyrgyz',
+  'Laotian', 'Latvian', 'Lebanese', 'Lesotho', 'Liberian', 'Libyan', 'Liechtensteiner', 'Lithuanian', 'Luxembourgish', 'Malagasy',
+  'Malawian', 'Malaysian', 'Maldivian', 'Malian', 'Maltese', 'Marshallese', 'Mauritanian', 'Mauritian', 'Mexican', 'Micronesian',
+  'Moldovan', 'Monégasque', 'Mongolian', 'Montenegrin', 'Moroccan', 'Mozambican', 'Myanmar', 'Namibian', 'Nauruan', 'Nepalese',
+  'Dutch', 'New Zealander', 'Nicaraguan', 'Nigerian', 'Nigerien', 'North Korean', 'North Macedonian', 'Norwegian', 'Omani', 'Pakistani',
+  'Palauan', 'Palestinian', 'Panamanian', 'Papua New Guinean', 'Paraguayan', 'Peruvian', 'Filipino', 'Polish', 'Portuguese', 'Qatari',
+  'Romanian', 'Russian', 'Rwandan', 'Saint Kitts and Nevis', 'Saint Lucian', 'Saint Vincent and the Grenadines', 'Samoan', 'San Marinese', 'São Toméan', 'Saudi',
+  'Senegalese', 'Serbian', 'Seychellois', 'Sierra Leonean', 'Singaporean', 'Slovak', 'Slovenian', 'Solomon Islander', 'Somali', 'South African',
+  'South Korean', 'South Sudanese', 'Spanish', 'Sri Lankan', 'Sudanese', 'Surinamese', 'Swedish', 'Swiss', 'Syrian', 'Tajik',
+  'Tanzanian', 'Thai', 'Timorese', 'Togolese', 'Tongan', 'Trinidadian', 'Tunisian', 'Turkish', 'Turkmen', 'Tuvaluan',
+  'Ugandan', 'Ukrainian', 'Emirati', 'British', 'Uruguayan', 'Uzbek', 'Vanuatuan', 'Venezuelan', 'Vietnamese', 'Yemeni',
+  'Zambian', 'Zimbabwean'
+].sort((a, b) => a.localeCompare(b, 'en'))
 
 export const mockStudents = [
   { id: '1', name: 'أحمد محمد', email: 'ahmed@example.com', role: 'student' as const, createdAt: '2025-12-01', isActive: true, avatar: null, recitationsCount: 12 },

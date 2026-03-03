@@ -13,7 +13,7 @@ import {
   Menu, X, Users, Settings, BarChart3, ClipboardList, Clock, MessageSquare,
   Search, Plus, BookOpen, Award, UserCheck, CalendarCheck, CalendarDays,
   MessagesSquare, Megaphone, ScrollText, PieChart, Star, ShieldCheck,
-  Globe, Home, Archive, Shield
+  Globe, Home, Archive, Shield, Phone
 } from 'lucide-react'
 
 type NavItem = { href: string; label: string; icon: React.ElementType; badge?: number | string | null }

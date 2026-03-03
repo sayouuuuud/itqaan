@@ -79,6 +79,7 @@ export const ar = {
     statsAndReports: 'الإحصائيات والتقارير',
     advancedTools: 'الأدوات المتقدمة',
     sidebarTitle: 'إتقان الفاتحة',
+    contact: 'تواصل',
   },
 
   // Landing
@@ -118,6 +119,7 @@ export const ar = {
     readerJoin: 'أنت مقرئ؟ انضم كمراجع',
     footerJoin: 'انضم كمقرئ',
     footerLogin: 'تسجيل دخول',
+    contact: 'تواصل',
   },
 
   // Footer
@@ -184,6 +186,7 @@ export const ar = {
     connectionError: 'حدث خطأ في الاتصال',
     gender: 'الجنس',
     selectGender: 'اختر الجنس',
+    selectNationality: 'اختر الجنسية',
     male: 'ذكر',
     female: 'أنثى',
     genderOptional: 'الجنس (اختياري)',

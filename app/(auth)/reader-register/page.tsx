@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ChevronDown, BookOpen, Award, CheckCircle, Check, ChevronsUpDown } from 'lucide-react'
-import { SAUDI_CITIES, NATIONALITIES } from '@/lib/mock-data'
+import { SAUDI_CITIES, NATIONALITIES, NATIONALITIES_EN } from '@/lib/mock-data'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
@@ -16,6 +16,11 @@ export default function ReaderRegisterPage() {
   const [success, setSuccess] = useState(false)
   const [nationalityOpen, setNationalityOpen] = useState(false)
   const { t } = useI18n()
+
+  // Get the correct nationality list based on locale
+  const getNationalities = () => {
+    return t.locale === 'ar' ? NATIONALITIES : NATIONALITIES_EN
+  }
 
   const [form, setForm] = useState({
     full_name_triple: '',
@@ -186,21 +191,22 @@ export default function ReaderRegisterPage() {
                         <button
                           type="button"
                           className={cn(
-                            "w-full pr-4 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm text-right flex items-center justify-between",
+                            "w-full pr-4 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-[#0B3D2E] transition-colors text-sm flex items-center justify-between",
+                            t.locale === 'ar' ? "text-right" : "text-left",
                             !form.nationality && "text-gray-500"
                           )}
                         >
-                          {form.nationality ? form.nationality : "اختر الجنسية"}
+                          {form.nationality ? form.nationality : t.auth.selectNationality || "Select Nationality"}
                           <ChevronsUpDown className="w-4 h-4 opacity-50 shrink-0" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="end">
                         <Command>
-                          <CommandInput placeholder="ابحث عن جنسية..." className="text-right" />
+                          <CommandInput placeholder={t.locale === 'ar' ? "ابحث عن جنسية..." : "Search nationality..."} className={t.locale === 'ar' ? "text-right" : "text-left"} />
                           <CommandList className="max-h-[200px] overflow-y-auto">
-                            <CommandEmpty className="py-6 text-center text-sm">لا توجد نتائج.</CommandEmpty>
+                            <CommandEmpty className="py-6 text-center text-sm">{t.locale === 'ar' ? 'لا توجد نتائج.' : 'No results found.'}</CommandEmpty>
                             <CommandGroup>
-                              {NATIONALITIES.map((nat) => (
+                              {getNationalities().map((nat) => (
                                 <CommandItem
                                   key={nat}
                                   value={nat}
@@ -208,7 +214,7 @@ export default function ReaderRegisterPage() {
                                     updateField('nationality', currentValue === form.nationality ? "" : currentValue)
                                     setNationalityOpen(false)
                                   }}
-                                  className="text-right flex items-center justify-between cursor-pointer"
+                                  className={t.locale === 'ar' ? "text-right flex items-center justify-between cursor-pointer" : "text-left flex items-center justify-between cursor-pointer"}
                                 >
                                   {nat}
                                   <Check

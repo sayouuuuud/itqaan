@@ -13,6 +13,7 @@ export type NotificationType =
     | "new_recitation_admin"      // admin: new unassigned recitation
     | "new_message"               // student+reader+admin: new direct message received
     | "new_announcement"          // student+reader: new announcement published
+    | "new_contact_message"       // admin: new contact form message
     | "reschedule_request"         // student+reader: reschedule proposed
     | "reschedule_accepted"        // student+reader: reschedule accepted
     | "reschedule_rejected"        // student+reader: reschedule rejected
@@ -67,5 +68,32 @@ export async function createNotificationForMany(
 ): Promise<void> {
     for (const userId of userIds) {
         await createNotification({ ...data, userId })
+    }
+}
+
+/**
+ * Get all admin user IDs from the database
+ */
+export async function getAdminUserIds(): Promise<string[]> {
+    try {
+        const result = await query(
+            `SELECT id FROM users WHERE role = 'admin' AND is_active = true`
+        )
+        return (result as any[]).map(row => row.id)
+    } catch (error) {
+        console.error("Failed to get admin user IDs:", error)
+        return []
+    }
+}
+
+/**
+ * Create notification for all admin users
+ */
+export async function createNotificationForAdmins(
+    data: Omit<CreateNotificationInput, "userId">
+): Promise<void> {
+    const adminIds = await getAdminUserIds()
+    if (adminIds.length > 0) {
+        await createNotificationForMany(adminIds, data)
     }
 }

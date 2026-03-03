@@ -174,17 +174,18 @@ export async function POST(req: NextRequest) {
       [session.sub, assignedReaderId, recitationId, slotStart, slotEnd, notes || null]
     )
 
-    // Update the latest recitation status to session_booked (PostgreSQL-safe subquery)
+    // Update the latest recitation status to session_booked and assign reader
     if (recitationId) {
       await query(
-        `UPDATE recitations SET status = 'session_booked' WHERE id = $1`,
-        [recitationId]
+        `UPDATE recitations SET status = 'session_booked', assigned_reader_id = $1, assigned_at = NOW() WHERE id = $2`,
+        [assignedReaderId, recitationId]
       )
     }
 
     // Notify student and reader
     const notifDate = new Date(slotStart).toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     const notifTime = new Date(slotStart).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+    
     await createNotification({
       userId: session.sub,
       type: 'session_booked',
@@ -194,6 +195,7 @@ export async function POST(req: NextRequest) {
       link: '/student/sessions',
       relatedBookingId: result[0].id as string,
     })
+    
     await createNotification({
       userId: assignedReaderId,
       type: 'session_booked',
@@ -203,6 +205,32 @@ export async function POST(req: NextRequest) {
       link: '/reader/sessions',
       relatedBookingId: result[0].id as string,
     })
+
+    // Also notify reader about the recitation assignment if there's a recitation
+    if (recitationId) {
+      const recitationDetails = await query(
+        `SELECT r.surah_name, r.ayah_from, r.ayah_to, u.name as student_name
+         FROM recitations r
+         JOIN users u ON u.id = r.student_id
+         WHERE r.id = $1`,
+        [recitationId]
+      )
+      
+      const recitation = (recitationDetails as any)[0]
+      if (recitation) {
+        const surahInfo = `${recitation.surah_name} (${recitation.ayah_from}-${recitation.ayah_to})`
+        
+        await createNotification({
+          userId: assignedReaderId,
+          type: 'recitation_received',
+          title: 'تم تعيينك لتقييم تلاوة جديدة',
+          message: `تم تعيينك لتقييم تلاوة الطالب ${recitation.student_name}: ${surahInfo}`,
+          category: 'recitation',
+          link: '/reader/recitations',
+          relatedRecitationId: recitationId,
+        })
+      }
+    }
 
     return NextResponse.json({ booking: result[0] }, { status: 201 })
   } catch (error) {

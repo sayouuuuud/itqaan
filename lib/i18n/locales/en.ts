@@ -79,6 +79,7 @@ export const en = {
     statsAndReports: 'Stats & Reports',
     advancedTools: 'Advanced Tools',
     sidebarTitle: 'ITQAAN ALFATIHA',
+    contact: 'Contact',
   },
 
   // Landing
@@ -118,6 +119,7 @@ export const en = {
     readerJoin: 'Are you a reader? Join as a reviewer',
     footerJoin: 'Join as a Reader',
     footerLogin: 'Login',
+    contact: 'Contact',
   },
 
   // Footer
@@ -184,6 +186,7 @@ export const en = {
     connectionError: 'Connection error',
     gender: 'Gender',
     selectGender: 'Select Gender',
+    selectNationality: 'Select Nationality',
     male: 'Male',
     female: 'Female',
     genderOptional: 'Gender (optional)',

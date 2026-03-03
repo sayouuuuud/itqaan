@@ -105,7 +105,22 @@ export async function POST(req: NextRequest) {
       )
       if (reader.length > 0) {
         await query("UPDATE recitations SET assigned_reader_id = $1, assigned_at = NOW() WHERE id = $2", [reader[0].id, result[0].id])
-        // Optionally notify the reader here
+        
+        // Notify the assigned reader
+        try {
+          await createNotification({
+            userId: reader[0].id,
+            type: 'recitation_received',
+            title: 'تم تعيينك لتقييم تلاوة جديدة',
+            message: 'تم تعيينك لتقييم تلاوة جديدة لسورة الفاتحة. يرجى مراجعتها في أقرب وقت.',
+            category: 'recitation',
+            link: '/reader/recitations',
+            relatedRecitationId: result[0].id as string,
+          })
+        } catch (notifError) {
+          console.error("Failed to create notification for reader:", notifError)
+          // Don't fail the request if notification fails
+        }
       }
     }
 

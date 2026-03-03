@@ -5,7 +5,7 @@ import { ar } from './locales/ar'
 import { en } from './locales/en'
 
 export type Locale = 'ar' | 'en'
-type Translations = {
+export type Translations = {
   [key: string]: any
 }
 

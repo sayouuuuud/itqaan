@@ -33,7 +33,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       [id]
     )
 
-    return NextResponse.json({ recitation, reviews })
+    // Get word mistakes for this recitation
+    const wordMistakes = await query(
+      `SELECT word, created_at
+       FROM word_mistakes 
+       WHERE recitation_id = $1
+       ORDER BY created_at ASC`,
+      [id]
+    )
+
+    return NextResponse.json({ recitation, reviews, wordMistakes })
   } catch (error) {
     console.error("Get recitation error:", error)
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })

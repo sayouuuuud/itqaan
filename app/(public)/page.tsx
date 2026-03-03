@@ -326,6 +326,10 @@ export default function LandingPage() {
             {'2026 '}{t.appName}{'. '}{t.footer.rights}
           </p>
           <div className="flex items-center gap-6">
+            <Link href="/contact" className="text-white/30 hover:text-[#D4A843] text-sm transition-colors">
+              {t.landing.contact}
+            </Link>
+            <span className="text-white/10">|</span>
             <Link href="/reader-register" className="text-white/30 hover:text-[#D4A843] text-sm transition-colors">
               {t.landing.footerJoin}
             </Link>

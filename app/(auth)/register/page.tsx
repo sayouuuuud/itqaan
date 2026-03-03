@@ -55,6 +55,20 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         setError(data.error || t.auth.errorOccurred)
+        if (data.requiresVerification) {
+          setError((prev) => (
+            <div className="flex flex-col items-center gap-2">
+              <span>{prev}</span>
+              <button
+                type="button"
+                onClick={() => router.push(`/verify?email=${encodeURIComponent(email)}`)}
+                className="text-[#0B3D2E] font-bold underline hover:no-underline"
+              >
+                {t.locale === 'ar' ? 'تفعيل الآن' : 'Verify Now'}
+              </button>
+            </div>
+          ) as any)
+        }
         setLoading(false)
         return
       }

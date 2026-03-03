@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
 import { query } from "@/lib/db"
 import { logAdminAction } from "@/lib/activity-log"
+import { createNotification } from "@/lib/notifications"
 
 // GET /api/admin/recitations - list all recitations with filters
 export async function GET(req: NextRequest) {
@@ -79,10 +80,47 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "معرف التلاوة مطلوب" }, { status: 400 })
         }
 
+        // Get recitation details before updating
+        const recitationDetails = await query(
+            `SELECT r.surah_name, r.ayah_from, r.ayah_to, u.name as student_name, u.email as student_email
+             FROM recitations r
+             JOIN users u ON u.id = r.student_id
+             WHERE r.id = $1`,
+            [recitationId]
+        )
+
+        const oldReaderId = await query(
+            `SELECT assigned_reader_id FROM recitations WHERE id = $1`,
+            [recitationId]
+        )
+
         await query(
             "UPDATE recitations SET assigned_reader_id = $1, assigned_at = NOW() WHERE id = $2",
             [readerId || null, recitationId]
         )
+
+        // Create notification for the new reader
+        if (readerId && (oldReaderId as any)[0]?.assigned_reader_id !== readerId) {
+            const recitation = (recitationDetails as any)[0]
+            const surahInfo = recitation 
+                ? `${recitation.surah_name} (${recitation.ayah_from}-${recitation.ayah_to})`
+                : "تلاوة جديدة"
+
+            try {
+                await createNotification({
+                    userId: readerId,
+                    type: "recitation_received",
+                    title: "تم تعيينك لتقييم تلاوة جديدة",
+                    message: `تم تعيينك لتقييم تلاوة الطالب ${recitation?.student_name || 'غير معروف'}: ${surahInfo}`,
+                    category: "recitation",
+                    link: `/reader/recitations`,
+                    relatedRecitationId: recitationId
+                })
+            } catch (notifError) {
+                console.error("Failed to create notification for reader:", notifError)
+                // Don't fail the request if notification fails
+            }
+        }
 
         await logAdminAction({
             userId: session!.sub,

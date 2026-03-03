@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { ArrowRight, Mic, Clock, CheckCircle, Calendar, Loader2, User, Volume2, BookOpen, Play, Pause } from "lucide-react"
+import { ArrowRight, Mic, Clock, CheckCircle, Calendar, Loader2, User, Volume2, BookOpen, Play, Pause, ChevronLeft, ChevronRight, SkipBack, SkipForward, Award, Info } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
 
@@ -25,10 +25,16 @@ type Review = {
   verdict: string
 }
 
+type WordMistake = {
+  word: string
+  created_at: string
+}
+
 export default function RecitationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { t, locale } = useI18n()
+  const isAr = locale === 'ar'
 
   const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
     pending: { label: t.student.statusPending, color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
@@ -39,6 +45,7 @@ export default function RecitationDetailPage() {
   }
   const [recitation, setRecitation] = useState<Recitation | null>(null)
   const [review, setReview] = useState<Review | null>(null)
+  const [wordMistakes, setWordMistakes] = useState<WordMistake[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -64,6 +71,14 @@ export default function RecitationDetailPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
+  const [playbackSpeed, setPlaybackSpeed] = useState("1.0")
+  const [duration, setDuration] = useState(0)
+
+  useEffect(() => {
+    if (audioRef.current && recitation?.audio_url) {
+      audioRef.current.playbackRate = parseFloat(playbackSpeed)
+    }
+  }, [playbackSpeed, recitation])
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -85,13 +100,14 @@ export default function RecitationDetailPage() {
     }
   }
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (audioRef.current) {
-      const newTime = (Number(e.target.value) / 100) * audioRef.current.duration
-      audioRef.current.currentTime = newTime
-      setCurrentTime(newTime)
-      setProgress(Number(e.target.value))
-    }
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const percentage = x / rect.width
+    const newTime = percentage * duration
+    audioRef.current.currentTime = newTime
+    setCurrentTime(newTime)
   }
 
   const formatSecs = (s: number) => {
@@ -108,6 +124,7 @@ export default function RecitationDetailPage() {
         if (!data || !data.recitation) { setNotFound(true) } else {
           setRecitation(data.recitation)
           if (data.reviews && data.reviews.length > 0) setReview(data.reviews[0])
+          if (data.wordMistakes) setWordMistakes(data.wordMistakes)
         }
       })
       .catch(() => setNotFound(true))
@@ -130,134 +147,208 @@ export default function RecitationDetailPage() {
     </div>
   )
 
+  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
+
   const cfg = STATUS_CONFIG[recitation.status] || STATUS_CONFIG.pending
 
   return (
-    <div className="max-w-3xl space-y-5">
-      {/* Breadcrumb */}
-      <Link href="/student/recitations" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors w-fit">
-        <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-        {t.student.backToRecitationsHistory}
-      </Link>
-
-      {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#0B3D2E]/6 flex items-center justify-center">
-              <BookOpen className="w-7 h-7 text-[#0B3D2E]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">{recitation.surah_name}</h1>
-              <p className="text-slate-500 text-sm mt-1">
-                {t.student.ayah} {recitation.ayah_from} — {recitation.ayah_to} •{" "}
-                {new Date(recitation.created_at).toLocaleDateString(locale === 'ar' ? "ar-SA" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
-            {recitation.status !== 'pending' && recitation.status !== 'in_review' && (
-              <button
-                onClick={handleDelete}
-                className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-full transition-colors font-medium border border-transparent hover:border-red-200"
-                title={t.student.deleteRecitationBtn}
-              >
-                {t.student.deleteRecitationBtn} 🗑️
-              </button>
-            )}
-          </div>
-        </div>
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* Breadcrumb & Navigation */}
+      <div className="flex items-center gap-2 mb-2">
+        <Link href="/student/recitations" className="text-xs font-bold text-slate-400 hover:text-[#0B3D2E] transition-colors flex items-center gap-1">
+          {isAr ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+          {t.student.backToRecitationsHistory}
+        </Link>
       </div>
 
-      {/* Audio */}
-      {recitation.audio_url && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <Volume2 className="w-5 h-5 text-[#0B3D2E]" />
-            <h2 className="font-bold text-slate-700">{t.student.audioRecording}</h2>
-            {recitation.audio_duration_seconds && (
-              <span className="text-xs text-slate-400 mr-auto flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />{formatDuration(recitation.audio_duration_seconds)}
-              </span>
-            )}
+      {/* Compact Header */}
+      <header className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+        <div className="relative z-10 flex items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-[#0B3D2E]/5 flex items-center justify-center shrink-0 border border-[#0B3D2E]/10">
+            <Mic className="w-8 h-8 text-[#0B3D2E]" />
           </div>
-
-          <div className="flex items-center gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
-            <audio
-              ref={audioRef}
-              src={recitation.audio_url}
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={() => setIsPlaying(false)}
-              className="hidden"
-            />
-
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-800">{recitation.surah_name}</h1>
+              <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider
+                ${recitation.status === 'mastered' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                  recitation.status === 'needs_session' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                  recitation.status === 'session_booked' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
+                  'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                {cfg.label}
+              </span>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
+              <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-[#D4A843]" /> {t.student.ayah} {recitation.ayah_from} — {recitation.ayah_to}</span>
+              <span className="w-1 h-1 bg-slate-200 rounded-full" />
+              <span>{new Date(recitation.created_at).toLocaleDateString(locale === 'ar' ? "ar-SA" : "en-US", { day: "numeric", month: "long", day: "numeric" })}</span>
+            </div>
+          </div>
+        </div>
+        <div className="relative z-10">
+          {recitation.status !== 'pending' && recitation.status !== 'in_review' && (
             <button
-              onClick={togglePlay}
-              className="w-12 h-12 shrink-0 rounded-full bg-[#D4A843] hover:bg-[#C49A3A] hover:scale-105 active:scale-95 transition-all flex items-center justify-center text-white shadow-md shadow-[#D4A843]/20"
+              onClick={handleDelete}
+              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-2xl transition-colors font-medium border border-transparent hover:border-red-200"
+              title={t.student.deleteRecitationBtn}
             >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1 rtl:mr-1 rtl:ml-0" />}
+              {t.student.deleteRecitationBtn} 
             </button>
+          )}
+        </div>
+      </header>
 
-            <div className="flex-1 flex flex-col gap-2 relative">
-              <input
-                type="range"
-                min="0" max="100"
-                value={progress}
-                onChange={handleSeek}
-                className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#D4A843]"
-              />
-              <div
-                className="absolute top-0 left-0 h-2 bg-[#D4A843] rounded-full rtl:right-0 rtl:left-auto pointer-events-none"
-                style={{ width: `${progress}%` }}
-              />
+      <audio
+        ref={audioRef}
+        src={recitation.audio_url || undefined}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={() => setIsPlaying(false)}
+        onLoadedMetadata={(e) => {
+          if (!duration) setDuration(e.currentTarget.duration)
+        }}
+      />
 
-              <div className="flex justify-between text-[11px] text-slate-400 font-mono font-medium px-1">
-                <span>{formatSecs(currentTime)}</span>
-                <span>{formatSecs(audioRef.current?.duration || recitation.audio_duration_seconds || 0)}</span>
+      <div className="grid grid-cols-1 gap-6">
+        {/* Modern Compact Audio Player */}
+        <div className="bg-[#0B3D2E] rounded-2xl p-5 shadow-sm text-white relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 to-transparent opacity-50 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 animate-pulse">
+                  <div className="w-4 h-1 bg-white/40 rounded-full mx-0.5" />
+                  <div className="w-4 h-3 bg-emerald-400 rounded-full mx-0.5" />
+                  <div className="w-4 h-2 bg-white/40 rounded-full mx-0.5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none mb-1">{isAr ? 'تلاوة الطالب' : 'Student Recitation'}</span>
+                  <span className="text-sm font-bold truncate max-w-[150px]">{recitation.surah_name}</span>
+                </div>
+              </div>
+
+              {/* Refined Speed Selection */}
+              <div className="flex items-center gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
+                {["0.8", "1.0", "1.2", "1.5"].map(speed => (
+                  <button
+                    key={speed}
+                    onClick={() => setPlaybackSpeed(speed)}
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl font-bold transition-all
+                      ${playbackSpeed === speed ? 'bg-white text-[#0B3D2E] shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+                  >
+                    {speed}x
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 md:gap-8 px-4">
+              <button
+                onClick={() => { if (audioRef.current) audioRef.current.currentTime -= 10 }}
+                className="p-2 text-white/50 hover:text-white transition-colors"
+              >
+                <SkipBack className="w-6 h-6 rtl:rotate-180" />
+              </button>
+
+              <button
+                onClick={togglePlay}
+                className="w-12 h-12 bg-white text-[#0B3D2E] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 active:scale-95 transition-all"
+              >
+                {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 ml-0.5 rtl:mr-0.5 rtl:ml-0 fill-current" />}
+              </button>
+
+              <button
+                onClick={() => { if (audioRef.current) audioRef.current.currentTime += 10 }}
+                className="p-2 text-white/50 hover:text-white transition-colors"
+              >
+                <SkipForward className="w-6 h-6 rtl:rotate-180" />
+              </button>
+
+              <div className="flex-1 space-y-2 mt-1">
+                <div className="relative w-full h-2.5 bg-white/10 rounded-full cursor-pointer overflow-hidden backdrop-blur-md" onClick={handleSeek}>
+                  <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-300 transition-all duration-200" style={{ width: `${progressPercentage}%` }} />
+                </div>
+                <div className="flex justify-between text-[10px] font-bold text-white/40 tracking-widest font-mono">
+                  <span>{formatSecs(currentTime)}</span>
+                  <span>{formatSecs(duration)}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Info Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[
-          { icon: User, label: t.student.reviewByReaderLabel, value: recitation.reader_name || t.student.assignedAuto },
-          { icon: Clock, label: t.student.recordingDurationLabel, value: formatDuration(recitation.audio_duration_seconds) },
-          { icon: Calendar, label: t.student.sendingDateLabel, value: new Date(recitation.created_at).toLocaleDateString(locale === 'ar' ? "ar-SA" : "en-US") },
-        ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
-            <Icon className="w-4 h-4 text-slate-400 shrink-0" />
-            <div>
-              <p className="text-[10px] text-slate-400 font-medium">{label}</p>
-              <p className="text-sm font-semibold text-slate-700">{value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Notes from Student */}
       {recitation.student_notes && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h2 className="font-bold text-slate-700 mb-3">{t.student.myNotesLabel}</h2>
-          <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl">{recitation.student_notes}</p>
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100">
+              <BookOpen className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">{t.student.myNotesLabel}</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">{isAr ? "ملاحظاتك عند تسجيل التلاوة" : "Your notes when recording the recitation"}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="w-full min-h-[80px] p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm text-slate-700 leading-relaxed">
+              {recitation.student_notes}
+            </div>
+          </div>
         </div>
       )}
 
       {/* Review from Reader */}
       {review && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-5">
-            <CheckCircle className="w-5 h-5 text-emerald-600" />
-            <h2 className="font-bold text-slate-700">{t.student.readerEvaluation}</h2>
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100">
+              <Award className="w-4 h-4 text-[#D4A843]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">{t.student.readerEvaluation}</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">{isAr ? "مراجعة وتقييم التلاوة من المقرئ" : "Reader's review and assessment of your recitation"}</p>
+            </div>
           </div>
 
           {review.detailed_feedback && (
-            <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
-              <p className="text-xs font-semibold text-emerald-700 mb-2">{t.common.readerNotes}</p>
-              <p className="text-sm text-slate-700 leading-relaxed">{review.detailed_feedback}</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-bold text-slate-700">{t.student.readerNotes}</label>
+                <div className="h-px flex-1 bg-slate-100 mx-4" />
+                <Info className="w-4 h-4 text-slate-300" />
+              </div>
+              <div className="w-full min-h-[120px] p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm text-slate-700 leading-relaxed">
+                {review.detailed_feedback}
+              </div>
+            </div>
+          )}
+
+          {wordMistakes && wordMistakes.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-bold text-slate-700">الكلمات التي تحتاج إلى تحسين</label>
+                <div className="h-px flex-1 bg-slate-100 mx-4" />
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                  {wordMistakes.length} كلمات
+                </span>
+              </div>
+              <div className="w-full p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                <div className="flex flex-wrap gap-2">
+                  {wordMistakes.map((mistake, index) => (
+                    <span 
+                      key={index}
+                      className="inline-block bg-white border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-sm font-medium shadow-sm"
+                    >
+                      {mistake.word}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-amber-600 mt-3 text-center">
+                  💡 انتبه لهذه الكلمات وركز على نطقها الصحيح في التلاوات القادمة
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -265,21 +356,24 @@ export default function RecitationDetailPage() {
 
       {/* CTA for needs_session */}
       {recitation.status === "needs_session" && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-blue-600 shrink-0" />
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between flex-wrap gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center border border-blue-200">
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </div>
               <div>
-                <p className="font-bold text-blue-800">{t.student.detailNeedsSessionTitle}</p>
-                <p className="text-sm text-blue-600 mt-0.5">{t.student.detailNeedsSessionDesc}</p>
+                <h3 className="text-lg font-bold text-blue-900">{t.student.detailNeedsSessionTitle}</h3>
+                <p className="text-sm text-blue-700 mt-1 leading-relaxed">{t.student.detailNeedsSessionDesc}</p>
               </div>
             </div>
-            <Link href="/student/booking" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors">
+            <Link href="/student/booking" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
               {t.student.bookSessionCTA}
             </Link>
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

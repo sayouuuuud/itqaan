@@ -34,6 +34,7 @@ const TYPE_ICON: Record<string, React.ElementType> = {
     new_recitation_admin: Mic,
     new_message: MessageSquare,
     new_announcement: Bell,
+    new_contact_message: MessageSquare,
     general: Bell,
 }
 
@@ -49,6 +50,7 @@ const TYPE_COLOR: Record<string, string> = {
     reader_rejected: "bg-red-50 text-red-600",
     new_message: "bg-indigo-50 text-indigo-600",
     new_announcement: "bg-rose-50 text-rose-600",
+    new_contact_message: "bg-orange-50 text-orange-600",
     general: "bg-slate-50 text-slate-500",
 }
 

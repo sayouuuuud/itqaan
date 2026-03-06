@@ -238,43 +238,41 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
 
         {/* Bottom section */}
         <div className="p-4 border-t border-gray-100">
-          {role !== 'admin' && (
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 hover:bg-gray-50 bg-slate-50 border border-slate-100 cursor-pointer transition-colors"
-              onClick={async () => {
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 hover:bg-gray-50 bg-slate-50 border border-slate-100 cursor-pointer transition-colors"
+            onClick={async () => {
+              const res = await fetch('/api/auth/logout', { method: 'POST' });
+              if (res.ok) {
+                window.location.href = role === 'admin' ? '/login-admin' : '/login';
+              }
+            }}
+          >
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 text-[#0B3D2E] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm shrink-0">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
+              ) : (
+                <span>{(config.name || t.userFallbackLetter || 'U')[0]}</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-800 truncate">{config.name}</p>
+              <p className="text-xs text-slate-500 truncate">{config.sublabel}</p>
+            </div>
+            <button
+              type="button"
+              title="تسجيل الخروج"
+              className="p-1 hover:bg-gray-200 rounded-md transition-colors"
+              onClick={async (e) => {
+                e.stopPropagation();
                 const res = await fetch('/api/auth/logout', { method: 'POST' });
                 if (res.ok) {
-                  window.location.href = '/login';
+                  window.location.href = role === 'admin' ? '/login-admin' : '/login';
                 }
               }}
             >
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 text-[#0B3D2E] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm shrink-0">
-                {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span>{(config.name || t.userFallbackLetter)[0]}</span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate">{config.name}</p>
-                <p className="text-xs text-slate-500 truncate">{config.sublabel}</p>
-              </div>
-              <button
-                type="button"
-                title="تسجيل الخروج"
-                className="p-1 hover:bg-gray-200 rounded-md transition-colors"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  const res = await fetch('/api/auth/logout', { method: 'POST' });
-                  if (res.ok) {
-                    window.location.href = '/login';
-                  }
-                }}
-              >
-                <LogOut className="w-4 h-4 text-gray-500 hover:text-red-500 transition-colors" />
-              </button>
-            </div>
-          )}
+              <LogOut className="w-4 h-4 text-gray-500 hover:text-red-500 transition-colors" />
+            </button>
+          </div>
 
           <Link href="/" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm text-slate-500 hover:text-[#0B3D2E]">
             <Globe className="w-4 h-4" />
@@ -314,6 +312,19 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                 }
               }}
             />
+
+            <button
+              onClick={async () => {
+                const res = await fetch('/api/auth/logout', { method: 'POST' });
+                if (res.ok) {
+                  window.location.href = role === 'admin' ? '/login-admin' : '/login';
+                }
+              }}
+              className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
 
             {role === 'student' && (
               <Link href="/student/submit" className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all shadow-md shadow-[#0B3D2E]/20 text-sm">

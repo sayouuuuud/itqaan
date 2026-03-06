@@ -52,7 +52,7 @@ export default function AdminHomepagePage() {
         } finally { setSaving(false) }
     }
 
-    if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+    if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" /></div>
 
     const isMaintenance = settings.maintenance_mode === true || settings.maintenance_mode === 'true'
 
@@ -61,13 +61,13 @@ export default function AdminHomepagePage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Home className="w-8 h-8 text-[#0B3D2E]" />
+                    <Home className="w-8 h-8 text-[#1B5E3B]" />
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{t.admin.adminHomepage.title}</h1>
                         <p className="text-gray-500 text-sm">{t.admin.adminHomepage.description}</p>
                     </div>
                 </div>
-                <Button onClick={handleSave} disabled={saving} className="bg-[#0B3D2E] hover:bg-[#0B3D2E]/90 text-white gap-2">
+                <Button onClick={handleSave} disabled={saving} className="bg-[#1B5E3B] hover:bg-[#1B5E3B]/90 text-white gap-2">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                     {saved ? t.admin.adminHomepage.saved : t.admin.adminHomepage.save}
                 </Button>
@@ -145,7 +145,7 @@ export default function AdminHomepagePage() {
 
                 <div className="space-y-2">
                     <Label>{t.admin.adminHomepage.heroSubtitle}</Label>
-                    <textarea value={settings.homepage_hero_subtitle} onChange={e => set('homepage_hero_subtitle', e.target.value)} rows={3} className="w-full border border-gray-200 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/30" />
+                    <textarea value={settings.homepage_hero_subtitle} onChange={e => set('homepage_hero_subtitle', e.target.value)} rows={3} className="w-full border border-gray-200 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/30" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

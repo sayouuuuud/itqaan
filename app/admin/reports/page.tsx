@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
-const STATUS_COLORS: Record<string, string> = { mastered: '#10b981', needs_session: '#D4A843', pending: '#f59e0b', in_review: '#3b82f6', rejected: '#ef4444', session_booked: '#8b5cf6' }
+const STATUS_COLORS: Record<string, string> = { mastered: '#10b981', needs_session: '#C9A227', pending: '#f59e0b', in_review: '#3b82f6', rejected: '#ef4444', session_booked: '#8b5cf6' }
 
 export default function AdminReportsPage() {
   const { t } = useI18n()
@@ -64,7 +64,7 @@ export default function AdminReportsPage() {
     a.click()
   }
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" /></div>
 
   const tStatus = {
     mastered: t.admin.reportsPage.statusMastered,
@@ -89,7 +89,7 @@ export default function AdminReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <BarChart3 className="w-8 h-8 text-[#0B3D2E]" />
+          <BarChart3 className="w-8 h-8 text-[#1B5E3B]" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t.admin.reportsPage.title}</h1>
             <p className="text-gray-500 text-sm">{t.admin.reportsPage.description}</p>
@@ -104,7 +104,7 @@ export default function AdminReportsPage() {
             <Label className="text-sm text-gray-600">{t.admin.reportsPage.to}</Label>
             <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36 text-sm" />
           </div>
-          <Button onClick={load} size="sm" className="bg-[#0B3D2E] text-white hover:bg-[#0B3D2E]/90">{t.admin.reportsPage.apply}</Button>
+          <Button onClick={load} size="sm" className="bg-[#1B5E3B] text-white hover:bg-[#1B5E3B]/90">{t.admin.reportsPage.apply}</Button>
           <Button onClick={exportCSV} size="sm" variant="outline" className="gap-1"><Download className="w-4 h-4" />CSV</Button>
         </div>
       </div>
@@ -197,7 +197,7 @@ export default function AdminReportsPage() {
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                <Bar dataKey="count" fill="#0B3D2E" radius={[4, 4, 0, 0]} name={t.admin.reportsPage.recitations} />
+                <Bar dataKey="count" fill="#1B5E3B" radius={[4, 4, 0, 0]} name={t.admin.reportsPage.recitations} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -269,7 +269,7 @@ export default function AdminReportsPage() {
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                <Line type="monotone" dataKey="total" stroke="#0B3D2E" strokeWidth={2.5} dot={{ r: 4, fill: '#0B3D2E', strokeWidth: 2, stroke: '#fff' }} name={t.admin.reportsPage.total} />
+                <Line type="monotone" dataKey="total" stroke="#1B5E3B" strokeWidth={2.5} dot={{ r: 4, fill: '#1B5E3B', strokeWidth: 2, stroke: '#fff' }} name={t.admin.reportsPage.total} />
                 <Line type="monotone" dataKey="mastered" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} name={t.admin.reportsPage.statusMastered} />
               </LineChart>
             </ResponsiveContainer>
@@ -368,7 +368,7 @@ export default function AdminReportsPage() {
                   <p className="text-sm text-gray-800 font-medium truncate max-w-[120px]">{r.name}</p>
                 </div>
                 <div className="text-end">
-                  <p className="text-sm font-bold text-[#0B3D2E]">{r.reviews_count}</p>
+                  <p className="text-sm font-bold text-[#1B5E3B]">{r.reviews_count}</p>
                   <p className="text-[10px] text-green-600 uppercase font-bold tracking-tighter">{r.mastered_count} {t.admin.reportsPage.statusMastered}</p>
                 </div>
               </div>
@@ -456,7 +456,7 @@ export default function AdminReportsPage() {
                   <td className="py-4 px-6 text-blue-600 font-bold">{r.reviews}</td>
                   <td className="py-4 px-6 text-purple-600 font-bold">{r.sessions}</td>
                   <td className="py-4 px-6">
-                    <span className="font-black text-[#0B3D2E] text-lg bg-[#0B3D2E]/5 px-3 py-1 rounded-xl">{r.total_contribution}</span>
+                    <span className="font-black text-[#1B5E3B] text-lg bg-[#1B5E3B]/5 px-3 py-1 rounded-xl">{r.total_contribution}</span>
                   </td>
                 </tr>
               ))}

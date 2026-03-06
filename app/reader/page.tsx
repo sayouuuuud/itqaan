@@ -31,7 +31,7 @@ export default function ReaderDashboard() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
       </div>
     )
   }
@@ -41,9 +41,9 @@ export default function ReaderDashboard() {
       label: t.reader.pendingReviewsLabel,
       value: stats?.pendingReviews ?? 0,
       icon: ClipboardList,
-      color: "text-[#0B3D2E]",
-      bg: "bg-[#0B3D2E]/10",
-      iconBig: "text-[#0B3D2E]",
+      color: "text-[#1B5E3B]",
+      bg: "bg-[#1B5E3B]/10",
+      iconBig: "text-[#1B5E3B]",
       urgent: (stats?.pendingReviews ?? 0) > 0,
     },
     {
@@ -90,7 +90,7 @@ export default function ReaderDashboard() {
           return (
             <div
               key={kpi.label}
-              className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group ${kpi.urgent ? "border-[#D4A843]/40" : "border-gray-100"
+              className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group ${kpi.urgent ? "border-[#C9A227]/40" : "border-gray-100"
                 }`}
             >
               <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:scale-110 transition-transform">
@@ -103,7 +103,7 @@ export default function ReaderDashboard() {
                 <h3 className="text-3xl font-bold text-gray-900 mb-1">{kpi.value}</h3>
                 <p className="text-gray-500 text-sm">{kpi.label}</p>
                 {kpi.urgent && (
-                  <span className="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-[#D4A843] animate-pulse" />
+                  <span className="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-[#C9A227] animate-pulse" />
                 )}
               </div>
             </div>
@@ -115,12 +115,12 @@ export default function ReaderDashboard() {
       <div className="flex justify-center">
         <Link
           href="/reader/recitations"
-          className="group flex items-center gap-3 bg-[#0B3D2E] text-white px-8 py-4 rounded-2xl hover:bg-[#0A3528] transition-all shadow-sm hover:shadow-md font-bold text-lg"
+          className="group flex items-center gap-3 bg-[#1B5E3B] text-white px-8 py-4 rounded-2xl hover:bg-[#124028] transition-all shadow-sm hover:shadow-md font-bold text-lg"
         >
           <ClipboardList className="w-5 h-5" />
           <span>{t.reader.goToNewRecitationsLabel}</span>
           {(stats?.pendingReviews ?? 0) > 0 && (
-            <span className="bg-[#D4A843] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+            <span className="bg-[#C9A227] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
               {stats!.pendingReviews}
             </span>
           )}

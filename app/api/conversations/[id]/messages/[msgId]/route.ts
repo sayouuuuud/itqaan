@@ -4,13 +4,13 @@ import { query } from "@/lib/db"
 
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string, msgId: string } }
+    { params }: { params: Promise<{ id: string, msgId: string }> }
 ) {
     try {
         const session = await getSession()
         if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
-        const { id, msgId } = params
+        const { id, msgId } = await params
         const { message_text } = await req.json()
 
         if (!message_text || !message_text.trim()) {
@@ -34,6 +34,11 @@ export async function PATCH(
             return NextResponse.json({ error: "غير مصرح لك بتعديل هذه الرسالة" }, { status: 403 })
         }
 
+        const conv = await query<{ is_ticket: boolean }>(`SELECT is_ticket FROM conversations WHERE id = $1`, [id]);
+        if (conv.length > 0 && conv[0].is_ticket && session.role === "student") {
+            return NextResponse.json({ error: "لا يمكن تعديل رسائل التذاكر" }, { status: 403 })
+        }
+
         // Update the message
         const updated = await query(
             `UPDATE messages 
@@ -52,13 +57,13 @@ export async function PATCH(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string, msgId: string } }
+    { params }: { params: Promise<{ id: string, msgId: string }> }
 ) {
     try {
         const session = await getSession()
         if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
-        const { id, msgId } = params
+        const { id, msgId } = await params
 
         // Verify the message exists and belongs to the user or user is admin
         const messages = await query(
@@ -75,6 +80,11 @@ export async function DELETE(
         // Only the sender OR an admin can delete a message
         if (msg.sender_id !== session.sub && session.role !== "admin") {
             return NextResponse.json({ error: "غير مصرح لك بحذف هذه الرسالة" }, { status: 403 })
+        }
+
+        const conv = await query<{ is_ticket: boolean }>(`SELECT is_ticket FROM conversations WHERE id = $1`, [id]);
+        if (conv.length > 0 && conv[0].is_ticket && session.role === "student") {
+            return NextResponse.json({ error: "لا يمكن حذف رسائل التذاكر" }, { status: 403 })
         }
 
         // Delete the message

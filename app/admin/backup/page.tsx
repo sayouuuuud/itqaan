@@ -97,7 +97,7 @@ export default function AdminBackupPage() {
         } finally { setActionLoading(null) }
     }
 
-    if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+    if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" /></div>
 
     const tableRows: { label: string, key: string }[] = [
         { label: isAr ? 'المستخدمون' : 'Users', key: 'users' },
@@ -116,7 +116,7 @@ export default function AdminBackupPage() {
         <div className="p-6 max-w-4xl mx-auto space-y-6" dir={isAr ? 'rtl' : 'ltr'}>
             {/* Header */}
             <div className="flex items-center gap-3">
-                <Archive className="w-8 h-8 text-[#0B3D2E]" />
+                <Archive className="w-8 h-8 text-[#1B5E3B]" />
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">{isAr ? 'النسخ الاحتياطي وإدارة البيانات' : 'Backup & Data Management'}</h1>
                     <p className="text-gray-500 text-sm">{isAr ? 'تصدير واستيراد البيانات وإدارة التخزين' : 'Export, import data and manage storage'}</p>

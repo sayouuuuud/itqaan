@@ -95,7 +95,7 @@ export default function StudentDashboard() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#0B3D2E]/20 border-t-[#0B3D2E] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#1B5E3B]/20 border-t-[#1B5E3B] rounded-full animate-spin" />
       </div>
     )
   }
@@ -117,14 +117,14 @@ export default function StudentDashboard() {
         {/* State: No recitation yet */}
         {status === 'no_recitation' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
-            <div className="w-20 h-20 bg-[#D4A843]/10 rounded-full flex items-center justify-center mx-auto border border-[#D4A843]/20">
-              <Mic className="w-10 h-10 text-[#D4A843]" />
+            <div className="w-20 h-20 bg-[#C9A227]/10 rounded-full flex items-center justify-center mx-auto border border-[#C9A227]/20">
+              <Mic className="w-10 h-10 text-[#C9A227]" />
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-gray-800">{t.student.noRecitationTitle}</h2>
               <p className="text-gray-500 text-sm leading-relaxed">{t.student.noRecitationDesc}</p>
             </div>
-            <Link href="/student/submit" className="inline-flex items-center gap-2 bg-[#D4A843] hover:bg-[#C49A3A] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#D4A843]/20">
+            <Link href="/student/submit" className="inline-flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#C9A227]/20">
               <Mic className="w-5 h-5" />
               <span>{t.student.recordNowBtn}</span>
             </Link>
@@ -314,7 +314,7 @@ export default function StudentDashboard() {
                     {t.student.masteredDesc}
                   </p>
                 </div>
-                <Link href="/student/certificate" className="inline-flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0A3528] text-white font-bold py-3.5 px-8 rounded-xl transition-colors">
+                <Link href="/student/certificate" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3.5 px-8 rounded-xl transition-colors">
                   <span>{t.student.completeCertData}</span>
                   <ArrowLeft className="w-4 h-4" />
                 </Link>
@@ -336,7 +336,7 @@ export default function StudentDashboard() {
                 {t.student.needsSessionDesc}
               </p>
             </div>
-            <Link href="/student/booking" className="inline-flex items-center gap-2 bg-[#D4A843] hover:bg-[#C49A3A] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#D4A843]/20">
+            <Link href="/student/booking" className="inline-flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#C9A227]/20">
               <Calendar className="w-5 h-5" />
               <span>{t.student.bookSessionBtnBase}</span>
             </Link>
@@ -348,16 +348,16 @@ export default function StudentDashboard() {
           <div className="bg-white border border-gray-100 rounded-[2rem] shadow-xl shadow-gray-200/50 overflow-hidden text-right">
             {/* Premium Header */}
             <div className="relative p-8 pb-10 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4A843]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#D4A843]/10 rounded-full -ml-12 -mb-12 blur-2xl" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A227]/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#C9A227]/10 rounded-full -ml-12 -mb-12 blur-2xl" />
 
               <div className="relative flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#D4A843] to-[#C49A3A] rounded-3xl flex items-center justify-center shadow-lg shadow-[#D4A843]/30 mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#C9A227] to-[#A6841E] rounded-3xl flex items-center justify-center shadow-lg shadow-[#C9A227]/30 mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
                   <Video className="w-10 h-10 text-white" />
                 </div>
                 <h2 className="text-2xl font-black text-slate-900 mb-2">{t.student.appointmentDetails}</h2>
-                <div className="inline-flex items-center gap-2 bg-[#D4A843]/10 text-[#5c4718] px-5 py-2 rounded-full text-xs font-black border border-[#D4A843]/20 shadow-sm">
-                  <span className="w-1.5 h-1.5 bg-[#D4A843] rounded-full animate-pulse" />
+                <div className="inline-flex items-center gap-2 bg-[#C9A227]/10 text-[#5c4718] px-5 py-2 rounded-full text-xs font-black border border-[#C9A227]/20 shadow-sm">
+                  <span className="w-1.5 h-1.5 bg-[#C9A227] rounded-full animate-pulse" />
                   {t.student.bookedStatus}
                 </div>
               </div>
@@ -397,7 +397,7 @@ export default function StudentDashboard() {
               </div>
 
               {/* Join Session Section */}
-              <div className="bg-[#0B3D2E] rounded-[1.5rem] p-6 text-white relative overflow-hidden group">
+              <div className="bg-[#1B5E3B] rounded-[1.5rem] p-6 text-white relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
                 <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="text-center md:text-right">
@@ -409,7 +409,7 @@ export default function StudentDashboard() {
                       href={booking.meeting_link.startsWith('http') ? booking.meeting_link : `https://${booking.meeting_link}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-[#0B3D2E] hover:bg-slate-50 font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-black/20 transform hover:-translate-y-1 active:scale-95"
+                      className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-[#1B5E3B] hover:bg-slate-50 font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-black/20 transform hover:-translate-y-1 active:scale-95"
                     >
                       <Video className="w-5 h-5" />
                       <span>{t.student.joinSessionBtn}</span>
@@ -520,7 +520,7 @@ function CommentBox({ bookingId }: { bookingId: string }) {
         <button
           onClick={handleSend}
           disabled={!newComment.trim() || sending}
-          className="absolute left-3 bottom-2.5 w-11 h-11 bg-[#D4A843] text-white rounded-xl flex items-center justify-center hover:bg-[#C49A3A] disabled:opacity-30 transition-all shadow-md active:scale-90"
+          className="absolute left-3 bottom-2.5 w-11 h-11 bg-[#C9A227] text-white rounded-xl flex items-center justify-center hover:bg-[#A6841E] disabled:opacity-30 transition-all shadow-md active:scale-90"
         >
           {sending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
         </button>

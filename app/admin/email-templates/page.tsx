@@ -127,7 +127,7 @@ export default function AdminEmailTemplatesPage() {
 
             {loading ? (
                 <div className="flex justify-center p-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+                    <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
                 </div>
             ) : filteredTemplates.length === 0 ? (
                 <div className="bg-white border border-slate-200 rounded-3xl py-24 text-center shadow-sm">
@@ -148,7 +148,7 @@ export default function AdminEmailTemplatesPage() {
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                                        <Mail className="w-6 h-6 text-[#0B3D2E]" />
+                                        <Mail className="w-6 h-6 text-[#1B5E3B]" />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
@@ -177,7 +177,7 @@ export default function AdminEmailTemplatesPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openEdit(tmpl)}
-                                    className="border-slate-200 text-slate-600 hover:text-[#0B3D2E] hover:border-[#0B3D2E]/30 hover:bg-[#0B3D2E]/5 h-9 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                                    className="border-slate-200 text-slate-600 hover:text-[#1B5E3B] hover:border-[#1B5E3B]/30 hover:bg-[#1B5E3B]/5 h-9 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
                                 >
                                     <Edit className="w-4 h-4 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
                                     {t.edit}
@@ -205,7 +205,7 @@ export default function AdminEmailTemplatesPage() {
                                             {(typeof tmpl.variables === 'string' ? JSON.parse(tmpl.variables) : tmpl.variables).map((v: string) => (
                                                 <div key={v} className="bg-white border border-slate-200 shadow-sm text-slate-600 text-[10px] px-2 py-1 rounded-lg font-mono flex items-center gap-1">
                                                     <span className="text-slate-400">{`{{`}</span>
-                                                    <span className="font-semibold text-[#0B3D2E]">{v}</span>
+                                                    <span className="font-semibold text-[#1B5E3B]">{v}</span>
                                                     <span className="text-slate-400">{`}}`}</span>
                                                 </div>
                                             ))}
@@ -224,7 +224,7 @@ export default function AdminEmailTemplatesPage() {
                     <DialogHeader className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                         <DialogTitle className="text-xl font-bold flex items-center gap-2 text-slate-800">
                             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                <Edit className="w-4 h-4 text-[#0B3D2E]" />
+                                <Edit className="w-4 h-4 text-[#1B5E3B]" />
                             </div>
                             {isAr ? `تعديل القالب: ${editTemplate?.template_name_ar}` : `Edit Template: ${editTemplate?.template_name_en}`}
                         </DialogTitle>
@@ -240,7 +240,7 @@ export default function AdminEmailTemplatesPage() {
                             <Switch
                                 checked={!!editForm.is_active}
                                 onCheckedChange={c => setEditForm((f: any) => ({ ...f, is_active: c }))}
-                                className="data-[state=checked]:bg-[#0B3D2E]"
+                                className="data-[state=checked]:bg-[#1B5E3B]"
                             />
                         </div>
 
@@ -269,14 +269,14 @@ export default function AdminEmailTemplatesPage() {
                                     <Input
                                         value={editForm.subject_ar || ''}
                                         onChange={e => setEditForm((f: any) => ({ ...f, subject_ar: e.target.value }))}
-                                        className="h-12 border-slate-200 bg-white focus-visible:ring-1 focus-visible:ring-[#0B3D2E] rounded-xl px-4"
+                                        className="h-12 border-slate-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1B5E3B] rounded-xl px-4"
                                         placeholder="اكتب عنوان البريد الإلكتروني هنا..."
                                     />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label className="text-slate-700 font-bold ml-1">نص الرسالة</Label>
                                     <textarea
-                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm min-h-[240px] resize-y focus:outline-none focus:ring-1 focus:ring-[#0B3D2E] leading-relaxed transition-shadow"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm min-h-[240px] resize-y focus:outline-none focus:ring-1 focus:ring-[#1B5E3B] leading-relaxed transition-shadow"
                                         value={editForm.body_ar || ''}
                                         onChange={e => setEditForm((f: any) => ({ ...f, body_ar: e.target.value }))}
                                         placeholder="اكتب محتوى الرسالة هنا. يمكنك استخدام المتغيرات المتاحة..."
@@ -291,14 +291,14 @@ export default function AdminEmailTemplatesPage() {
                                         dir="ltr"
                                         value={editForm.subject_en || ''}
                                         onChange={e => setEditForm((f: any) => ({ ...f, subject_en: e.target.value }))}
-                                        className="h-12 border-slate-200 bg-white focus-visible:ring-1 focus-visible:ring-[#0B3D2E] rounded-xl px-4 text-left"
+                                        className="h-12 border-slate-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1B5E3B] rounded-xl px-4 text-left"
                                         placeholder="Enter the email subject here..."
                                     />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label className="text-slate-700 font-bold mr-1 flex justify-end">Body</Label>
                                     <textarea
-                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm min-h-[240px] resize-y focus:outline-none focus:ring-1 focus:ring-[#0B3D2E] leading-relaxed transition-shadow text-left"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm min-h-[240px] resize-y focus:outline-none focus:ring-1 focus:ring-[#1B5E3B] leading-relaxed transition-shadow text-left"
                                         dir="ltr"
                                         value={editForm.body_en || ''}
                                         onChange={e => setEditForm((f: any) => ({ ...f, body_en: e.target.value }))}
@@ -322,7 +322,7 @@ export default function AdminEmailTemplatesPage() {
                                     onClick={handleSendTest}
                                     disabled={sendingTest || !testEmail}
                                     variant="outline"
-                                    className="h-10 px-4 rounded-xl border-[#D4A843] text-[#D4A843] hover:bg-[#D4A843]/10"
+                                    className="h-10 px-4 rounded-xl border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227]/10"
                                 >
                                     {sendingTest ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4 ml-1.5 rtl:mr-1.5 rtl:ml-0" />}
                                     {t.send}
@@ -331,7 +331,7 @@ export default function AdminEmailTemplatesPage() {
                         </div>
 
                         {editTemplate?.variables?.length > 0 && (
-                            <div className="bg-[#D4A843]/10 border border-[#D4A843]/30 rounded-2xl p-4">
+                            <div className="bg-[#C9A227]/10 border border-[#C9A227]/30 rounded-2xl p-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="text-lg">⚡</span>
                                     <div>
@@ -350,7 +350,7 @@ export default function AdminEmailTemplatesPage() {
                                             onClick={() => {
                                                 navigator.clipboard.writeText(`{{${v}}}`)
                                             }}
-                                            className="text-xs bg-white border border-[#D4A843]/40 text-[#b58f35] px-3 py-1.5 rounded-lg hover:bg-[#D4A843]/20 hover:border-[#D4A843]/60 transition-colors font-mono cursor-copy flex items-center gap-1 group/var"
+                                            className="text-xs bg-white border border-[#C9A227]/40 text-[#b58f35] px-3 py-1.5 rounded-lg hover:bg-[#C9A227]/20 hover:border-[#C9A227]/60 transition-colors font-mono cursor-copy flex items-center gap-1 group/var"
                                             title="Click to copy"
                                         >
                                             <span className="opacity-60">{`{{`}</span>
@@ -373,7 +373,7 @@ export default function AdminEmailTemplatesPage() {
                         </Button>
                         <Button
                             onClick={handleSave}
-                            className="bg-[#0B3D2E] text-white rounded-xl px-8 h-11 hover:bg-[#0a2e23] shadow-md shadow-[#0B3D2E]/20"
+                            className="bg-[#1B5E3B] text-white rounded-xl px-8 h-11 hover:bg-[#0a2e23] shadow-md shadow-[#1B5E3B]/20"
                             disabled={saving}
                         >
                             {saving ? (

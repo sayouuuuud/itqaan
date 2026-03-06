@@ -51,7 +51,7 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" />
+                <Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" />
             </div>
         )
     }
@@ -65,7 +65,7 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                     </div>
                     <h1 className="text-xl font-bold text-slate-800 mb-2">{isAr ? "عذراً" : "Oops"}</h1>
                     <p className="text-slate-500 mb-6">{error || (isAr ? "لا تتوفر شهادة لهذا المستخدم" : "No certificate available for this user")}</p>
-                    <a href="/" className="inline-block bg-[#0B3D2E] text-white px-6 py-2 rounded-xl font-bold transition-all hover:bg-[#0A3528]">
+                    <a href="/" className="inline-block bg-[#1B5E3B] text-white px-6 py-2 rounded-xl font-bold transition-all hover:bg-[#124028]">
                         {isAr ? "العودة للمنصة" : "Back to Platform"}
                     </a>
                 </div>
@@ -87,30 +87,30 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                 style={{ width: '210mm', height: '297mm', minWidth: '210mm' }}>
 
                 {/* Decorative Border */}
-                <div className="absolute inset-8 border-[12px] border-double border-[#D4A843]/30 pointer-events-none"></div>
-                <div className="absolute inset-12 border border-[#D4A843]/20 pointer-events-none"></div>
+                <div className="absolute inset-8 border-[12px] border-double border-[#C9A227]/30 pointer-events-none"></div>
+                <div className="absolute inset-12 border border-[#C9A227]/20 pointer-events-none"></div>
 
                 {/* Content */}
                 <div className="relative h-full flex flex-col items-center pt-24 px-24 text-center">
                     {/* Header Logo/Icon */}
                     <div className="mb-12 relative">
-                        <div className="w-24 h-24 bg-[#0B3D2E] rounded-2xl flex items-center justify-center shadow-xl rotate-45 mx-auto">
-                            <Award className="w-12 h-12 text-[#D4A843] -rotate-45" />
+                        <div className="w-24 h-24 bg-[#1B5E3B] rounded-2xl flex items-center justify-center shadow-xl rotate-45 mx-auto">
+                            <Award className="w-12 h-12 text-[#C9A227] -rotate-45" />
                         </div>
                         <div className="mt-8">
-                            <h1 className="text-4xl font-extrabold text-[#0B3D2E] tracking-tight">{isAr ? "منصة إتقان الفاتحة" : "Itqaan Al-Fatiha Platform"}</h1>
-                            <p className="text-[#D4A843] font-bold text-xl mt-2 tracking-widest">{isAr ? "مبادرة تصحيح وذكر" : "Recitation & Mastery Initiative"}</p>
+                            <h1 className="text-4xl font-extrabold text-[#1B5E3B] tracking-tight">{isAr ? "منصة إتقان الفاتحة" : "Itqaan Al-Fatiha Platform"}</h1>
+                            <p className="text-[#C9A227] font-bold text-xl mt-2 tracking-widest">{isAr ? "مبادرة تصحيح وذكر" : "Recitation & Mastery Initiative"}</p>
                         </div>
                     </div>
 
-                    <div className="w-32 h-1 bg-[#D4A843]/20 mb-16"></div>
+                    <div className="w-32 h-1 bg-[#C9A227]/20 mb-16"></div>
 
                     {/* Main Text */}
                     <div className="space-y-8">
                         <h2 className="text-3xl font-serif text-slate-700 italic">{isAr ? "يُمنح هذا التبرير لـ" : "This certificate is awarded to"}</h2>
 
                         <div className="py-2">
-                            <h3 className="text-6xl font-black text-[#0B3D2E] underline underline-offset-[16px] decoration-[#D4A843]/40">
+                            <h3 className="text-6xl font-black text-[#1B5E3B] underline underline-offset-[16px] decoration-[#C9A227]/40">
                                 {cert.student_name}
                             </h3>
                         </div>
@@ -167,9 +167,9 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
 
                         <div className="flex flex-col items-center">
                             <div className="mb-4">
-                                <p className="text-xl font-serif text-[#0B3D2E] font-bold border-b border-[#D4A843] pb-1 px-4">{isAr ? "إدارة مبادرة إتقان" : "Itqaan Management"}</p>
+                                <p className="text-xl font-serif text-[#1B5E3B] font-bold border-b border-[#C9A227] pb-1 px-4">{isAr ? "إدارة مبادرة إتقان" : "Itqaan Management"}</p>
                             </div>
-                            <div className="flex gap-1 text-[#D4A843]">
+                            <div className="flex gap-1 text-[#C9A227]">
                                 {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-2 h-2 rounded-full bg-current" />)}
                             </div>
                         </div>

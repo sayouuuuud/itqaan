@@ -62,10 +62,14 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id, is_active } = await req.json()
+    const { id, is_active, ticket_status } = await req.json()
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-    await query(`UPDATE conversations SET is_active = $1, updated_at = NOW() WHERE id = $2`, [is_active, id])
+    if (ticket_status !== undefined) {
+        await query(`UPDATE conversations SET ticket_status = $1, updated_at = NOW() WHERE id = $2`, [ticket_status, id])
+    } else if (is_active !== undefined) {
+        await query(`UPDATE conversations SET is_active = $1, updated_at = NOW() WHERE id = $2`, [is_active, id])
+    }
 
     return NextResponse.json({ ok: true })
 }

@@ -173,7 +173,7 @@ export default function CertificatesDashPage() {
                 <button
                     onClick={() => setFilter("pending")}
                     className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "pending"
-                        ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+                        ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
@@ -183,7 +183,7 @@ export default function CertificatesDashPage() {
                 <button
                     onClick={() => setFilter("issued")}
                     className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "issued"
-                        ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+                        ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
@@ -193,7 +193,7 @@ export default function CertificatesDashPage() {
                 <button
                     onClick={() => setFilter("all")}
                     className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "all"
-                        ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+                        ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                 >
@@ -205,7 +205,7 @@ export default function CertificatesDashPage() {
             <div className="space-y-4">
                 {loading ? (
                     <div className="bg-white rounded-2xl border border-slate-200 p-12 flex justify-center shadow-sm">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+                        <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
                     </div>
                 ) : applications.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
@@ -216,7 +216,7 @@ export default function CertificatesDashPage() {
                     const isExpanded = expandedId === app.id
 
                     return (
-                        <div key={app.id} className={`bg-white rounded-2xl border transition-all shadow-sm overflow-hidden ${isExpanded ? "border-[#0B3D2E]/30 ring-1 ring-[#0B3D2E]/10" : "border-slate-200 hover:border-slate-300"}`}>
+                        <div key={app.id} className={`bg-white rounded-2xl border transition-all shadow-sm overflow-hidden ${isExpanded ? "border-[#1B5E3B]/30 ring-1 ring-[#1B5E3B]/10" : "border-slate-200 hover:border-slate-300"}`}>
                             {/* Summary Row */}
                             <div
                                 className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 cursor-pointer select-none"
@@ -256,7 +256,7 @@ export default function CertificatesDashPage() {
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleIssue(app.id); }}
                                             disabled={issuingId === app.id}
-                                            className="bg-[#0B3D2E] hover:bg-[#0A3528] disabled:bg-slate-300 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                                            className="bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-slate-300 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
                                         >
                                             {issuingId === app.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
                                             {t.admin.certificates.issueCertificate}
@@ -304,11 +304,11 @@ export default function CertificatesDashPage() {
                                                             a.id === app.id ? { ...a, ceremony_date: newDate } : a
                                                         ))
                                                     }}
-                                                    className="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                                                    className="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
                                                 />
                                                 <button
                                                     onClick={() => handleSetIndividualCeremony(app.id, app.ceremony_date || null)}
-                                                    className="mt-2 text-xs bg-[#0B3D2E] hover:bg-[#0A3528] text-white px-3 py-1 rounded-lg font-bold"
+                                                    className="mt-2 text-xs bg-[#1B5E3B] hover:bg-[#124028] text-white px-3 py-1 rounded-lg font-bold"
                                                 >
                                                     {t.admin.certificates.saveCustomDate}
                                                 </button>
@@ -361,12 +361,12 @@ export default function CertificatesDashPage() {
                     <div className="shrink-0 relative">
                         {settingSeal && (
                             <div className="absolute inset-0 z-10 bg-white/50 rounded-full flex items-center justify-center">
-                                <Loader2 className="w-6 h-6 animate-spin text-[#0B3D2E]" />
+                                <Loader2 className="w-6 h-6 animate-spin text-[#1B5E3B]" />
                             </div>
                         )}
                         {/* We use input type=file approach similar to AvatarUpload */}
                         <label className="block cursor-pointer relative group">
-                            <div className={`w-28 h-28 border-2 border-dashed rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-colors ${settingSeal ? "border-slate-200" : "border-slate-300 group-hover:border-[#0B3D2E] group-hover:bg-[#0B3D2E]/5"}`}>
+                            <div className={`w-28 h-28 border-2 border-dashed rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-colors ${settingSeal ? "border-slate-200" : "border-slate-300 group-hover:border-[#1B5E3B] group-hover:bg-[#1B5E3B]/5"}`}>
                                 {platformSealUrl ? (
                                     <img src={platformSealUrl} alt="Platform Seal" className="w-full h-full object-cover" />
                                 ) : (
@@ -428,7 +428,7 @@ export default function CertificatesDashPage() {
                             type="datetime-local"
                             value={globalCeremony.date || ""}
                             onChange={(e) => setGlobalCeremony(prev => ({ ...prev, date: e.target.value }))}
-                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
                         />
                     </div>
                     <div>
@@ -438,7 +438,7 @@ export default function CertificatesDashPage() {
                             value={globalCeremony.message}
                             onChange={(e) => setGlobalCeremony(prev => ({ ...prev, message: e.target.value }))}
                             placeholder={t.admin.certificates.ceremonyPlaceholder}
-                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                            className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
                         />
                     </div>
                 </div>
@@ -446,7 +446,7 @@ export default function CertificatesDashPage() {
                     <button
                         onClick={handleSetGlobalCeremony}
                         disabled={settingGlobal}
-                        className="bg-[#0B3D2E] hover:bg-[#0A3528] disabled:bg-slate-300 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                        className="bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-slate-300 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
                     >
                         {settingGlobal ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                         {t.admin.certificates.saveUnifiedDate}

@@ -130,7 +130,7 @@ export default function AdminRecitationsPage() {
           <div className="md:col-span-5 relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              className="pr-10 border-gray-200 focus:border-[#0B3D2E] focus:ring-[#0B3D2E]/20"
+              className="pr-10 border-gray-200 focus:border-[#1B5E3B] focus:ring-[#1B5E3B]/20"
               placeholder={t.admin.searchRecitationsPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -138,7 +138,7 @@ export default function AdminRecitationsPage() {
           </div>
           <div className="md:col-span-3">
             <select
-              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]"
+              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B]"
               value={readerFilter}
               onChange={(e) => setReaderFilter(e.target.value)}
             >
@@ -152,7 +152,7 @@ export default function AdminRecitationsPage() {
           </div>
           <div className="md:col-span-3">
             <select
-              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]"
+              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B]"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -165,7 +165,7 @@ export default function AdminRecitationsPage() {
             </select>
           </div>
           <div className="md:col-span-1">
-            <Button type="submit" className="w-full h-10 flex items-center justify-center rounded-xl bg-[#0B3D2E] hover:bg-[#0a3326] text-white">
+            <Button type="submit" className="w-full h-10 flex items-center justify-center rounded-xl bg-[#1B5E3B] hover:bg-[#0a3326] text-white">
               <Filter className="w-4 h-4" />
             </Button>
           </div>
@@ -177,7 +177,7 @@ export default function AdminRecitationsPage() {
         <div className="overflow-x-auto min-h-[400px]">
           {loading ? (
             <div className="flex justify-center p-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
             </div>
           ) : (
             <table className="w-full text-sm text-right">
@@ -214,7 +214,7 @@ export default function AdminRecitationsPage() {
                     className="hover:bg-gray-50/50 transition-colors group"
                   >
                     <td className="px-6 py-4 text-gray-400 font-mono text-xs">
-                      <Link href={`/admin/recitations/${rec.id}`} className="hover:text-[#0B3D2E] hover:underline">
+                      <Link href={`/admin/recitations/${rec.id}`} className="hover:text-[#1B5E3B] hover:underline">
                         #{rec.id.substring(0, 8)}
                       </Link>
                     </td>
@@ -282,7 +282,7 @@ export default function AdminRecitationsPage() {
                       <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link
                           href={`/admin/recitations/${rec.id}`}
-                          className="p-1.5 text-gray-400 hover:text-[#0B3D2E] hover:bg-emerald-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-[#1B5E3B] hover:bg-emerald-50 rounded-lg transition-colors"
                           title={t.viewDetails}
                         >
                           <Eye className="w-5 h-5" />

@@ -123,7 +123,7 @@ export default function AdminReadersPage() {
                         <div key={r.id} className={`bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow ${!r.is_active ? 'opacity-60 border-red-200' : 'border-gray-100'}`}>
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#0B3D2E] to-[#16503A] flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
+                                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1B5E3B] to-[#16503A] flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
                                         {r.name?.[0] || 'م'}
                                     </div>
                                     <div>
@@ -242,7 +242,7 @@ export default function AdminReadersPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditReader(null)}>{t.admin.adminReaders.cancel}</Button>
-                        <Button onClick={handleSave} className="bg-[#0B3D2E] text-white" disabled={saving}>
+                        <Button onClick={handleSave} className="bg-[#1B5E3B] text-white" disabled={saving}>
                             {saving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
                             {t.admin.adminReaders.saveChanges}
                         </Button>

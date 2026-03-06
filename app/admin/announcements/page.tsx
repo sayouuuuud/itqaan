@@ -127,7 +127,7 @@ export default function AdminAnnouncementsPage() {
                     <h1 className="text-2xl font-bold text-foreground">{t.admin.announcements}</h1>
                     <p className="text-sm text-muted-foreground mt-1">{t.admin.announcementsDesc}</p>
                 </div>
-                <Button onClick={openCreate} className="bg-[#0B3D2E] text-white hover:bg-[#0A3528]">
+                <Button onClick={openCreate} className="bg-[#1B5E3B] text-white hover:bg-[#124028]">
                     <Plus className="w-4 h-4 ml-2" /> {t.admin.newAnnouncement}
                 </Button>
             </div>
@@ -287,7 +287,7 @@ export default function AdminAnnouncementsPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
-                        <Button onClick={handleSave} className="bg-[#0B3D2E] text-white" disabled={saving || !form.title_ar || !form.content_ar}>
+                        <Button onClick={handleSave} className="bg-[#1B5E3B] text-white" disabled={saving || !form.title_ar || !form.content_ar}>
                             {saving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
                             {editingId ? t.save : t.admin.newAnnouncement}
                         </Button>

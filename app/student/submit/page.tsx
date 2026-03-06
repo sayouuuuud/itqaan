@@ -201,7 +201,7 @@ export default function SubmitRecitationPage() {
           <p className="text-slate-400 text-xs leading-relaxed">
             {t.student.reviewTakesTime}
           </p>
-          <button onClick={() => router.push('/student')} className="bg-[#0B3D2E] hover:bg-[#0A3528] text-white font-bold py-3 px-8 rounded-xl transition-colors">
+          <button onClick={() => router.push('/student')} className="bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3 px-8 rounded-xl transition-colors">
             {t.student.backToDashboard}
           </button>
         </div>
@@ -219,39 +219,39 @@ export default function SubmitRecitationPage() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[calc(100vh-14rem)] min-h-[600px]">
         {/* Right Side: Fatiha Verses */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 relative flex flex-col items-center justify-center overflow-hidden order-1 lg:order-none">
-          <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-[#D4AF37]/30 rounded-tr-xl"></div>
-          <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-[#D4AF37]/30 rounded-bl-xl"></div>
+          <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-[#C9A227]/30 rounded-tr-xl"></div>
+          <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-[#C9A227]/30 rounded-bl-xl"></div>
 
           <div className="text-center w-full max-w-lg mx-auto px-2 pt-2 pb-2 h-full flex flex-col justify-center" style={{ direction: 'rtl' }}>
-            <h3 className="text-[#D4AF37] font-bold text-base md:text-lg mb-2 shrink-0" style={{ fontFamily: "var(--font-sans)" }}>{t.student.surahFatiha}</h3>
+            <h3 className="text-[#C9A227] font-bold text-base md:text-lg mb-2 shrink-0" style={{ fontFamily: "var(--font-sans)" }}>{t.student.surahFatiha}</h3>
             <div className="space-y-[0.6rem] text-lg md:text-xl lg:text-[1.35rem] leading-[1.9] text-gray-800 dark:text-gray-200 grow flex flex-col justify-center" style={{ fontFamily: "var(--font-quran)" }}>
               <p className="text-center">
-                <span className="text-[#1A4D2E] dark:text-green-400">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
-                <span className="text-[#D4AF37] text-sm md:text-base inline-block mr-2 align-middle opacity-80">&#xFD3F;١&#xFD3E;</span>
+                <span className="text-[#1B5E3B] dark:text-green-400">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
+                <span className="text-[#C9A227] text-sm md:text-base inline-block mr-2 align-middle opacity-80">&#xFD3F;١&#xFD3E;</span>
               </p>
               <p className="text-center">
                 ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ
-                <span className="text-[#D4AF37] text-base inline-block mr-2 align-middle">&#xFD3F;٢&#xFD3E;</span>
+                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٢&#xFD3E;</span>
               </p>
               <p className="text-center">
                 ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
-                <span className="text-[#D4AF37] text-base inline-block mr-2 align-middle">&#xFD3F;٣&#xFD3E;</span>
+                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٣&#xFD3E;</span>
               </p>
               <p className="text-center">
                 مَـٰلِكِ يَوْمِ ٱلدِّينِ
-                <span className="text-[#D4AF37] text-base inline-block mr-2 align-middle">&#xFD3F;٤&#xFD3E;</span>
+                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٤&#xFD3E;</span>
               </p>
               <p className="text-center">
                 إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ
-                <span className="text-[#D4AF37] text-base inline-block mr-2 align-middle">&#xFD3F;٥&#xFD3E;</span>
+                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٥&#xFD3E;</span>
               </p>
               <p className="text-center">
                 ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ
-                <span className="text-[#D4AF37] text-base inline-block mr-2 align-middle">&#xFD3F;٦&#xFD3E;</span>
+                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٦&#xFD3E;</span>
               </p>
               <p className="text-center !leading-[2]">
                 صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ
-                <span className="text-[#D4AF37] text-base inline-block mr-2 align-middle">&#xFD3F;٧&#xFD3E;</span>
+                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٧&#xFD3E;</span>
               </p>
             </div>
           </div>
@@ -304,7 +304,7 @@ export default function SubmitRecitationPage() {
                     onPointerDown={handlePointerDown}
                     onPointerUp={handlePointerUp}
                     onPointerLeave={handlePointerUp}
-                    className="w-24 h-24 rounded-full bg-[#D4AF37] text-white shadow-lg hover:shadow-xl hover:bg-yellow-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-[#D4AF37]/20 select-none touch-none"
+                    className="w-24 h-24 rounded-full bg-[#C9A227] text-white shadow-lg hover:shadow-xl hover:bg-yellow-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-[#C9A227]/20 select-none touch-none"
                   >
                     <Mic className="w-12 h-12" />
                   </button>
@@ -325,7 +325,7 @@ export default function SubmitRecitationPage() {
                     <Mic className="w-12 h-12" />
                   </button>
                 )}
-                <span className="text-sm font-bold text-[#1A4D2E] dark:text-[#D4AF37]">
+                <span className="text-sm font-bold text-[#1B5E3B] dark:text-[#C9A227]">
                   {recordingState === "recording" ? t.student.releaseToStop : t.student.holdToRecord}
                 </span>
               </div>
@@ -349,7 +349,7 @@ export default function SubmitRecitationPage() {
                 value={qiraah}
                 onChange={(e) => setQiraah(e.target.value)}
                 disabled={recordingState === "recording"}
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/10 transition-all appearance-none cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/10 transition-all appearance-none cursor-pointer"
                 style={{ direction: 'rtl' }}
               >
                 <option value="hafs">{t.qiraat.hafs}</option>
@@ -379,7 +379,7 @@ export default function SubmitRecitationPage() {
             <button
               disabled={recordingState !== "saved" || submitting}
               onClick={handleSubmit}
-              className="flex-[2] bg-[#D4AF37] disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-yellow-600 py-4 px-6 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="flex-[2] bg-[#C9A227] disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-yellow-600 py-4 px-6 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
             >
               <span>{submitting ? t.student.submittingStatus : t.student.submitBtn}</span>
               {!submitting && <Send className="w-5 h-5 rtl:-scale-x-100 transform rotate-180" />}

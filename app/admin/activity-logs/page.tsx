@@ -90,7 +90,7 @@ export default function AdminActivityLogsPage() {
         <div className="space-y-6 max-w-7xl mx-auto p-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <ScrollText className="w-8 h-8 text-[#0B3D2E]" />
+                    <ScrollText className="w-8 h-8 text-[#1B5E3B]" />
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{t.admin.activityLogs}</h1>
                         <p className="text-sm text-gray-500 mt-1">{t.admin.activityLogsDesc}</p>
@@ -106,7 +106,7 @@ export default function AdminActivityLogsPage() {
                 <div className="relative flex-1 min-w-[240px]">
                     <Search className={`absolute ${isAr ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400`} />
                     <Input
-                        className={`${isAr ? 'pr-10' : 'pl-10'} border-gray-100 focus:ring-[#0B3D2E]/20 rounded-xl bg-gray-50/30`}
+                        className={`${isAr ? 'pr-10' : 'pl-10'} border-gray-100 focus:ring-[#1B5E3B]/20 rounded-xl bg-gray-50/30`}
                         placeholder={t.admin.searchLogsPlaceholder}
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1) }}
@@ -114,7 +114,7 @@ export default function AdminActivityLogsPage() {
                 </div>
                 <div className="flex flex-wrap gap-3 items-center">
                     <select
-                        className="h-10 rounded-xl border border-gray-100 bg-gray-50/50 px-3 text-sm min-w-[180px] focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20"
+                        className="h-10 rounded-xl border border-gray-100 bg-gray-50/50 px-3 text-sm min-w-[180px] focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/20"
                         value={filterAction}
                         onChange={e => { setFilterAction(e.target.value); setPage(1) }}
                     >
@@ -144,7 +144,7 @@ export default function AdminActivityLogsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+                    <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" /></div>
                 ) : logs.length === 0 ? (
                     <div className="p-20 text-center">
                         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
@@ -181,7 +181,7 @@ export default function AdminActivityLogsPage() {
                                         </td>
                                         <td className="py-4 px-5">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-[#0B3D2E] border border-gray-200">
+                                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-[#1B5E3B] border border-gray-200">
                                                     {l.user_name?.[0] || '?'}
                                                 </div>
                                                 <div>

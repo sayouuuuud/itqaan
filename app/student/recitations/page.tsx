@@ -66,7 +66,7 @@ export default function StudentRecitationsPage() {
         </div>
         <Link
           href="/student/submit"
-          className="flex items-center gap-2 bg-[#D4A843] hover:bg-[#C49A3A] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-md shadow-[#D4A843]/20"
+          className="flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-md shadow-[#C9A227]/20"
         >
           <Mic className="w-4 h-4" />
           {t.student.newRecording}
@@ -80,8 +80,8 @@ export default function StudentRecitationsPage() {
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filter === f.value
-              ? "bg-[#0B3D2E] text-white border-[#0B3D2E]"
-              : "bg-white text-gray-600 border-gray-200 hover:border-[#0B3D2E]/40"
+              ? "bg-[#1B5E3B] text-white border-[#1B5E3B]"
+              : "bg-white text-gray-600 border-gray-200 hover:border-[#1B5E3B]/40"
               }`}
           >
             {f.label}
@@ -91,7 +91,7 @@ export default function StudentRecitationsPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl py-16 text-center shadow-sm">
@@ -100,7 +100,7 @@ export default function StudentRecitationsPage() {
           </div>
           <p className="text-gray-500 font-medium">{t.noResults}</p>
           <p className="text-gray-400 text-sm mt-1">{t.student.noRecitationDesc}</p>
-          <Link href="/student/submit" className="inline-flex items-center gap-2 mt-5 bg-[#D4A843] text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-[#C49A3A] transition-colors">
+          <Link href="/student/submit" className="inline-flex items-center gap-2 mt-5 bg-[#C9A227] text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-[#A6841E] transition-colors">
             <Mic className="w-4 h-4" /> {t.student.recordNowBtn}
           </Link>
         </div>
@@ -110,12 +110,12 @@ export default function StudentRecitationsPage() {
             const cfg = STATUS_CONFIG[rec.status] || STATUS_CONFIG.pending
             const Icon = cfg.icon
             return (
-              <div key={rec.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:border-[#0B3D2E]/40 hover:shadow-md transition-all">
+              <div key={rec.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:border-[#1B5E3B]/40 hover:shadow-md transition-all">
 
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-[#0B3D2E]/[0.06] flex items-center justify-center shrink-0">
-                      <Mic className="w-5 h-5 text-[#0B3D2E]" />
+                    <div className="w-11 h-11 rounded-xl bg-[#1B5E3B]/[0.06] flex items-center justify-center shrink-0">
+                      <Mic className="w-5 h-5 text-[#1B5E3B]" />
                     </div>
                     <div>
                       <p className="font-bold text-gray-800">{rec.surah_name || t.student.surahFatiha}</p>
@@ -134,7 +134,7 @@ export default function StudentRecitationsPage() {
 
                     <Link
                       href={`/student/recitations/${rec.id}`}
-                      className="text-xs bg-[#0B3D2E] text-white hover:bg-[#0B3D2E]/90 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                      className="text-xs bg-[#1B5E3B] text-white hover:bg-[#1B5E3B]/90 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
                     >
                       {t.student.viewRecitation}
                     </Link>

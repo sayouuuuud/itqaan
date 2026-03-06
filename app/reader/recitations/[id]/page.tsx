@@ -135,7 +135,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
   if (loading) {
     return (
       <div className="flex justify-center items-center py-24">
-        <Loader2 className="w-10 h-10 text-[#0B3D2E] animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#1B5E3B] animate-spin" />
       </div>
     )
   }
@@ -158,7 +158,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
     return (
       <div className="max-w-xl mx-auto text-center py-20 px-6">
         <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-100
-          ${verdict === 'mastered' ? 'bg-emerald-500 text-white' : 'bg-[#D4A843] text-white'}`}>
+          ${verdict === 'mastered' ? 'bg-emerald-500 text-white' : 'bg-[#C9A227] text-white'}`}>
           <CheckCircle2 className="w-10 h-10" />
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-3">{t.reader.reviewSubmittedSuccessfully}</h2>
@@ -171,13 +171,13 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
             </>
           ) : (
             <>
-              <CalendarClock className="w-5 h-5 text-[#D4A843]" />
+              <CalendarClock className="w-5 h-5 text-[#C9A227]" />
               <span>{isAr ? 'تم تقييم التلاوة: يحتاج جلسة' : 'Verdict: Needs Session'}</span>
             </>
           )}
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/reader/recitations" className="w-full sm:w-auto px-8 py-3.5 bg-[#0B3D2E] text-white rounded-2xl font-bold shadow-lg shadow-emerald-900/10 hover:bg-[#082e23] transition-all">
+          <Link href="/reader/recitations" className="w-full sm:w-auto px-8 py-3.5 bg-[#1B5E3B] text-white rounded-2xl font-bold shadow-lg shadow-emerald-900/10 hover:bg-[#124028] transition-all">
             {t.reader.backToRecitations}
           </Link>
           <Link href="/reader" className="w-full sm:w-auto px-8 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all">
@@ -205,7 +205,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
 
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center gap-2 mb-2">
-        <Link href="/reader/recitations" className="text-xs font-bold text-slate-400 hover:text-[#0B3D2E] transition-colors flex items-center gap-1">
+        <Link href="/reader/recitations" className="text-xs font-bold text-slate-400 hover:text-[#1B5E3B] transition-colors flex items-center gap-1">
           {isAr ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
           {t.reader.backToRecitations}
         </Link>
@@ -215,8 +215,8 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
       <header className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
         <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-[#0B3D2E]/5 flex items-center justify-center shrink-0 border border-[#0B3D2E]/10">
-            <Mic className="w-8 h-8 text-[#0B3D2E]" />
+          <div className="w-16 h-16 rounded-full bg-[#1B5E3B]/5 flex items-center justify-center shrink-0 border border-[#1B5E3B]/10">
+            <Mic className="w-8 h-8 text-[#1B5E3B]" />
           </div>
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -229,7 +229,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
               </span>
             </div>
             <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-[#D4A843]" /> {t.reader.surah} {recitation.surah_name}</span>
+              <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-[#C9A227]" /> {t.reader.surah} {recitation.surah_name}</span>
               <span className="w-1 h-1 bg-slate-200 rounded-full" />
               <span>{new Date(recitation.created_at).toLocaleDateString(isAr ? "ar-SA" : "en-US", { day: "numeric", month: "long" })}</span>
             </div>
@@ -239,7 +239,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
 
       <div className="grid grid-cols-1 gap-6">
         {/* Modern Compact Audio Player */}
-        <div className="bg-[#0B3D2E] rounded-2xl p-5 shadow-sm text-white relative overflow-hidden group">
+        <div className="bg-[#1B5E3B] rounded-2xl p-5 shadow-sm text-white relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 to-transparent opacity-50 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -263,7 +263,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
                     key={speed}
                     onClick={() => setPlaybackSpeed(speed)}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl font-bold transition-all
-                      ${playbackSpeed === speed ? 'bg-white text-[#0B3D2E] shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+                      ${playbackSpeed === speed ? 'bg-white text-[#1B5E3B] shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
                   >
                     {speed}x
                   </button>
@@ -281,7 +281,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
 
               <button
                 onClick={togglePlay}
-                className="w-12 h-12 bg-white text-[#0B3D2E] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 active:scale-95 transition-all"
+                className="w-12 h-12 bg-white text-[#1B5E3B] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 active:scale-95 transition-all"
               >
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 ml-0.5 rtl:mr-0.5 rtl:ml-0 fill-current" />}
               </button>
@@ -310,7 +310,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
         <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100">
-              <Award className="w-4 h-4 text-[#D4A843]" />
+              <Award className="w-4 h-4 text-[#C9A227]" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800">{isAr ? "التقييم والقرار النهائي" : "Review & Final Decision"}</h3>
@@ -346,11 +346,11 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
                 onClick={() => setVerdict('needs_session')}
                 className={`flex items-start gap-4 p-4 rounded-2xl border transition-all group/v
                   ${verdict === 'needs_session'
-                    ? 'border-[#D4A843] bg-amber-50/50 shadow-sm ring-2 ring-amber-50'
-                    : 'border-slate-100 bg-slate-50/30 hover:border-[#D4A843]/30 hover:bg-amber-50/20'}`}
+                    ? 'border-[#C9A227] bg-amber-50/50 shadow-sm ring-2 ring-amber-50'
+                    : 'border-slate-100 bg-slate-50/30 hover:border-[#C9A227]/30 hover:bg-amber-50/20'}`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all
-                  ${verdict === 'needs_session' ? 'bg-[#D4A843] text-white shadow-sm' : 'bg-white border border-slate-100 text-slate-400 group-hover/v:border-amber-200 group-hover/v:text-[#D4A843]'}`}>
+                  ${verdict === 'needs_session' ? 'bg-[#C9A227] text-white shadow-sm' : 'bg-white border border-slate-100 text-slate-400 group-hover/v:border-amber-200 group-hover/v:text-[#C9A227]'}`}>
                   <CalendarClock className="w-5 h-5" />
                 </div>
                 <div className={`text-${isAr ? 'right' : 'left'}`}>
@@ -367,7 +367,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
             <div className={`p-5 rounded-3xl border flex items-center gap-4 
               ${recitation.status === 'mastered' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-amber-50 border-amber-100 text-amber-800'}`}>
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 
-                ${recitation.status === 'mastered' ? 'bg-emerald-500 text-white' : 'bg-[#D4A843] text-white'}`}>
+                ${recitation.status === 'mastered' ? 'bg-emerald-500 text-white' : 'bg-[#C9A227] text-white'}`}>
                 {recitation.status === 'mastered' ? <CheckCircle2 className="w-5 h-5" /> : <CalendarClock className="w-5 h-5" />}
               </div>
               <div>
@@ -389,7 +389,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
               <Info className="w-4 h-4 text-slate-300" />
             </div>
             <textarea
-              className="w-full min-h-[120px] p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/10 resize-none text-sm text-slate-700 leading-relaxed placeholder:text-slate-300"
+              className="w-full min-h-[120px] p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/10 resize-none text-sm text-slate-700 leading-relaxed placeholder:text-slate-300"
               placeholder={t.reader.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -419,7 +419,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
                       }
                     }
                   }}
-                  className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20"
+                  className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/20"
                   placeholder={isAr ? "اكتب الكلمة واضغط إدخال (Enter) أو زر الإضافة" : "Type a word and press Enter or Add btn"}
                 />
                 <button
@@ -475,7 +475,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
               <button
                 onClick={handleSubmit}
                 disabled={submitting || !verdict}
-                className="w-full md:w-auto px-8 h-12 bg-[#0B3D2E] text-white rounded-xl font-bold text-sm hover:bg-[#082e23] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-sm disabled:opacity-40 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full md:w-auto px-8 h-12 bg-[#1B5E3B] text-white rounded-xl font-bold text-sm hover:bg-[#124028] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-sm disabled:opacity-40 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <SendHorizontal className="w-5 h-5 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />}
                 {submitting ? t.reader.savingNow : (isAr ? "تأكيد وإرسال التقييم" : "Confirm & Send Review")}

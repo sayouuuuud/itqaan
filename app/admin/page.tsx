@@ -43,7 +43,7 @@ export default function AdminDashboard() {
   if (loading || !data) {
     return (
       <div className="flex justify-center p-20">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
       </div>
     )
   }
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
             <h3 className="font-bold text-gray-900">{t.admin.latestRecitations}</h3>
             <p className="text-sm text-gray-500 mt-1">{t.admin.mostRecentSubmissions}</p>
           </div>
-          <Link href="/admin/recitations" className="text-sm text-[#0B3D2E] font-medium hover:underline flex items-center gap-1">
+          <Link href="/admin/recitations" className="text-sm text-[#1B5E3B] font-medium hover:underline flex items-center gap-1">
             {t.admin.viewAll}
             <ArrowLeft className="w-4 h-4" />
           </Link>

@@ -118,7 +118,7 @@ export default function BookingPage() {
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400">
-        <Link href="/student" className="hover:text-[#0B3D2E] transition-colors">{t.student.dashboard}</Link>
+        <Link href="/student" className="hover:text-[#1B5E3B] transition-colors">{t.student.dashboard}</Link>
         <ChevronLeft className="w-3 h-3 rotate-180 rtl:rotate-0" />
         <span className="text-gray-700 font-medium">{t.student.bookSessionBtnBase || t.student.booking}</span>
       </div>
@@ -130,8 +130,8 @@ export default function BookingPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="flex items-start gap-3 bg-[#D4A843]/10 border border-[#D4A843]/20 rounded-xl p-4">
-        <Info className="w-5 h-5 text-[#D4A843] shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 bg-[#C9A227]/10 border border-[#C9A227]/20 rounded-xl p-4">
+        <Info className="w-5 h-5 text-[#C9A227] shrink-0 mt-0.5" />
         <p className="text-sm text-foreground/80 leading-relaxed">
           {t.student.autoAssignBanner}
         </p>
@@ -155,7 +155,7 @@ export default function BookingPage() {
             </p>
           </div>
           <div className="pt-6">
-            <Link href="/student" className="inline-flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0A3528] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#0B3D2E]/20">
+            <Link href="/student" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#1B5E3B]/20">
               {t.student.backToDashboard}
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             </Link>
@@ -204,7 +204,7 @@ export default function BookingPage() {
                       onClick={() => handleSelectDay(day)}
                       disabled={isPast}
                       className={`aspect-square flex items-center justify-center rounded-full text-sm transition-all ${isSelected
-                        ? "bg-[#0B3D2E] text-white font-bold shadow-lg"
+                        ? "bg-[#1B5E3B] text-white font-bold shadow-lg"
                         : isPast
                           ? "text-gray-300 cursor-default"
                           : "text-gray-700 font-medium hover:bg-gray-50"
@@ -228,7 +228,7 @@ export default function BookingPage() {
 
               {loadingSlots ? (
                 <div className="flex items-center justify-center py-10">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#0B3D2E]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[#1B5E3B]" />
                   <span className="mr-2 text-sm text-muted-foreground">{t.student.loadingTimes}</span>
                 </div>
               ) : !selectedDate ? (
@@ -250,8 +250,8 @@ export default function BookingPage() {
                         key={slot.id}
                         onClick={() => setSelectedSlot(slot)}
                         className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 border transition-all text-sm font-medium ${isActive
-                          ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
-                          : "border-gray-100 bg-white text-gray-700 hover:border-[#0B3D2E]/50 hover:bg-[#0B3D2E]/5"
+                          ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
+                          : "border-gray-100 bg-white text-gray-700 hover:border-[#1B5E3B]/50 hover:bg-[#1B5E3B]/5"
                           }`}
                       >
                         <Clock className={`w-4 h-4 ${isActive ? "text-white" : "text-muted-foreground"}`} />
@@ -274,7 +274,7 @@ export default function BookingPage() {
 
               <div className="space-y-5 mb-8">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#0B3D2E]/10 rounded-xl text-[#0B3D2E]">
+                  <div className="p-2 bg-[#1B5E3B]/10 rounded-xl text-[#1B5E3B]">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
@@ -287,7 +287,7 @@ export default function BookingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#0B3D2E]/10 rounded-xl text-[#0B3D2E]">
+                  <div className="p-2 bg-[#1B5E3B]/10 rounded-xl text-[#1B5E3B]">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -300,7 +300,7 @@ export default function BookingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#D4A843]/10 rounded-xl text-[#D4A843]">
+                  <div className="p-2 bg-[#C9A227]/10 rounded-xl text-[#C9A227]">
                     <Info className="w-5 h-5" />
                   </div>
                   <div>
@@ -314,7 +314,7 @@ export default function BookingPage() {
                 <button
                   onClick={handleConfirm}
                   disabled={!selectedSlot || submitting}
-                  className="w-full h-12 bg-[#D4A843] hover:bg-[#C49A3A] transition-all rounded-xl text-white font-bold shadow-lg shadow-[#D4A843]/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-[#C9A227] hover:bg-[#A6841E] transition-all rounded-xl text-white font-bold shadow-lg shadow-[#C9A227]/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /> {t.student.submittingBooking}</>

@@ -134,7 +134,7 @@ export default function CertificatePage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
       </div>
     )
   }
@@ -143,15 +143,15 @@ export default function CertificatePage() {
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/student" className="hover:text-[#0B3D2E] transition-colors">{t.student.dashboard}</Link>
+        <Link href="/student" className="hover:text-[#1B5E3B] transition-colors">{t.student.dashboard}</Link>
         <ChevronLeft className="w-3 h-3 rotate-180" />
         <span className="text-slate-800 font-medium">{t.student.certificate}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 bg-[#D4A843]/10 rounded-xl">
-          <Award className="w-8 h-8 text-[#D4A843]" />
+        <div className="p-3 bg-[#C9A227]/10 rounded-xl">
+          <Award className="w-8 h-8 text-[#C9A227]" />
         </div>
         <div>
           <h1 className="text-3xl font-bold text-slate-800">{t.student.certificateTitle}</h1>
@@ -170,7 +170,7 @@ export default function CertificatePage() {
               {t.student.certificateSuccessDesc}
             </p>
             <div className="pt-6">
-              <Link href="/student" className="inline-flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0A3528] text-white font-bold py-3 px-8 rounded-xl transition-colors">
+              <Link href="/student" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3 px-8 rounded-xl transition-colors">
                 {t.student.backToDashboard}
                 <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
               </Link>
@@ -184,9 +184,9 @@ export default function CertificatePage() {
               </div>
             )}
 
-            <div className="bg-[#0B3D2E]/5 p-4 rounded-xl border border-[#0B3D2E]/10 flex items-start gap-3 mb-6">
-              <Info className="w-5 h-5 text-[#0B3D2E] shrink-0 mt-0.5" />
-              <p className="text-sm text-[#0B3D2E]/80">
+            <div className="bg-[#1B5E3B]/5 p-4 rounded-xl border border-[#1B5E3B]/10 flex items-start gap-3 mb-6">
+              <Info className="w-5 h-5 text-[#1B5E3B] shrink-0 mt-0.5" />
+              <p className="text-sm text-[#1B5E3B]/80">
                 {t.student.certificateHint || t.student.issueCertificateDesc}
               </p>
             </div>
@@ -202,7 +202,7 @@ export default function CertificatePage() {
                     value={formData.university}
                     onChange={handleChange}
                     required
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm appearance-none"
+                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm appearance-none"
                   >
                     <option value="">{t.student.selectUniversity}</option>
                     {t.student.universities.map((u: string) => (
@@ -223,7 +223,7 @@ export default function CertificatePage() {
                     value={formData.college}
                     onChange={handleChange}
                     placeholder={t.student.collegePlaceholder}
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
                   />
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default function CertificatePage() {
                     onChange={handleChange}
                     required
                     placeholder={t.student.cityPlaceholder}
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm"
+                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
                   />
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default function CertificatePage() {
                     value={formData.gender}
                     onChange={handleChange}
                     required
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0B3D2E] focus:border-transparent text-sm appearance-none"
+                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm appearance-none"
                   >
                     <option value="">{t.student.genderSelect}</option>
                     <option value="male">{t.student.male}</option>
@@ -273,7 +273,7 @@ export default function CertificatePage() {
                       <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <div className="flex text-sm text-slate-600 justify-center">
-                      <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-[#D4A843] hover:text-[#C49A3A] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#D4A843]">
+                      <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-[#C9A227] hover:text-[#A6841E] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#C9A227]">
                         <span className="px-1">{t.student.uploadPdf}</span>
                         <input id="file-upload" name="file-upload" type="file" className="sr-only" accept=".pdf" onChange={handleFileUpload} />
                       </label>
@@ -297,7 +297,7 @@ export default function CertificatePage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#D4A843]/20 text-white bg-[#D4A843] hover:bg-[#C49A3A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4A843] font-bold transition-all disabled:opacity-50"
+                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#C9A227]/20 text-white bg-[#C9A227] hover:bg-[#A6841E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C9A227] font-bold transition-all disabled:opacity-50"
               >
                 {submitting ? (
                   <><Loader2 className="w-5 h-5 animate-spin" /> {t.student.savingData}</>

@@ -164,7 +164,7 @@ export default function AdminUsersPage() {
             <button
               onClick={() => setActiveTab("students")}
               className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "students"
-                ? "bg-white text-[#0B3D2E] shadow-sm"
+                ? "bg-white text-[#1B5E3B] shadow-sm"
                 : "text-gray-500 hover:text-gray-900"
                 }`}
             >
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
             <button
               onClick={() => setActiveTab("readers")}
               className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "readers"
-                ? "bg-white text-[#0B3D2E] shadow-sm"
+                ? "bg-white text-[#1B5E3B] shadow-sm"
                 : "text-gray-500 hover:text-gray-900"
                 }`}
             >
@@ -182,7 +182,7 @@ export default function AdminUsersPage() {
             <button
               onClick={() => setActiveTab("admins")}
               className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "admins"
-                ? "bg-white text-[#0B3D2E] shadow-sm"
+                ? "bg-white text-[#1B5E3B] shadow-sm"
                 : "text-gray-500 hover:text-gray-900"
                 }`}
             >
@@ -199,7 +199,7 @@ export default function AdminUsersPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button size="sm" className="flex items-center gap-2 bg-[#0B3D2E] hover:bg-[#0a3326] text-white" onClick={() => {
+            <Button size="sm" className="flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#0a3326] text-white" onClick={() => {
               setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin", gender: "" })
               setIsAddUserOpen(true)
             }}>
@@ -213,7 +213,7 @@ export default function AdminUsersPage() {
         <div className="overflow-x-auto min-h-[300px]">
           {loading ? (
             <div className="flex justify-center p-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
             </div>
           ) : (
             <table className="w-full text-right">

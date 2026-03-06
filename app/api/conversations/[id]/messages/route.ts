@@ -31,9 +31,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             await query(`UPDATE conversations SET unread_count_student = 0 WHERE id = $1`, [id])
         } else if (session.role === "reader") {
             await query(`UPDATE conversations SET unread_count_reader = 0 WHERE id = $1`, [id])
-        } else if (session.role === "admin") {
-            await query(`UPDATE conversations SET unread_count_admin = 0 WHERE id = $1`, [id])
         }
+
 
         // Also mark any 'new_message' notifications as read so the bell badge doesn't accumulate
         await query(
@@ -62,8 +61,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
 
         // Get the conversation participants
-        const conv = await query<{ student_id: string | null, reader_id: string | null, admin_id: string | null }>(
-            `SELECT student_id, reader_id, admin_id FROM conversations WHERE id = $1`,
+        const conv = await query<{ student_id: string | null, reader_id: string | null, admin_id: string | null, is_ticket: boolean, ticket_status: string }>(
+            `SELECT student_id, reader_id, admin_id, is_ticket, ticket_status FROM conversations WHERE id = $1`,
             [id]
         )
 
@@ -74,17 +73,40 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const c = conv[0]
         let recipientId = ""
 
-        if (session.role === "admin" && session.sub === c.admin_id) {
-            // Admin sending to the user (student or reader) in this conversation
-            recipientId = (c.student_id || c.reader_id)!
-        } else if (session.role === "student" && session.sub === c.student_id) {
-            // Student replying to admin, or to reader
-            recipientId = (c.admin_id || c.reader_id)!
-        } else if (session.role === "reader" && session.sub === c.reader_id) {
-            // Reader replying to admin, or to student
-            recipientId = (c.admin_id || c.student_id)!
+        if (c.is_ticket) {
+            if (session.role === "student" && session.sub === c.student_id) {
+                if (c.ticket_status === 'open') {
+                    const existingMsg = await query(`SELECT id FROM messages WHERE conversation_id = $1 AND sender_id = $2`, [id, session.sub]);
+                    if (existingMsg.length > 0) {
+                        return NextResponse.json({ error: "الرجاء الانتظار حتى يتم الرد على تذكرتك" }, { status: 403 });
+                    }
+                }
+                // Send to assigned admin, or find a default admin
+                if (c.admin_id) {
+                    recipientId = c.admin_id;
+                } else {
+                    const firstAdmin = await query<{ id: string }>(`SELECT id FROM users WHERE role = 'admin' LIMIT 1`);
+                    recipientId = firstAdmin[0]?.id || session.sub; // Fallback to avoid NOT NULL constraint
+                }
+            } else if (session.role === "admin") {
+                recipientId = c.student_id!;
+                // Assign to this admin and change to in_progress if it was open
+                if (c.ticket_status === 'open' || !c.admin_id) {
+                    await query(`UPDATE conversations SET ticket_status = 'in_progress', admin_id = $1 WHERE id = $2`, [session.sub, id]);
+                }
+            } else {
+                return NextResponse.json({ error: "غير مصرح لك بإرسال رسالة في هذه التذكرة" }, { status: 403 })
+            }
         } else {
-            return NextResponse.json({ error: "غير مصرح لك بإرسال رسالة في هذه المحادثة" }, { status: 403 })
+            if (session.role === "admin" && session.sub === c.admin_id) {
+                recipientId = (c.student_id || c.reader_id)!
+            } else if (session.role === "student" && session.sub === c.student_id) {
+                recipientId = (c.admin_id || c.reader_id)!
+            } else if (session.role === "reader" && session.sub === c.reader_id) {
+                recipientId = (c.admin_id || c.student_id)!
+            } else {
+                return NextResponse.json({ error: "غير مصرح لك بإرسال رسالة في هذه المحادثة" }, { status: 403 })
+            }
         }
 
         const newMsg = await query(
@@ -108,8 +130,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 unreadColumn = "unread_count_reader"
                 link = "/reader/chat"
             } else if (role === "admin") {
-                unreadColumn = "unread_count_admin"
-                link = `/admin/chat?userId=${session.sub}&userRole=${session.role}`
+                unreadColumn = "" // No unread tracking for admin in conversations table
+                link = `/admin/conversations?userId=${session.sub}&userRole=${session.role}`
             }
         }
 

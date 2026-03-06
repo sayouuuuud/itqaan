@@ -127,7 +127,7 @@ export default function ProfilePage() {
               <p className="text-xl font-bold text-gray-900">{profile?.name}</p>
               <p className="text-sm text-gray-500">{roleLabel}</p>
               <p className="text-xs text-gray-400 mt-1">{profile?.email}</p>
-              <p className="text-xs text-[#0B3D2E] mt-2 font-medium">{t.profile.clickToChangeAvatar}</p>
+              <p className="text-xs text-[#1B5E3B] mt-2 font-medium">{t.profile.clickToChangeAvatar}</p>
             </div>
           </div>
         </CardContent>
@@ -137,7 +137,7 @@ export default function ProfilePage() {
       <Card className="border-gray-100 rounded-2xl shadow-sm bg-white">
         <CardHeader className="bg-gray-50/30 border-b border-gray-50 pb-4">
           <CardTitle className="text-base flex items-center gap-2 font-bold text-gray-800">
-            <User className="w-4 h-4 text-[#0B3D2E]" />
+            <User className="w-4 h-4 text-[#1B5E3B]" />
             {t.profile.personalInfo}
           </CardTitle>
           <CardDescription className="text-gray-500">{t.profile.personalInfoDesc}</CardDescription>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
           <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.auth.fullName}</Label>
-              <Input id="name" value={name} onChange={e => setName(e.target.value)} required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Input id="name" value={name} onChange={e => setName(e.target.value)} required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.auth.email}</Label>
@@ -154,10 +154,10 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.phone}</Label>
-              <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" placeholder={t.profile.phonePlaceholder} />
+              <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" placeholder={t.profile.phonePlaceholder} />
             </div>
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={saving} className="bg-[#0B3D2E] hover:bg-[#0A3528] rounded-xl font-bold">
+              <Button type="submit" disabled={saving} className="bg-[#1B5E3B] hover:bg-[#124028] rounded-xl font-bold">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t.profile.saveChanges}
               </Button>
               {saved && (
@@ -174,7 +174,7 @@ export default function ProfilePage() {
       <Card className="border-gray-100 rounded-2xl shadow-sm bg-white">
         <CardHeader className="bg-gray-50/30 border-b border-gray-50 pb-4">
           <CardTitle className="text-base flex items-center gap-2 font-bold text-gray-800">
-            <Lock className="w-4 h-4 text-[#0B3D2E]" />
+            <Lock className="w-4 h-4 text-[#1B5E3B]" />
             {t.profile.changePassword}
           </CardTitle>
           <CardDescription className="text-gray-500">{t.profile.changePasswordDesc}</CardDescription>
@@ -183,19 +183,19 @@ export default function ProfilePage() {
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="current-password" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.currentPassword}</Label>
-              <Input id="current-password" type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" required />
+              <Input id="current-password" type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-password" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.newPassword}</Label>
-              <Input id="new-password" type="password" value={newPw} onChange={e => setNewPw(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" required minLength={6} />
+              <Input id="new-password" type="password" value={newPw} onChange={e => setNewPw(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" required minLength={6} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.confirmPassword}</Label>
-              <Input id="confirm-password" type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" required />
+              <Input id="confirm-password" type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} dir="ltr" className="text-start border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" required />
             </div>
             {pwError && <p className="text-sm text-red-600">{pwError}</p>}
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={pwSaving} className="bg-[#0B3D2E] hover:bg-[#0A3528] rounded-xl font-bold">
+              <Button type="submit" disabled={pwSaving} className="bg-[#1B5E3B] hover:bg-[#124028] rounded-xl font-bold">
                 {pwSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : t.profile.updatePassword}
               </Button>
               {pwSaved && (

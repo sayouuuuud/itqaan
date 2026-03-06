@@ -182,7 +182,7 @@ export default function AdminBookingsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-[#0B3D2E]" /></div>
+                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-[#1B5E3B]" /></div>
                 ) : bookings.length === 0 ? (
                     <div className="p-12 text-center text-gray-400">{isAr ? 'لا توجد حجوزات تطابق الفلاتر' : 'No bookings match the filters'}</div>
                 ) : (
@@ -306,7 +306,7 @@ export default function AdminBookingsPage() {
                     )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditBooking(null)}>إلغاء</Button>
-                        <Button onClick={handleSave} className="bg-[#0B3D2E] text-white" disabled={saving}>
+                        <Button onClick={handleSave} className="bg-[#1B5E3B] text-white" disabled={saving}>
                             {saving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
                             حفظ التغييرات
                         </Button>

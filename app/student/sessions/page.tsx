@@ -73,7 +73,7 @@ export default function StudentSessionsPage() {
     confirmed: { label: t.student.statusBooked, color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
     completed: { label: t.student.statusCompleted, color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
     cancelled: { label: t.student.statusCancelled, color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
-    pending: { label: t.student.statusPending, color: "bg-[#D4A843]/10 text-[#D4A843] border-[#D4A843]/30 ring-[#D4A843]/10" },
+    pending: { label: t.student.statusPending, color: "bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30 ring-[#C9A227]/10" },
     rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
   }), [t, isAr])
 
@@ -155,7 +155,7 @@ export default function StudentSessionsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" /></div>
+        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" /></div>
       ) : bookings.length === 0 ? (
         <div className="bg-white border border-slate-100 rounded-[2rem] py-24 text-center shadow-sm">
           <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -165,7 +165,7 @@ export default function StudentSessionsPage() {
           <p className="text-slate-500 mb-8 max-w-sm mx-auto">
             {isAr ? "لم تقم بحجز أي جلسات تصحيح بعد. ابدأ بحجز جلستك الأولى الآن لتصحيح تلاوتك." : "You haven't booked any correction sessions yet. Book your first session now to perfect your recitation."}
           </p>
-          <Link href="/student/booking" className="inline-flex items-center gap-2 px-8 py-4 bg-[#0B3D2E] text-white rounded-2xl font-bold hover:bg-[#082e23] transition-colors shadow-lg shadow-emerald-900/10">
+          <Link href="/student/booking" className="inline-flex items-center gap-2 px-8 py-4 bg-[#1B5E3B] text-white rounded-2xl font-bold hover:bg-[#124028] transition-colors shadow-lg shadow-emerald-900/10">
             <CalendarClock className="w-5 h-5" />
             {isAr ? "احجز جلسة جديدة" : "Book New Session"}
           </Link>
@@ -182,7 +182,7 @@ export default function StudentSessionsPage() {
 
             return (
               <div key={b.id} className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300
-                ${isExpanded ? 'border-[#0B3D2E]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
+                ${isExpanded ? 'border-[#1B5E3B]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
 
                 {/* Card Header (Clickable) */}
                 <div
@@ -194,14 +194,14 @@ export default function StudentSessionsPage() {
 
                   <div className="flex items-center gap-5 z-10">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border 
-                      ${isActive ? 'bg-[#0B3D2E]/5 border-[#0B3D2E]/10' : 'bg-slate-50 border-slate-100'}`}>
-                      {isActive ? <Video className="w-6 h-6 text-[#0B3D2E]" /> : <CalendarClock className="w-6 h-6 text-slate-400" />}
+                      ${isActive ? 'bg-[#1B5E3B]/5 border-[#1B5E3B]/10' : 'bg-slate-50 border-slate-100'}`}>
+                      {isActive ? <Video className="w-6 h-6 text-[#1B5E3B]" /> : <CalendarClock className="w-6 h-6 text-slate-400" />}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-bold text-slate-800">{b.reader_name || t.student.certifiedReaderFallback}</h3>
                         {!b.reader_name && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#D4A843]/10 text-[#D4A843]">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#C9A227]/10 text-[#C9A227]">
                             <ShieldCheck className="w-3 h-3" />
                             {isAr ? "معتمد" : "Certified"}
                           </span>
@@ -209,11 +209,11 @@ export default function StudentSessionsPage() {
                       </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-500 font-medium">
                         <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <CalendarDays className="w-4 h-4 text-[#D4A843]" />
+                          <CalendarDays className="w-4 h-4 text-[#C9A227]" />
                           {new Date(b.slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </span>
                         <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <Clock className="w-4 h-4 text-[#0B3D2E]/60" />
+                          <Clock className="w-4 h-4 text-[#1B5E3B]/60" />
                           {new Date(b.slot_start).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                           {" - "}
                           {new Date(b.slot_end).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
@@ -244,7 +244,7 @@ export default function StudentSessionsPage() {
                         <div className="flex gap-2 w-full sm:w-auto">
                           <button
                             onClick={() => handleRespondToReaderRequest(b.id, req.id, "accept")}
-                            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#0B3D2E] text-white rounded-xl text-xs font-bold hover:bg-[#082e23] transition-colors shadow-sm"
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#1B5E3B] text-white rounded-xl text-xs font-bold hover:bg-[#124028] transition-colors shadow-sm"
                           >
                             {isAr ? "قبول وتأكيد" : "Accept"}
                           </button>
@@ -279,7 +279,7 @@ export default function StudentSessionsPage() {
                               href={b.meeting_link.startsWith('http') ? b.meeting_link : `https://${b.meeting_link}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full flex items-center justify-center gap-2 bg-[#0B3D2E] hover:bg-[#082e23] text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-[#0B3D2E]/10"
+                              className="w-full flex items-center justify-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-[#1B5E3B]/10"
                             >
                               <Video className="w-5 h-5" />
                               {t.student.joinSessionBtn}
@@ -303,9 +303,9 @@ export default function StudentSessionsPage() {
                           <div className="flex flex-col gap-3">
                             <Link
                               href={`/student/chat?with=${b.reader_id}`}
-                              className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-[#D4A843]/20 bg-white text-slate-700 px-6 py-3 text-sm font-bold hover:border-[#D4A843] hover:bg-[#FAF8F4] transition-all"
+                              className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-[#C9A227]/20 bg-white text-slate-700 px-6 py-3 text-sm font-bold hover:border-[#C9A227] hover:bg-[#FBF5E8] transition-all"
                             >
-                              <MessageSquare className="w-5 h-5 text-[#D4A843]" />
+                              <MessageSquare className="w-5 h-5 text-[#C9A227]" />
                               {isAr ? "تواصل مع المقرئ في شات خاص" : "Chat privately with Reader"}
                             </Link>
 
@@ -334,8 +334,8 @@ export default function StudentSessionsPage() {
                     {/* Integrated Comment Box */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-[#0B3D2E]/5 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-[#0B3D2E]" />
+                        <div className="w-8 h-8 rounded-lg bg-[#1B5E3B]/5 flex items-center justify-center">
+                          <MessageSquare className="w-4 h-4 text-[#1B5E3B]" />
                         </div>
                         <h4 className="text-sm font-bold text-slate-800">{t.student.commentLabel || t.student.chat}</h4>
                       </div>
@@ -374,7 +374,7 @@ export default function StudentSessionsPage() {
                   value={proposedDate}
                   onChange={e => setProposedDate(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
-                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E] transition-all font-medium"
+                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B] transition-all font-medium"
                 />
               </div>
               <div className="space-y-2.5">
@@ -383,7 +383,7 @@ export default function StudentSessionsPage() {
                   type="time"
                   value={proposedTime}
                   onChange={e => setProposedTime(e.target.value)}
-                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E] transition-all font-medium"
+                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B] transition-all font-medium"
                 />
               </div>
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
@@ -401,7 +401,7 @@ export default function StudentSessionsPage() {
             <Button
               onClick={handleRescheduleSubmit}
               disabled={!proposedDate || !proposedTime || submittingReschedule}
-              className="h-12 rounded-xl bg-[#0B3D2E] hover:bg-[#082e23] text-white font-bold"
+              className="h-12 rounded-xl bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold"
             >
               {submittingReschedule ? <Loader2 className="w-5 h-5 animate-spin mx-2" /> : (isAr ? "إرسال الاقتراح للمقرئ" : "Send Proposal")}
             </Button>
@@ -468,12 +468,12 @@ function CommentBox({ bookingId }: { bookingId: string }) {
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={t.student.writeCommentPlaceholder}
-          className="w-full border-2 border-slate-100 bg-slate-50 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#0B3D2E]/10 focus:border-[#0B3D2E] placeholder:text-slate-400 transition-all font-medium"
+          className="w-full border-2 border-slate-100 bg-slate-50 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] placeholder:text-slate-400 transition-all font-medium"
         />
         <button
           onClick={send}
           disabled={!text.trim() || sending}
-          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-[#0B3D2E] text-white rounded-xl text-sm font-bold hover:bg-[#082e23] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 transition-all group-focus-within:shadow-lg shadow-emerald-900/20"
+          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-[#1B5E3B] text-white rounded-xl text-sm font-bold hover:bg-[#124028] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 transition-all group-focus-within:shadow-lg shadow-emerald-900/20"
         >
           {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:rotate-180" />}
         </button>

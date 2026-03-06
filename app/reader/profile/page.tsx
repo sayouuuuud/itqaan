@@ -62,7 +62,7 @@ export default function ReaderProfilePage() {
   }
 
   const { t } = useI18n()
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" /></div>
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -82,7 +82,7 @@ export default function ReaderProfilePage() {
               <h2 className="text-xl font-bold text-gray-900">{profile?.name}</h2>
               <p className="text-sm text-gray-500">{t.shell.certifiedReader}</p>
               <p className="text-xs text-gray-400 mt-1">{profile?.email}</p>
-              <p className="text-xs text-[#0B3D2E] mt-2 font-medium">{t.profile.clickToChangeAvatar}</p>
+              <p className="text-xs text-[#1B5E3B] mt-2 font-medium">{t.profile.clickToChangeAvatar}</p>
             </div>
           </div>
         </CardContent>
@@ -92,7 +92,7 @@ export default function ReaderProfilePage() {
       <Card className="border-gray-100 rounded-2xl shadow-sm bg-white">
         <CardHeader className="bg-gray-50/30 border-b border-gray-50 pb-4">
           <CardTitle className="text-base flex items-center gap-2 font-bold text-gray-800">
-            <User className="w-4 h-4 text-[#0B3D2E]" />
+            <User className="w-4 h-4 text-[#1B5E3B]" />
             {t.profile.personalInfo}
           </CardTitle>
           <CardDescription className="text-gray-500">{t.profile.personalInfoDesc}</CardDescription>
@@ -101,7 +101,7 @@ export default function ReaderProfilePage() {
           <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="reader-name" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.auth.fullName}</Label>
-              <Input id="reader-name" value={name} onChange={e => setName(e.target.value)} required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Input id="reader-name" value={name} onChange={e => setName(e.target.value)} required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="reader-email" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.auth.email}</Label>
@@ -109,14 +109,14 @@ export default function ReaderProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="reader-phone" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.phone}</Label>
-              <Input id="reader-phone" value={phone} onChange={e => setPhone(e.target.value)} dir="ltr" placeholder={t.profile.phonePlaceholder} className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Input id="reader-phone" value={phone} onChange={e => setPhone(e.target.value)} dir="ltr" placeholder={t.profile.phonePlaceholder} className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="reader-bio" className="font-semibold text-xs text-gray-500 uppercase tracking-wider">نبذة مختصرة</Label>
-              <Textarea id="reader-bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder="أكتب نبذة عن تخصصك..." className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Textarea id="reader-bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder="أكتب نبذة عن تخصصك..." className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={saving} className="bg-[#0B3D2E] hover:bg-[#0A3528] rounded-xl font-bold">
+              <Button type="submit" disabled={saving} className="bg-[#1B5E3B] hover:bg-[#124028] rounded-xl font-bold">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t.profile.saveChanges}
               </Button>
               {saved && <span className="flex items-center gap-1 text-sm text-emerald-600 font-medium"><CheckCircle className="w-4 h-4" /> {t.profile.saved}</span>}
@@ -129,7 +129,7 @@ export default function ReaderProfilePage() {
       <Card className="border-gray-100 rounded-2xl shadow-sm bg-white">
         <CardHeader className="bg-gray-50/30 border-b border-gray-50 pb-4">
           <CardTitle className="text-base flex items-center gap-2 font-bold text-gray-800">
-            <Lock className="w-4 h-4 text-[#0B3D2E]" />
+            <Lock className="w-4 h-4 text-[#1B5E3B]" />
             {t.profile.changePassword}
           </CardTitle>
           <CardDescription className="text-gray-500">{t.profile.changePasswordDesc}</CardDescription>
@@ -138,19 +138,19 @@ export default function ReaderProfilePage() {
           <form onSubmit={handleChangePw} className="space-y-4">
             <div className="space-y-2">
               <Label className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.currentPassword}</Label>
-              <Input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} dir="ltr" required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} dir="ltr" required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             <div className="space-y-2">
               <Label className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.newPassword}</Label>
-              <Input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} dir="ltr" required minLength={6} className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} dir="ltr" required minLength={6} className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             <div className="space-y-2">
               <Label className="font-semibold text-xs text-gray-500 uppercase tracking-wider">{t.profile.confirmPassword}</Label>
-              <Input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} dir="ltr" required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#0B3D2E]/20" />
+              <Input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} dir="ltr" required className="border-gray-100 bg-gray-50/30 rounded-xl focus:ring-[#1B5E3B]/20" />
             </div>
             {pwError && <p className="text-sm text-red-600">{pwError}</p>}
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={pwSaving} className="bg-[#0B3D2E] hover:bg-[#0A3528] rounded-xl font-bold">
+              <Button type="submit" disabled={pwSaving} className="bg-[#1B5E3B] hover:bg-[#124028] rounded-xl font-bold">
                 {pwSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : t.profile.updatePassword}
               </Button>
               {pwSaved && <span className="flex items-center gap-1 text-sm text-emerald-600 font-medium"><CheckCircle className="w-4 h-4" /> {t.profile.passwordUpdated}</span>}

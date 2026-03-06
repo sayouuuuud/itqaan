@@ -26,29 +26,48 @@ export async function POST(req: NextRequest) {
         const slotsToInsert: any[] = []
         const curr = new Date(start)
 
+        let dayMatchCount = 0;
         while (curr <= end) {
-            const dayOfWeek = curr.getDay() // 0-6
+            const dayOfWeek = curr.getUTCDay() // 0-6
 
-            // If specific days are selected, filter by them. If no days selected, apply to all.
             if (!days || days.length === 0 || days.includes(dayOfWeek)) {
+                dayMatchCount++;
                 const dateStr = curr.toISOString().split('T')[0]
 
                 for (const time of times) {
-                    slotsToInsert.push({
-                        reader_id: session.sub,
-                        day_of_week: dayOfWeek,
-                        start_time: time.startTime,
-                        end_time: time.endTime,
-                        specific_date: dateStr,
-                        is_recurring: false
-                    })
+                    const [startH, startM] = time.startTime.split(':').map(Number)
+                    const [endH, endM] = time.endTime.split(':').map(Number)
+                    let currentMinutes = startH * 60 + startM
+                    const endMinutes = endH * 60 + endM
+
+                    while (currentMinutes + 30 <= endMinutes) {
+                        const sH = Math.floor(currentMinutes / 60).toString().padStart(2, '0')
+                        const sM = (currentMinutes % 60).toString().padStart(2, '0')
+                        const eH = Math.floor((currentMinutes + 30) / 60).toString().padStart(2, '0')
+                        const eM = ((currentMinutes + 30) % 60).toString().padStart(2, '0')
+
+                        slotsToInsert.push({
+                            reader_id: session.sub,
+                            day_of_week: dayOfWeek,
+                            start_time: `${sH}:${sM}`,
+                            end_time: `${eH}:${eM}`,
+                            specific_date: dateStr,
+                            is_recurring: false
+                        })
+
+                        currentMinutes += 30
+                    }
                 }
             }
-            curr.setDate(curr.getDate() + 1)
+            curr.setUTCDate(curr.getUTCDate() + 1)
+        }
+
+        if (dayMatchCount === 0) {
+            return NextResponse.json({ error: "لا توجد أيام مطابقة في هذا النطاق" }, { status: 400 })
         }
 
         if (slotsToInsert.length === 0) {
-            return NextResponse.json({ error: "لا توجد أيام مطابقة في هذا النطاق" }, { status: 400 })
+            return NextResponse.json({ error: "فترات الوقت المحددة غير صحيحة أو قصيرة جداً (أقل من 30 دقيقة)" }, { status: 400 })
         }
 
         // First, fetch existing slots for this reader to check for overlaps
@@ -76,8 +95,13 @@ export async function POST(req: NextRequest) {
                 if (existing.is_recurring) {
                     dateMatches = true; // Recurring slots apply to all dates
                 } else if (existing.specific_date) {
-                    // Check if specific_date from DB matches our slot's specific_date
-                    const dbDate = new Date(existing.specific_date).toISOString().split('T')[0];
+                    // DB specific_date might be passed as a Date object or string.
+                    const eDate = existing.specific_date instanceof Date ? existing.specific_date : new Date(existing.specific_date);
+                    // Use local components because pg driver parses DATE columns to local midnight
+                    const y = eDate.getFullYear();
+                    const m = String(eDate.getMonth() + 1).padStart(2, '0');
+                    const d = String(eDate.getDate()).padStart(2, '0');
+                    const dbDate = `${y}-${m}-${d}`;
                     dateMatches = (dbDate === slot.specific_date);
                 }
 
@@ -93,13 +117,23 @@ export async function POST(req: NextRequest) {
                 continue; // Skip inserting this overlapping slot
             }
 
-            await query(
-                `INSERT INTO availability_slots 
-                (reader_id, day_of_week, start_time, end_time, specific_date, is_recurring, is_available)
-                VALUES ($1, $2, $3, $4, $5, $6, true)`,
-                [slot.reader_id, slot.day_of_week, slot.start_time, slot.end_time, slot.specific_date, slot.is_recurring]
-            )
-            insertedCount++;
+            try {
+                const client = await (await import("@/lib/db")).default?.connect()
+                if (client) {
+                    await client.query(
+                        `INSERT INTO availability_slots 
+                        (reader_id, day_of_week, start_time, end_time, specific_date, is_recurring, is_available)
+                        VALUES ($1, $2, $3, $4, $5, $6, true)`,
+                        [slot.reader_id, slot.day_of_week, slot.start_time, slot.end_time, slot.specific_date, slot.is_recurring]
+                    )
+                    insertedCount++;
+                    client.release()
+                } else {
+                    return NextResponse.json({ error: "No DB connection pool" }, { status: 500 })
+                }
+            } catch (dbErr: any) {
+                return NextResponse.json({ error: `DB Bulk Error: ${dbErr.message}` }, { status: 500 })
+            }
 
             // Add the newly inserted slot to our memory cache so we don't overlap within the same bulk addition
             existingSlots.push(slot);

@@ -248,8 +248,8 @@ export default function AdminSettingsPage() {
 
             {/* Page Header */}
             <div className="flex items-center gap-3">
-                <div className="p-3 bg-[#0B3D2E]/5 rounded-2xl border border-[#0B3D2E]/10 shadow-sm">
-                    <Settings2 className="w-8 h-8 text-[#0B3D2E]" />
+                <div className="p-3 bg-[#1B5E3B]/5 rounded-2xl border border-[#1B5E3B]/10 shadow-sm">
+                    <Settings2 className="w-8 h-8 text-[#1B5E3B]" />
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">{t.admin.settings}</h1>
@@ -263,8 +263,8 @@ export default function AdminSettingsPage() {
             <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                 <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
-                            <User className="w-5 h-5 text-[#0B3D2E]" />
+                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
+                            <User className="w-5 h-5 text-[#1B5E3B]" />
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
@@ -307,7 +307,7 @@ export default function AdminSettingsPage() {
                                 value={profile.name}
                                 onChange={e => setProfile({ ...profile, name: e.target.value })}
                                 placeholder={t.auth.fullName}
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -319,7 +319,7 @@ export default function AdminSettingsPage() {
                                 value={profile.email}
                                 onChange={e => setProfile({ ...profile, email: e.target.value })}
                                 placeholder={t.auth.email}
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
@@ -331,7 +331,7 @@ export default function AdminSettingsPage() {
                                 value={profile.password}
                                 onChange={e => setProfile({ ...profile, password: e.target.value })}
                                 placeholder={t.admin.passwordLeaveBlank}
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                     </div>
@@ -341,7 +341,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleProfileSave}
                             disabled={profileSaving}
-                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {profileSaving
                                 ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -362,8 +362,8 @@ export default function AdminSettingsPage() {
             <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                 <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
-                            <Settings2 className="w-5 h-5 text-[#0B3D2E]" />
+                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
+                            <Settings2 className="w-5 h-5 text-[#1B5E3B]" />
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
@@ -385,17 +385,17 @@ export default function AdminSettingsPage() {
                                     type="button"
                                     onClick={() => setStrategy(opt.value)}
                                     className={`relative text-right p-5 rounded-2xl border-2 transition-all duration-200 ${selected
-                                        ? "border-[#0B3D2E] bg-[#0B3D2E]/5 shadow-sm"
-                                        : "border-gray-100 hover:border-[#0B3D2E]/20 hover:bg-gray-50/50"
+                                        ? "border-[#1B5E3B] bg-[#1B5E3B]/5 shadow-sm"
+                                        : "border-gray-100 hover:border-[#1B5E3B]/20 hover:bg-gray-50/50"
                                         }`}
                                 >
                                     {selected && (
-                                        <span className="absolute top-3 left-3 rtl:right-3 rtl:left-auto text-[10px] bg-[#0B3D2E] text-white font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                        <span className="absolute top-3 left-3 rtl:right-3 rtl:left-auto text-[10px] bg-[#1B5E3B] text-white font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                             {t.active}
                                         </span>
                                     )}
                                     <div className="text-3xl mb-3">{opt.icon}</div>
-                                    <p className={`text-sm font-bold mb-1 transition-colors ${selected ? "text-[#0B3D2E]" : "text-gray-800"}`}>
+                                    <p className={`text-sm font-bold mb-1 transition-colors ${selected ? "text-[#1B5E3B]" : "text-gray-800"}`}>
                                         {opt.label}
                                     </p>
                                     <p className="text-[11px] text-gray-400 leading-relaxed font-medium">{opt.desc}</p>
@@ -408,7 +408,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleStrategySave}
                             disabled={strategySaving}
-                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {strategySaving
                                 ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -429,8 +429,8 @@ export default function AdminSettingsPage() {
             <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                 <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
-                            <Mail className="w-5 h-5 text-[#0B3D2E]" />
+                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
+                            <Mail className="w-5 h-5 text-[#1B5E3B]" />
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
@@ -451,7 +451,7 @@ export default function AdminSettingsPage() {
                                 value={smtp.host}
                                 onChange={e => setSmtp({ ...smtp, host: e.target.value })}
                                 placeholder="smtp.gmail.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -462,7 +462,7 @@ export default function AdminSettingsPage() {
                                 value={smtp.port}
                                 onChange={e => setSmtp({ ...smtp, port: e.target.value })}
                                 placeholder="465"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -473,7 +473,7 @@ export default function AdminSettingsPage() {
                                 value={smtp.user}
                                 onChange={e => setSmtp({ ...smtp, user: e.target.value })}
                                 placeholder="example@gmail.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -484,7 +484,7 @@ export default function AdminSettingsPage() {
                                 value={smtp.password}
                                 onChange={e => setSmtp({ ...smtp, password: e.target.value })}
                                 placeholder="********"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -493,7 +493,7 @@ export default function AdminSettingsPage() {
                                 value={smtp.fromName}
                                 onChange={e => setSmtp({ ...smtp, fromName: e.target.value })}
                                 placeholder="إتقان الفاتحة"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -504,7 +504,7 @@ export default function AdminSettingsPage() {
                                 value={smtp.fromEmail}
                                 onChange={e => setSmtp({ ...smtp, fromEmail: e.target.value })}
                                 placeholder="noreply@example.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                     </div>
@@ -513,7 +513,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleSmtpSave}
                             disabled={smtpSaving}
-                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {smtpSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : smtpSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{smtpSaved ? t.admin.savedSuccess : t.admin.saveEmailSettings}</span>
@@ -526,8 +526,8 @@ export default function AdminSettingsPage() {
             <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                 <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
-                            <ImageIcon className="w-5 h-5 text-[#0B3D2E]" />
+                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
+                            <ImageIcon className="w-5 h-5 text-[#1B5E3B]" />
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
@@ -548,7 +548,7 @@ export default function AdminSettingsPage() {
                                 value={cloudinary.cloudName}
                                 onChange={e => setCloudinary({ ...cloudinary, cloudName: e.target.value })}
                                 placeholder="dnaq5..."
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -558,7 +558,7 @@ export default function AdminSettingsPage() {
                                 value={cloudinary.apiKey}
                                 onChange={e => setCloudinary({ ...cloudinary, apiKey: e.target.value })}
                                 placeholder="8433..."
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
@@ -569,7 +569,7 @@ export default function AdminSettingsPage() {
                                 value={cloudinary.apiSecret}
                                 onChange={e => setCloudinary({ ...cloudinary, apiSecret: e.target.value })}
                                 placeholder="********"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                     </div>
@@ -578,7 +578,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleCloudinarySave}
                             disabled={cloudinarySaving}
-                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {cloudinarySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : cloudinarySaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{cloudinarySaved ? t.admin.savedSuccess : t.admin.saveStorageSettings}</span>
@@ -591,8 +591,8 @@ export default function AdminSettingsPage() {
             <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                 <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
-                            <Phone className="w-5 h-5 text-[#0B3D2E]" />
+                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
+                            <Phone className="w-5 h-5 text-[#1B5E3B]" />
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
@@ -613,7 +613,7 @@ export default function AdminSettingsPage() {
                                 value={contactInfo.email}
                                 onChange={e => setContactInfo({ ...contactInfo, email: e.target.value })}
                                 placeholder="info@itqaan.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2">
@@ -623,7 +623,7 @@ export default function AdminSettingsPage() {
                                 value={contactInfo.phone}
                                 onChange={e => setContactInfo({ ...contactInfo, phone: e.target.value })}
                                 placeholder="+966 50 000 0000"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
@@ -632,7 +632,7 @@ export default function AdminSettingsPage() {
                                 value={contactInfo.address}
                                 onChange={e => setContactInfo({ ...contactInfo, address: e.target.value })}
                                 placeholder="الرياض، المملكة العربية السعودية"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#0B3D2E]/20"
+                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
                             />
                         </div>
                     </div>
@@ -641,7 +641,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleContactSave}
                             disabled={contactSaving}
-                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {contactSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : contactSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{contactSaved ? t.admin.savedSuccess : t.admin.saveContactSettings}</span>
@@ -654,8 +654,8 @@ export default function AdminSettingsPage() {
             <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
                 <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#0B3D2E]/10 rounded-xl">
-                            <ImageIcon className="w-5 h-5 text-[#0B3D2E]" />
+                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
+                            <ImageIcon className="w-5 h-5 text-[#1B5E3B]" />
                         </div>
                         <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
@@ -695,7 +695,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleBrandingSave}
                             disabled={brandingSaving}
-                            className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {brandingSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : brandingSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{brandingSaved ? t.admin.savedSuccess : "Save Branding"}</span>

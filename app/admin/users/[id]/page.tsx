@@ -76,7 +76,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" />
+                <Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" />
                 <p className="text-gray-500 font-medium">{t.loading}</p>
             </div>
         )
@@ -99,7 +99,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             {/* Header / Breadcrumbs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <button onClick={() => router.push('/admin/users')} className="hover:text-[#0B3D2E] transition-colors">
+                    <button onClick={() => router.push('/admin/users')} className="hover:text-[#1B5E3B] transition-colors">
                         {t.admin.users}
                     </button>
                     <ChevronRight className="w-4 h-4 rtl:rotate-180" />
@@ -119,7 +119,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         {/* User Info Left Side (RTL -> Right Side) */}
                         <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-start gap-6">
                             <div className="relative w-24 h-24 shrink-0 shadow-sm rounded-2xl">
-                                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-[#0B3D2E] font-black text-4xl border border-emerald-100 overflow-hidden">
+                                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-[#1B5E3B] font-black text-4xl border border-emerald-100 overflow-hidden">
                                     {user.avatar_url ? (
                                         <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -150,7 +150,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
                         {/* Actions */}
                         <div className="flex justify-center sm:justify-start gap-3 shrink-0">
-                            <Button onClick={() => router.push(`/admin/conversations?tab=chat&userId=${user.id}&userRole=${user.role}`)} className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200">
+                            <Button onClick={() => router.push(`/admin/conversations?tab=chat&userId=${user.id}&userRole=${user.role}`)} className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200">
                                 <MessageSquare className="w-4 h-4" />
                                 {t.admin.messageUser}
                             </Button>
@@ -162,11 +162,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             {/* TABS Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="bg-gray-50/80 p-1.5 rounded-xl inline-flex flex-wrap w-full sm:w-auto justify-start mb-8 gap-2 border border-gray-100 shadow-sm">
-                    <TabsTrigger value="info" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0B3D2E] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
+                    <TabsTrigger value="info" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
                         <Info className="w-4 h-4" />
                         {t.admin.basicInfo}
                     </TabsTrigger>
-                    <TabsTrigger value="stats" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0B3D2E] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
+                    <TabsTrigger value="stats" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
                         <BarChart3 className="w-4 h-4" />
                         {t.admin.statistics}
                     </TabsTrigger>
@@ -174,7 +174,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <ClipboardList className="w-4 h-4" />
                         {user.role === 'student' ? t.admin.studentRecitationsHistory : t.admin.readerReviewsHistory}
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0B3D2E] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
+                    <TabsTrigger value="chat" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
                         <MessageSquare className="w-4 h-4" />
                         {t.admin.chat}
                     </TabsTrigger>
@@ -186,7 +186,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <Card className="border-gray-100 shadow-sm rounded-2xl bg-white">
                             <CardHeader className="border-b border-gray-50/80 pb-4 mb-4 bg-gray-50/30 rounded-t-2xl">
                                 <CardTitle className="text-base font-bold text-gray-800 flex items-center gap-2">
-                                    <UserIcon className="w-5 h-5 text-[#0B3D2E]" />
+                                    <UserIcon className="w-5 h-5 text-[#1B5E3B]" />
                                     {t.admin.accountDetails}
                                 </CardTitle>
                             </CardHeader>
@@ -211,7 +211,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <Card className="border-gray-100 shadow-sm rounded-2xl bg-white">
                             <CardHeader className="border-b border-gray-50/80 pb-4 mb-4 bg-gray-50/30 rounded-t-2xl">
                                 <CardTitle className="text-base font-bold text-gray-800 flex items-center gap-2">
-                                    <Shield className="w-5 h-5 text-[#0B3D2E]" />
+                                    <Shield className="w-5 h-5 text-[#1B5E3B]" />
                                     {t.admin.technicalData}
                                 </CardTitle>
                             </CardHeader>
@@ -247,7 +247,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         {[
                             { label: t.admin.completedSessions, value: metrics.sessions.completed, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                             { label: t.admin.noShows, value: metrics.sessions.noShow, icon: XCircle, color: 'text-red-500', bg: 'bg-red-50' },
-                            { label: t.admin.totalRecitations, value: metrics.recitations.monthly, icon: Mic, color: 'text-[#0B3D2E]', bg: 'bg-emerald-50/50' },
+                            { label: t.admin.totalRecitations, value: metrics.recitations.monthly, icon: Mic, color: 'text-[#1B5E3B]', bg: 'bg-emerald-50/50' },
                         ].map((stat, i) => (
                             <Card key={i} className="border-gray-100 shadow-sm bg-white rounded-2xl">
                                 <CardContent className="p-6">
@@ -269,7 +269,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                     <Card className="border-gray-100 shadow-sm rounded-2xl bg-white overflow-hidden">
                         <CardHeader className="border-b border-gray-50/80 pb-4 mb-4 bg-gray-50/30">
                             <CardTitle className="text-base font-bold text-gray-800 flex items-center gap-2">
-                                <Activity className="w-5 h-5 text-[#0B3D2E]" />
+                                <Activity className="w-5 h-5 text-[#1B5E3B]" />
                                 {t.admin.recitationActivity14Days}
                             </CardTitle>
                         </CardHeader>
@@ -308,7 +308,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                         />
                                         <Bar
                                             dataKey="count"
-                                            fill="#0B3D2E"
+                                            fill="#1B5E3B"
                                             radius={[4, 4, 0, 0]}
                                             barSize={24}
                                         />
@@ -334,7 +334,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                                 <span className="sr-only">{t.admin.viewDetails}</span>
                                             </Link>
                                             <div className="flex items-center gap-3">
-                                                <h4 className="text-lg font-bold text-gray-800 group-hover:text-[#0B3D2E] transition-colors">
+                                                <h4 className="text-lg font-bold text-gray-800 group-hover:text-[#1B5E3B] transition-colors">
                                                     {t.reader.surah} {item.surah_name}
                                                     <span className="text-gray-400 text-sm font-normal mr-2">
                                                         ({t.reader.ayahs} {item.ayah_from} - {item.ayah_to})
@@ -362,7 +362,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                         </div>
                                     </div>
                                     <div className="flex-shrink-0 hidden md:flex relative z-20">
-                                        <Link href={`/admin/recitations/${item.id}`} className="p-2 text-gray-400 hover:text-[#0B3D2E] hover:bg-gray-50 rounded-full transition-colors">
+                                        <Link href={`/admin/recitations/${item.id}`} className="p-2 text-gray-400 hover:text-[#1B5E3B] hover:bg-gray-50 rounded-full transition-colors">
                                             <ChevronRight className="w-5 h-5 rtl:rotate-180" />
                                         </Link>
                                     </div>

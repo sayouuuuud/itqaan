@@ -42,7 +42,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" />
+                <Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" />
                 <p className="text-gray-500 font-medium">{t.loading}</p>
             </div>
         )
@@ -63,7 +63,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
             {/* Header / Breadcrumbs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <button onClick={() => router.back()} className="hover:text-[#0B3D2E] transition-colors">
+                    <button onClick={() => router.back()} className="hover:text-[#1B5E3B] transition-colors">
                         {t.back}
                     </button>
                     <ChevronRight className="w-4 h-4 rtl:rotate-180" />
@@ -80,7 +80,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                 <div className="lg:col-span-2 space-y-6">
                     {/* Recitation Info Card */}
                     <Card className="border-none shadow-md overflow-hidden bg-white">
-                        <div className="bg-[#0B3D2E] p-6 text-white flex items-center gap-4">
+                        <div className="bg-[#1B5E3B] p-6 text-white flex items-center gap-4">
                             <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                 <Mic2 className="w-8 h-8 text-white" />
                             </div>
@@ -100,7 +100,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                             {/* Audio Player */}
                             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
                                 <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-700">
-                                    <FileAudio className="w-5 h-5 text-[#0B3D2E]" />
+                                    <FileAudio className="w-5 h-5 text-[#1B5E3B]" />
                                     {t.admin.adminRecitationDetails.audioRecording}
                                 </h3>
                                 {data.audio_url ? (
@@ -153,7 +153,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                                     )}
                                 </div>
                                 <div>
-                                    <Link href={`/admin/users/${data.student_id || '#'}`} className="font-bold text-gray-800 hover:text-[#0B3D2E] hover:underline">
+                                    <Link href={`/admin/users/${data.student_id || '#'}`} className="font-bold text-gray-800 hover:text-[#1B5E3B] hover:underline">
                                         {data.student_name}
                                     </Link>
                                     <p className="text-xs text-gray-500">{data.student_email}</p>
@@ -184,7 +184,7 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                                         )}
                                     </div>
                                     <div>
-                                        <Link href={`/admin/users/${data.assigned_reader_id || '#'}`} className="font-bold text-gray-800 hover:text-[#0B3D2E] hover:underline">
+                                        <Link href={`/admin/users/${data.assigned_reader_id || '#'}`} className="font-bold text-gray-800 hover:text-[#1B5E3B] hover:underline">
                                             {data.reader_name || t.admin.adminRecitationDetails.unassignedEvaluator}
                                         </Link>
                                         {data.reader_email && <p className="text-xs text-gray-500">{data.reader_email}</p>}

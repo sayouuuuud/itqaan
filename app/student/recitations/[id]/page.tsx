@@ -137,13 +137,13 @@ export default function RecitationDetailPage() {
   }
 
   if (loading) return (
-    <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" /></div>
+    <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" /></div>
   )
 
   if (notFound || !recitation) return (
     <div className="text-center py-20">
       <p className="text-slate-500">{t.student.recitationNotFound}</p>
-      <Link href="/student/recitations" className="mt-4 inline-block text-[#0B3D2E] font-medium hover:underline">{t.student.back}</Link>
+      <Link href="/student/recitations" className="mt-4 inline-block text-[#1B5E3B] font-medium hover:underline">{t.student.back}</Link>
     </div>
   )
 
@@ -155,7 +155,7 @@ export default function RecitationDetailPage() {
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center gap-2 mb-2">
-        <Link href="/student/recitations" className="text-xs font-bold text-slate-400 hover:text-[#0B3D2E] transition-colors flex items-center gap-1">
+        <Link href="/student/recitations" className="text-xs font-bold text-slate-400 hover:text-[#1B5E3B] transition-colors flex items-center gap-1">
           {isAr ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
           {t.student.backToRecitationsHistory}
         </Link>
@@ -165,8 +165,8 @@ export default function RecitationDetailPage() {
       <header className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
         <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-[#0B3D2E]/5 flex items-center justify-center shrink-0 border border-[#0B3D2E]/10">
-            <Mic className="w-8 h-8 text-[#0B3D2E]" />
+          <div className="w-16 h-16 rounded-full bg-[#1B5E3B]/5 flex items-center justify-center shrink-0 border border-[#1B5E3B]/10">
+            <Mic className="w-8 h-8 text-[#1B5E3B]" />
           </div>
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -180,7 +180,7 @@ export default function RecitationDetailPage() {
               </span>
             </div>
             <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-[#D4A843]" /> {t.student.ayah} {recitation.ayah_from} — {recitation.ayah_to}</span>
+              <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-[#C9A227]" /> {t.student.ayah} {recitation.ayah_from} — {recitation.ayah_to}</span>
               <span className="w-1 h-1 bg-slate-200 rounded-full" />
               <span>{new Date(recitation.created_at).toLocaleDateString(locale === 'ar' ? "ar-SA" : "en-US", { day: "numeric", month: "long", day: "numeric" })}</span>
             </div>
@@ -211,7 +211,7 @@ export default function RecitationDetailPage() {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Modern Compact Audio Player */}
-        <div className="bg-[#0B3D2E] rounded-2xl p-5 shadow-sm text-white relative overflow-hidden group">
+        <div className="bg-[#1B5E3B] rounded-2xl p-5 shadow-sm text-white relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 to-transparent opacity-50 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -235,7 +235,7 @@ export default function RecitationDetailPage() {
                     key={speed}
                     onClick={() => setPlaybackSpeed(speed)}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl font-bold transition-all
-                      ${playbackSpeed === speed ? 'bg-white text-[#0B3D2E] shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+                      ${playbackSpeed === speed ? 'bg-white text-[#1B5E3B] shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
                   >
                     {speed}x
                   </button>
@@ -253,7 +253,7 @@ export default function RecitationDetailPage() {
 
               <button
                 onClick={togglePlay}
-                className="w-12 h-12 bg-white text-[#0B3D2E] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 active:scale-95 transition-all"
+                className="w-12 h-12 bg-white text-[#1B5E3B] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 active:scale-95 transition-all"
               >
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 ml-0.5 rtl:mr-0.5 rtl:ml-0 fill-current" />}
               </button>
@@ -304,7 +304,7 @@ export default function RecitationDetailPage() {
         <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100">
-              <Award className="w-4 h-4 text-[#D4A843]" />
+              <Award className="w-4 h-4 text-[#C9A227]" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800">{t.student.readerEvaluation}</h3>

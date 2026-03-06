@@ -79,7 +79,7 @@ export default function ReaderRecitationsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.reader.reviewList}</h1>
           <p className="text-gray-500">
-            {t.reader.reviewListDesc}<span className="font-bold text-[#0B3D2E] mx-1">{recitations.filter((r) => r.status === "pending").length}</span>
+            {t.reader.reviewListDesc}<span className="font-bold text-[#1B5E3B] mx-1">{recitations.filter((r) => r.status === "pending").length}</span>
             {t.reader.newRecitationsAwaitingReview}
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function ReaderRecitationsPage() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === tab.key
-                ? "bg-[#0B3D2E] text-white shadow-md font-bold"
+                ? "bg-[#1B5E3B] text-white shadow-md font-bold"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                 }`}
             >
@@ -122,12 +122,12 @@ export default function ReaderRecitationsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
           <div className="p-12 flex justify-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
-              <thead className="bg-[#0B3D2E]/5 border-b border-gray-100 text-gray-500 text-xs uppercase font-semibold tracking-wider">
+              <thead className="bg-[#1B5E3B]/5 border-b border-gray-100 text-gray-500 text-xs uppercase font-semibold tracking-wider">
                 <tr>
                   <th className="px-6 py-4">{t.reader.student}</th>
                   <th className="px-6 py-4">{t.reader.surahPassage}</th>
@@ -183,13 +183,13 @@ export default function ReaderRecitationsPage() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         {isReviewed ? (
-                          <Link href={`/reader/recitations/${rec.id}`} className="text-[#0B3D2E] hover:underline text-sm font-medium inline-flex items-center gap-1">
+                          <Link href={`/reader/recitations/${rec.id}`} className="text-[#1B5E3B] hover:underline text-sm font-medium inline-flex items-center gap-1">
                             {t.reader.viewDetails}
                           </Link>
                         ) : (
                           <Link
                             href={`/reader/recitations/${rec.id}`}
-                            className="bg-[#D4A843] hover:bg-[#C49A3A] text-white text-sm font-bold py-2 px-5 rounded-lg transition-colors shadow-sm inline-flex items-center gap-2"
+                            className="bg-[#C9A227] hover:bg-[#A6841E] text-white text-sm font-bold py-2 px-5 rounded-lg transition-colors shadow-sm inline-flex items-center gap-2"
                           >
                             <Play className="w-4 h-4 rtl:rotate-180" />
                             {t.reader.startReview}

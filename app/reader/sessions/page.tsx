@@ -211,7 +211,7 @@ export default function ReaderSessionsPage() {
     confirmed: { label: isAr ? "مؤكد" : "Confirmed", color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
     completed: { label: isAr ? "مكتمل" : "Completed", color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
     cancelled: { label: isAr ? "ملغي" : "Cancelled", color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
-    pending: { label: isAr ? "قيد الانتظار" : "Pending", color: "bg-[#D4A843]/10 text-[#D4A843] border-[#D4A843]/30 ring-[#D4A843]/10" },
+    pending: { label: isAr ? "قيد الانتظار" : "Pending", color: "bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30 ring-[#C9A227]/10" },
     rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
   }
 
@@ -229,7 +229,7 @@ export default function ReaderSessionsPage() {
             key={btn.key}
             onClick={() => setFilter(btn.key)}
             className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all border ${filter === btn.key
-              ? "border-[#0B3D2E] bg-[#0B3D2E] text-white shadow-md"
+              ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
               : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
           >
@@ -240,7 +240,7 @@ export default function ReaderSessionsPage() {
 
       {/* Cards List */}
       {loading ? (
-        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-[#0B3D2E]" /></div>
+        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" /></div>
       ) : filtered.length === 0 ? (
         <div className="bg-white border border-slate-100 rounded-[2rem] py-24 text-center shadow-sm">
           <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -261,7 +261,7 @@ export default function ReaderSessionsPage() {
 
             return (
               <div key={session.id} className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300
-                ${isExpanded ? 'border-[#0B3D2E]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
+                ${isExpanded ? 'border-[#1B5E3B]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
 
                 {/* Card Header (Clickable) */}
                 <div
@@ -282,11 +282,11 @@ export default function ReaderSessionsPage() {
                       </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-500 font-medium">
                         <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <Calendar className="w-4 h-4 text-[#D4A843]" />
+                          <Calendar className="w-4 h-4 text-[#C9A227]" />
                           {new Date(session.slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </span>
                         <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <Clock className="w-4 h-4 text-[#0B3D2E]/60" />
+                          <Clock className="w-4 h-4 text-[#1B5E3B]/60" />
                           {new Date(session.slot_start).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                           {" - "}
                           {new Date(session.slot_end).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
@@ -317,7 +317,7 @@ export default function ReaderSessionsPage() {
                         <div className="flex gap-2 w-full sm:w-auto">
                           <button
                             onClick={() => handleRespondToStudentRequest(session.id, req.id, "accept")}
-                            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#0B3D2E] text-white rounded-xl text-xs font-bold hover:bg-[#082e23] transition-colors shadow-sm"
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#1B5E3B] text-white rounded-xl text-xs font-bold hover:bg-[#124028] transition-colors shadow-sm"
                           >
                             {isAr ? "قبول وتأكيد" : "Accept"}
                           </button>
@@ -368,7 +368,7 @@ export default function ReaderSessionsPage() {
                               href={session.meeting_link!.startsWith('http') ? session.meeting_link! : `https://${session.meeting_link}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full flex items-center justify-center gap-2 bg-[#0B3D2E] hover:bg-[#082e23] text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-[#0B3D2E]/10"
+                              className="w-full flex items-center justify-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-[#1B5E3B]/10"
                             >
                               <Video className="w-5 h-5" />
                               بدء الجلسة
@@ -376,7 +376,7 @@ export default function ReaderSessionsPage() {
                           </div>
                         ) : (
                           <div className="flex flex-col gap-3">
-                            <div className="flex w-full items-center rounded-xl border border-slate-300 bg-white px-4 py-2 focus-within:border-[#0B3D2E] focus-within:ring-1 focus-within:ring-[#0B3D2E] transition-all shadow-sm">
+                            <div className="flex w-full items-center rounded-xl border border-slate-300 bg-white px-4 py-2 focus-within:border-[#1B5E3B] focus-within:ring-1 focus-within:ring-[#1B5E3B] transition-all shadow-sm">
                               <Link2 className="w-5 h-5 text-slate-400 mr-2 rtl:mr-0 rtl:ml-2" />
                               <input
                                 className="w-full h-10 border-none bg-transparent p-0 text-sm placeholder:text-slate-400 focus:ring-0 focus:outline-none text-slate-800 font-medium"
@@ -389,7 +389,7 @@ export default function ReaderSessionsPage() {
                             <button
                               onClick={() => handleSaveLink(session.id)}
                               disabled={!meetingLinks[session.id] || savingLink === session.id}
-                              className="w-full h-12 rounded-xl bg-[#0B3D2E] text-white font-bold hover:bg-[#082e23] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-md"
+                              className="w-full h-12 rounded-xl bg-[#1B5E3B] text-white font-bold hover:bg-[#124028] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-md"
                             >
                               {savingLink === session.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
                               حفظ الرابط
@@ -406,10 +406,10 @@ export default function ReaderSessionsPage() {
                             href={isCompleted ? undefined : `/reader/chat?with=${session.student_id}`}
                             className={`w-full flex items-center justify-center gap-2 rounded-xl border-2 px-6 py-3 text-sm font-bold transition-all ${isCompleted
                               ? "border-transparent bg-slate-100 text-slate-400 cursor-not-allowed pointer-events-none"
-                              : "border-[#D4A843]/20 bg-white text-slate-700 hover:border-[#D4A843] hover:bg-[#FAF8F4]"
+                              : "border-[#C9A227]/20 bg-white text-slate-700 hover:border-[#C9A227] hover:bg-[#FBF5E8]"
                               }`}
                           >
-                            <MessageSquare className="w-5 h-5 text-[#D4A843]" />
+                            <MessageSquare className="w-5 h-5 text-[#C9A227]" />
                             {t.reader.contactBtn}
                           </a>
 
@@ -438,8 +438,8 @@ export default function ReaderSessionsPage() {
                     {/* Integrated Comment Box */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-[#0B3D2E]/5 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-[#0B3D2E]" />
+                        <div className="w-8 h-8 rounded-lg bg-[#1B5E3B]/5 flex items-center justify-center">
+                          <MessageSquare className="w-4 h-4 text-[#1B5E3B]" />
                         </div>
                         <h4 className="text-sm font-bold text-slate-800">{isAr ? "التعليقات والملاحظات" : "Comments & Notes"}</h4>
                       </div>
@@ -500,7 +500,7 @@ export default function ReaderSessionsPage() {
             <Button
               onClick={handleRescheduleSubmit}
               disabled={!proposedDate || !proposedTime || submittingReschedule}
-              className="bg-[#0B3D2E] text-white"
+              className="bg-[#1B5E3B] text-white"
             >
               {submittingReschedule ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {isAr ? "إرسال الطلب" : "Send Request"}
@@ -569,12 +569,12 @@ function CommentBox({ bookingId, locale }: { bookingId: string, locale: string }
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={isAr ? "اكتب تعليقاً أو ملاحظة..." : "Write a comment..."}
-          className="w-full border-2 border-slate-100 bg-slate-50 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#0B3D2E]/10 focus:border-[#0B3D2E] placeholder:text-slate-400 transition-all font-medium"
+          className="w-full border-2 border-slate-100 bg-slate-50 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] placeholder:text-slate-400 transition-all font-medium"
         />
         <button
           onClick={send}
           disabled={!text.trim() || sending}
-          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-[#0B3D2E] text-white rounded-xl text-sm font-bold hover:bg-[#082e23] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 transition-all group-focus-within:shadow-lg shadow-emerald-900/20"
+          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-[#1B5E3B] text-white rounded-xl text-sm font-bold hover:bg-[#124028] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 transition-all group-focus-within:shadow-lg shadow-emerald-900/20"
         >
           {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:rotate-180" />}
         </button>

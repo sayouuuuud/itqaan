@@ -118,10 +118,10 @@ export default function NotificationsPage() {
         const m = Math.floor(diff / 60000)
         const h = Math.floor(diff / 3600000)
         const d = Math.floor(diff / 86400000)
-        if (m < 1) return t.common.now
-        if (m < 60) return `${t.common.minutesAgo} ${m}`
-        if (h < 24) return `${t.common.hoursAgo} ${h}`
-        return `${t.common.daysAgo} ${d}`
+        if (m < 1) return t.now
+        if (m < 60) return `${t.minutesAgo} ${m}`
+        if (h < 24) return `${t.hoursAgo} ${h}`
+        return `${t.daysAgo} ${d}`
     }
 
     const unread = unreadCount
@@ -254,7 +254,7 @@ export default function NotificationsPage() {
                         {loadingMore ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                         ) : null}
-                        {loadingMore ? t.common.loading : t.notifications.showMore}
+                        {loadingMore ? t.loading : t.notifications.showMore}
                     </button>
                 </div>
             )}

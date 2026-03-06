@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
         let queryStr = `
       SELECT c.id, c.student_id, c.reader_id, c.admin_id, c.last_message_at, c.last_message_preview,
-             c.unread_count_student, c.unread_count_reader,
+             c.unread_count_student, c.unread_count_reader, c.is_ticket, c.ticket_status,
              s.name as student_name, s.avatar_url as student_avatar,
              r.name as reader_name, r.avatar_url as reader_avatar,
              a.name as admin_name, a.avatar_url as admin_avatar
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
         } else if (session.role === "reader") {
             queryStr += " WHERE c.reader_id = $1"
         } else if (session.role === "admin") {
-            queryStr += " WHERE c.admin_id = $1"
+            queryStr += " WHERE c.admin_id = $1 OR c.is_ticket = true"
         } else {
             return NextResponse.json({ conversations: [] })
         }
@@ -48,7 +48,16 @@ export async function POST(req: NextRequest) {
         const session = await getSession()
         if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
-        const { studentId, readerId, userId, userRole } = await req.json()
+        const { studentId, readerId, userId, userRole, isTicket } = await req.json()
+
+        // Student creating a ticket
+        if (session.role === "student" && isTicket) {
+            const result = await query(
+                `INSERT INTO conversations (student_id, is_ticket, ticket_status) VALUES ($1, true, 'open') RETURNING id`,
+                [session.sub]
+            )
+            return NextResponse.json({ conversation: result[0] }, { status: 201 })
+        }
 
         // Admin creating a conversation with a user
         if (session.role === "admin") {

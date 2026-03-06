@@ -16,23 +16,27 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "بيانات غير مكتملة" }, { status: 400 })
         }
 
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-
-        if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
-            return NextResponse.json({ error: "نطاق تاريخ غير صحيح" }, { status: 400 })
-        }
-
         const slotsToInsert: any[] = []
-        const curr = new Date(start)
-
         let dayMatchCount = 0;
+
+        // Parse startDate and endDate manually to avoid timezone shifts
+        // Assuming format YYYY-MM-DD
+        const [sY, sM, sD] = startDate.split('-').map(Number);
+        const [eY, eM, eD] = endDate.split('-').map(Number);
+
+        const curr = new Date(sY, sM - 1, sD);
+        const end = new Date(eY, eM - 1, eD);
+
         while (curr <= end) {
-            const dayOfWeek = curr.getUTCDay() // 0-6
+            const dayOfWeek = curr.getDay() // Local day (0-Sunday)
 
             if (!days || days.length === 0 || days.includes(dayOfWeek)) {
                 dayMatchCount++;
-                const dateStr = curr.toISOString().split('T')[0]
+                // Format date as YYYY-MM-DD using local components
+                const y = curr.getFullYear();
+                const m = String(curr.getMonth() + 1).padStart(2, '0');
+                const d = String(curr.getDate()).padStart(2, '0');
+                const dateStr = `${y}-${m}-${d}`;
 
                 for (const time of times) {
                     const [startH, startM] = time.startTime.split(':').map(Number)
@@ -59,7 +63,7 @@ export async function POST(req: NextRequest) {
                     }
                 }
             }
-            curr.setUTCDate(curr.getUTCDate() + 1)
+            curr.setDate(curr.getDate() + 1)
         }
 
         if (dayMatchCount === 0) {
@@ -89,15 +93,11 @@ export async function POST(req: NextRequest) {
             // 3. Time overlaps
             const isOverlap = existingSlots.some((existing: any) => {
                 const sameDay = existing.day_of_week === slot.day_of_week;
-
-                // If it's the exact same specific_date, or existing is a recurring slot that applies to this date
                 let dateMatches = false;
                 if (existing.is_recurring) {
-                    dateMatches = true; // Recurring slots apply to all dates
+                    dateMatches = true;
                 } else if (existing.specific_date) {
-                    // DB specific_date might be passed as a Date object or string.
                     const eDate = existing.specific_date instanceof Date ? existing.specific_date : new Date(existing.specific_date);
-                    // Use local components because pg driver parses DATE columns to local midnight
                     const y = eDate.getFullYear();
                     const m = String(eDate.getMonth() + 1).padStart(2, '0');
                     const d = String(eDate.getDate()).padStart(2, '0');
@@ -109,7 +109,13 @@ export async function POST(req: NextRequest) {
 
                 // Time overlap check: 
                 // A overlaps B if (A.start < B.end AND A.end > B.start)
-                return (slot.start_time < existing.end_time && slot.end_time > existing.start_time);
+                // Normalize to HH:mm (5 chars) because DB might return HH:mm:ss (e.g. 09:30:00)
+                const sS = slot.start_time.substring(0, 5);
+                const sE = slot.end_time.substring(0, 5);
+                const eS = (existing.start_time as string).substring(0, 5);
+                const eE = (existing.end_time as string).substring(0, 5);
+
+                return (sS < eE && sE > eS);
             })
 
             if (isOverlap) {

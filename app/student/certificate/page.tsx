@@ -8,7 +8,8 @@ import { ChevronLeft, Award, User, MapPin, Building, FileText, ArrowLeft, Loader
 
 export default function CertificatePage() {
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const isAr = locale === 'ar'
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
@@ -18,11 +19,11 @@ export default function CertificatePage() {
     university: "",
     college: "",
     city: "",
-    gender: "",
-    pdfFileUrl: ""
+    entity_id: ""
   })
 
-  // Universities dictionary will come from t.student.universities
+  const [universities, setUniversities] = useState<string[]>([])
+  const [entities, setEntities] = useState<{ id: string, name: string }[]>([])
 
   useEffect(() => {
     async function loadData() {
@@ -42,9 +43,10 @@ export default function CertificatePage() {
               university: data.certificate.university || "",
               college: data.certificate.college || "",
               city: data.certificate.city || "",
-              gender: data.certificate.gender || "",
-              pdfFileUrl: data.certificate.pdf_file_url || ""
+              entity_id: data.certificate.entity_id || ""
             })
+            if (data.universities) setUniversities(data.universities)
+            if (data.entities) setEntities(data.entities)
             // If they already have a certificate issued, maybe show success state
             if (data.certificate.certificate_issued) {
               console.log('Setting success to true - certificate is issued')
@@ -53,6 +55,8 @@ export default function CertificatePage() {
               console.log('Certificate not issued yet')
             }
           } else {
+            if (data.universities) setUniversities(data.universities)
+            if (data.entities) setEntities(data.entities)
             console.log('No certificate data found')
           }
         } else {
@@ -73,37 +77,6 @@ export default function CertificatePage() {
       ...prev,
       [e.target.name]: e.target.value
     }))
-  }
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError(t.student.fileLimitHint)
-      return
-    }
-
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      form.append('folder', 'certificates')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form
-      })
-
-      if (!res.ok) throw new Error("فشل رفع الملف")
-      const data = await res.json()
-
-      setFormData(prev => ({
-        ...prev,
-        pdfFileUrl: data.url || data.audioUrl || "" // Assuming upload API returns url or audioUrl
-      }))
-    } catch {
-      setError(t.student.submitError)
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -205,7 +178,9 @@ export default function CertificatePage() {
                     className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm appearance-none"
                   >
                     <option value="">{t.student.selectUniversity}</option>
-                    {t.student.universities.map((u: string) => (
+                    {universities.length > 0 ? universities.map((u) => (
+                      <option key={u} value={u}>{u}</option>
+                    )) : t.student.universities.map((u: string) => (
                       <option key={u} value={u}>{u}</option>
                     ))}
                   </select>
@@ -245,66 +220,39 @@ export default function CertificatePage() {
                 </div>
               </div>
 
-              {/* Gender */}
+              {/* Authorized Entity */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t.student.genderLabel}</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "الجهة المعتمدة (اختياري)" : "Authorized Entity (Optional)"}</label>
                 <div className="relative">
-                  <User className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <Building className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <select
-                    name="gender"
-                    value={formData.gender}
+                    name="entity_id"
+                    value={formData.entity_id}
                     onChange={handleChange}
-                    required
                     className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm appearance-none"
                   >
-                    <option value="">{t.student.genderSelect}</option>
-                    <option value="male">{t.student.male}</option>
-                    <option value="female">{t.student.female}</option>
+                    <option value="">{isAr ? "اختر الجهة (اختياري)" : "Select Entity (Optional)"}</option>
+                    {entities.map((e) => (
+                      <option key={e.id} value={e.id}>{e.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
 
-              {/* PDF Upload */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t.student.proofLabel}</label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:bg-slate-50 transition-colors">
-                  <div className="space-y-1 text-center">
-                    <svg className="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <div className="flex text-sm text-slate-600 justify-center">
-                      <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-[#C9A227] hover:text-[#A6841E] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#C9A227]">
-                        <span className="px-1">{t.student.uploadPdf}</span>
-                        <input id="file-upload" name="file-upload" type="file" className="sr-only" accept=".pdf" onChange={handleFileUpload} />
-                      </label>
-                      <p className="pl-1">{t.student.orDragAndDrop}</p>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      {t.student.fileLimitHint}
-                    </p>
-                  </div>
-                </div>
-                {formData.pdfFileUrl && (
-                  <div className="mt-3 flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 p-2 rounded-lg border border-emerald-100">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>{t.student.submissionSuccess}</span>
-                  </div>
-                )}
+              {/* Submit Button Section */}
+              <div className="md:col-span-2 pt-6 border-t border-slate-100">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#C9A227]/20 text-white bg-[#C9A227] hover:bg-[#A6841E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C9A227] font-bold transition-all disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> {t.student.savingData}</>
+                  ) : (
+                    <>{t.student.saveData} <ArrowLeft className="w-5 h-5 rtl:rotate-180" /></>
+                  )}
+                </button>
               </div>
-            </div>
-
-            <div className="pt-6 border-t border-slate-100">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#C9A227]/20 text-white bg-[#C9A227] hover:bg-[#A6841E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C9A227] font-bold transition-all disabled:opacity-50"
-              >
-                {submitting ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> {t.student.savingData}</>
-                ) : (
-                  <>{t.student.saveData} <ArrowLeft className="w-5 h-5 rtl:rotate-180" /></>
-                )}
-              </button>
             </div>
           </form>
         )}

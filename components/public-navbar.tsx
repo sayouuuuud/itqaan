@@ -54,14 +54,9 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
                   <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </Link>
               ) : (
-                <>
-                  <Link href="/login" className="text-sm font-medium px-5 py-2.5 rounded-full transition-all text-white border border-[#D4A843]/40 hover:bg-[#D4A843]/10">
-                    {t.login}
-                  </Link>
-                  <Link href="/register" className="text-sm font-semibold px-6 py-2.5 rounded-full transition-all bg-[#D4A843] text-white hover:bg-[#C49A3A] shadow-lg shadow-[#D4A843]/20">
-                    {t.register}
-                  </Link>
-                </>
+                <Link href="/login" className="text-sm font-medium px-8 py-2.5 rounded-full transition-all text-white border border-[#D4A843]/40 hover:bg-[#D4A843]/10">
+                  {t.login}
+                </Link>
               )
             )}
           </div>
@@ -92,8 +87,7 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
                   </Link>
                 ) : (
                   <>
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-medium py-2.5 rounded-full text-white border border-[#D4A843]/40">{t.login}</Link>
-                    <Link href="/register" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-semibold py-2.5 rounded-full bg-[#D4A843] text-white">{t.register}</Link>
+                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-medium py-3 rounded-full text-white border border-[#D4A843]/40">{t.login}</Link>
                   </>
                 )
               )}

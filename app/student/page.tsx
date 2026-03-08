@@ -103,7 +103,7 @@ export default function StudentDashboard() {
   const rawStatus = recitation?.status || 'no_recitation'
   // If they mastered BUT already submitted cert data, we treat it as if they are back to normal dashboard
   // but we can maybe show a different small banner or just hide the big widget.
-  const status = (rawStatus === 'mastered' && hasCertData) ? 'no_recitation' : rawStatus
+  const status = rawStatus
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center py-10 px-4">
@@ -117,17 +117,9 @@ export default function StudentDashboard() {
         {/* State: No recitation yet */}
         {status === 'no_recitation' && (
           <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
-            <div className="w-20 h-20 bg-[#C9A227]/10 rounded-full flex items-center justify-center mx-auto border border-[#C9A227]/20">
-              <Mic className="w-10 h-10 text-[#C9A227]" />
-            </div>
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-gray-800">{t.student.noRecitationTitle}</h2>
-              <p className="text-gray-500 text-sm leading-relaxed">{t.student.noRecitationDesc}</p>
             </div>
-            <Link href="/student/submit" className="inline-flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#C9A227]/20">
-              <Mic className="w-5 h-5" />
-              <span>{t.student.recordNowBtn}</span>
-            </Link>
           </div>
         )}
 

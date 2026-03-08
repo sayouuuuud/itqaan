@@ -25,26 +25,32 @@ export default function LandingPage() {
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D4A843] rounded-full mix-blend-multiply blur-3xl opacity-5 animate-blob-float" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#0B3D2E] rounded-full mix-blend-multiply blur-3xl opacity-10 animate-blob-float-delayed" />
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-6">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight">
-            {t.landing.heroTitle}
-            <span className="text-[#D4A843]" style={{ textShadow: '0 0 20px rgba(212,168,67,0.3)' }}>{t.landing.heroFatiha}</span>
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-6 mt-12">
+          <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold tracking-tight leading-tight text-center">
+            <span>{t.landing.heroTitle} </span>
+            <span className="text-[#D4A843]" style={{ textShadow: '0 0 20px rgba(212,168,67,0.3)' }}>{t.landing.heroEducational}</span>
           </h1>
+
+          <div className="bg-[#D4A843]/10 border border-[#D4A843]/20 px-6 py-2 rounded-full mb-2">
+            <span className="text-[#D4A843] font-bold tracking-[0.1em] text-sm md:text-lg">
+              {t.landing.heroInitiative}
+            </span>
+          </div>
 
           {/* Ayah — inline between h1 and tagline */}
           <div className="flex items-center gap-4 w-full justify-center py-1">
             <div className="h-px flex-1 max-w-[80px] bg-gradient-to-r from-transparent to-[#D4A843]/40" />
             <div className="text-center select-none">
               <p
-                className="text-lg md:text-2xl font-bold tracking-[0.15em] leading-relaxed"
+                className="text-xl md:text-2xl font-bold tracking-[0.15em] leading-relaxed"
                 style={{
                   fontFamily: 'var(--font-quran, Georgia, serif)',
-                  color: 'rgba(212,168,67,0.55)',
+                  color: 'rgba(212,168,67,0.7)',
                 }}
               >
                 {t.landing.heroAyah}
               </p>
-              <p className="text-[10px] tracking-[0.25em] text-[#D4A843]/30 mt-1 uppercase">
+              <p className="text-[12px] tracking-[0.3em] text-[#D4A843]/40 mt-1 uppercase font-bold">
                 {t.landing.heroAyahSource}
               </p>
             </div>
@@ -57,11 +63,11 @@ export default function LandingPage() {
             {t.landing.heroDesc}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-6 w-full justify-center">
-            <Link href="/register" className="group bg-[#D4A843] text-white hover:bg-[#C49A3A] font-bold py-4 px-10 rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-[#D4A843]/20 flex items-center justify-center gap-2 min-w-[200px]">
+            <Link href="/login" className="group bg-[#D4A843] text-white hover:bg-[#C49A3A] font-bold py-4 px-10 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl shadow-[#D4A843]/20 flex items-center justify-center gap-2 min-w-[240px]">
               <span>{t.landing.startNow}</span>
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             </Link>
-            <Link href="#how-it-works" className="group border-2 border-[#D4A843]/40 text-[#D4A843] hover:bg-[#D4A843]/10 font-medium py-4 px-10 rounded-full transition-all duration-300 backdrop-blur-sm flex items-center justify-center gap-2 min-w-[200px]">
+            <Link href="#how-it-works" className="group border-2 border-[#D4A843]/40 text-[#D4A843] hover:bg-[#D4A843]/10 hover:border-[#D4A843] font-medium py-4 px-10 rounded-full transition-all duration-300 backdrop-blur-sm flex items-center justify-center gap-2 min-w-[240px] hover:scale-105 active:scale-95">
               <span>{t.landing.howItWorksBtn}</span>
             </Link>
           </div>
@@ -90,7 +96,7 @@ export default function LandingPage() {
             <div className="h-px flex-1 bg-[#0B3D2E]/10" />
           </div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0B3D2E] text-center mb-6 text-balance leading-tight">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-[#0B3D2E] text-center mb-6 text-balance leading-tight">
             {t.landing.fatihaMasteryTitle}
           </h2>
           <p className="text-center text-[#0B3D2E]/50 text-lg mb-16 md:mb-24 max-w-xl mx-auto">
@@ -201,7 +207,7 @@ export default function LandingPage() {
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-6 leading-tight text-balance">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-center mb-6 leading-tight text-balance">
             {t.landing.whyTitle}
           </h2>
           <p className="text-center text-white/40 text-lg mb-16 max-w-xl mx-auto">
@@ -230,7 +236,7 @@ export default function LandingPage() {
                   <Shield className="w-6 h-6 text-[#D4A843]" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">{t.landing.reason2Title}</h3>
-                <p className="text-white/50 leading-relaxed text-[15px]">
+                <p className="text-white/50 leading-relaxed text-base md:text-lg">
                   {t.landing.reason2Desc}
                 </p>
               </div>
@@ -241,7 +247,7 @@ export default function LandingPage() {
                   <Award className="w-6 h-6 text-[#D4A843]" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">{t.landing.reason3Title}</h3>
-                <p className="text-white/50 leading-relaxed text-[15px]">
+                <p className="text-white/50 leading-relaxed text-base md:text-lg">
                   {t.landing.reason3Desc}
                 </p>
               </div>
@@ -261,11 +267,16 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-5xl relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-8">
             {/* Large stat */}
-            <div className="text-center md:text-right flex-1">
-              <div className="text-7xl md:text-8xl lg:text-9xl font-bold text-[#0B3D2E] leading-none" style={{ fontFeatureSettings: '"tnum"' }}>
-                {masteredStudents.toLocaleString(t.locale === 'ar' ? 'ar-SA' : 'en-US')}
+            <div className="inline-flex flex-col items-center md:items-end w-fit">
+              <div className="flex items-center text-6xl md:text-7xl lg:text-[7.5rem] font-bold text-[#0B3D2E] leading-none tracking-tighter" dir="ltr">
+                <span className="mr-2 text-[#D4A843]">+</span>
+                <span style={{ fontFeatureSettings: '"tnum"' }}>
+                  {(5000).toLocaleString(t.locale === 'ar' ? 'ar-SA' : 'en-US')}
+                </span>
               </div>
-              <p className="text-[#0B3D2E]/60 text-lg font-medium mt-2">{t.landing.statsMastered}</p>
+              <p className="w-full text-center text-[#D4A843] text-lg md:text-xl font-bold mt-2 tracking-widest whitespace-nowrap">
+                {t.landing.statsMastered}
+              </p>
             </div>
 
             {/* Divider */}
@@ -299,7 +310,7 @@ export default function LandingPage() {
         </div>
 
         <div className="container mx-auto max-w-3xl relative z-10 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight text-balance">
             {t.landing.finalCtaTitle}
           </h2>
 
@@ -308,7 +319,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/register" className="group bg-[#D4A843] text-white hover:bg-[#C49A3A] font-bold py-4 px-12 rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-[#D4A843]/20 flex items-center gap-3 text-lg">
+            <Link href="/login" className="group bg-[#D4A843] text-white hover:bg-[#C49A3A] font-bold py-4 px-12 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl shadow-[#D4A843]/20 flex items-center gap-3 text-lg">
               <span>{t.landing.finalCtaBtn}</span>
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             </Link>
@@ -321,23 +332,42 @@ export default function LandingPage() {
 
       {/* ========== FOOTER ========== */}
       <footer className="py-8 px-4 bg-[#082A1F] border-t border-white/[0.06]">
-        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-sm">
+        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <h3 className="text-2xl font-bold text-[#D4A843]">{t.appName}</h3>
+            <p className="text-white/30 text-sm max-w-xs text-center md:text-right">
+              {t.footer.desc}
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center md:items-end gap-4 text-center md:text-right">
+            <div className="flex flex-wrap justify-center gap-6">
+              <Link href="/login" className="text-white/60 hover:text-[#D4A843] text-sm transition-colors">
+                {t.landing.footerLogin}
+              </Link>
+              <Link href="/reader-register" className="text-white/60 hover:text-[#D4A843] text-sm transition-colors">
+                {t.landing.footerJoin}
+              </Link>
+              <Link href="/contact" className="text-white/60 hover:text-[#D4A843] text-sm transition-colors">
+                {t.landing.contact}
+              </Link>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4 text-white/40 text-xs">
+              <div className="flex items-center gap-2">
+                <span>{t.landing.address}</span>
+              </div>
+              <span className="hidden md:block">|</span>
+              <a href={`https://wa.me/${t.landing.phoneVal.replace(/\s/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#25D366] transition-colors">
+                <span>واتساب: {t.landing.phoneVal}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto max-w-6xl mt-8 pt-8 border-t border-white/5 text-center">
+          <p className="text-white/20 text-xs">
             {'2026 '}{t.appName}{'. '}{t.footer.rights}
           </p>
-          <div className="flex items-center gap-6">
-            <Link href="/contact" className="text-white/30 hover:text-[#D4A843] text-sm transition-colors">
-              {t.landing.contact}
-            </Link>
-            <span className="text-white/10">|</span>
-            <Link href="/reader-register" className="text-white/30 hover:text-[#D4A843] text-sm transition-colors">
-              {t.landing.footerJoin}
-            </Link>
-            <span className="text-white/10">|</span>
-            <Link href="/login" className="text-white/30 hover:text-[#D4A843] text-sm transition-colors">
-              {t.landing.footerLogin}
-            </Link>
-          </div>
         </div>
       </footer>
     </div>

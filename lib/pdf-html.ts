@@ -6,7 +6,6 @@ import { queryOne } from "@/lib/db"
  * @param skipIssuedCheck - if true, skip the certificate_issued check (used during issuance flow)
  */
 export async function getCertificateHtml(id: string, skipIssuedCheck = false): Promise<string | null> {
-  // Get certificate data
   const certData = await queryOne<{
     student_id: string;
     certificate_issued: boolean;
@@ -14,10 +13,14 @@ export async function getCertificateHtml(id: string, skipIssuedCheck = false): P
     city: string;
     student_name: string;
     issued_date: Date;
+    entity_seal_url: string | null;
+    entity_name: string | null;
   }>(
-    `SELECT cd.student_id, cd.certificate_issued, cd.university, cd.city, cd.updated_at as issued_date, u.name as student_name
+    `SELECT cd.student_id, cd.certificate_issued, cd.university, cd.city, cd.updated_at as issued_date, 
+            u.name as student_name, ae.seal_url as entity_seal_url, ae.name as entity_name
      FROM certificate_data cd
      JOIN users u ON u.id = cd.student_id
+     LEFT JOIN authorized_entities ae ON ae.id = cd.entity_id
      WHERE cd.student_id = $1`,
     [id]
   )
@@ -40,6 +43,10 @@ export async function getCertificateHtml(id: string, skipIssuedCheck = false): P
   const university = certData.university || 'غير محدد'
   const city = certData.city || 'غير محدد'
   const verificationCode = id.slice(0, 8).toUpperCase()
+
+  // Seal logic: Use entity seal if available, otherwise default platform seal
+  const sealUrl = certData.entity_seal_url || null
+  const sealLabel = certData.entity_name || 'ختم المنصة'
 
   // Generate HTML for certificate - exact replica of the web version styles
   return `
@@ -360,9 +367,9 @@ export async function getCertificateHtml(id: string, skipIssuedCheck = false): P
       <div class="footer-section">
         <div class="seal-item">
           <div class="seal-box">
-             <div style="font-size: 22px; color: #cbd5e1; display: flex; align-items: center; justify-content: center; height: 100%;">★</div>
+             ${sealUrl ? `<img src="${sealUrl}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />` : '<div style="font-size: 22px; color: #cbd5e1; display: flex; align-items: center; justify-content: center; height: 100%;">★</div>'}
           </div>
-          <p class="seal-label">ختم المنصة</p>
+          <p class="seal-label">${sealLabel}</p>
         </div>
 
         <div class="management-section">

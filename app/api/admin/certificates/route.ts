@@ -22,12 +22,13 @@ export async function GET(req: NextRequest) {
             statusCondition = "AND cd.certificate_issued = true"
         }
 
-        const [appsData, globalCeremonyRow, platformSealRow] = await Promise.all([
+        const [appsData, globalCeremonyRow, platformSealRow, universities, entities] = await Promise.all([
             query(
-                `SELECT cd.*, u.name as student_name, u.email as student_email,
+                `SELECT cd.*, u.name as student_name, u.email as student_email, ae.name as entity_name,
                    (SELECT status FROM recitations r WHERE r.student_id = cd.student_id ORDER BY created_at DESC LIMIT 1) as recitation_status
                  FROM certificate_data cd
                  JOIN users u ON u.id = cd.student_id
+                 LEFT JOIN authorized_entities ae ON ae.id = cd.entity_id
                  WHERE 1=1 ${statusCondition}
                  ORDER BY cd.created_at DESC`
             ),
@@ -36,7 +37,9 @@ export async function GET(req: NextRequest) {
             ),
             queryOne<{ setting_value: any }>(
                 `SELECT setting_value FROM system_settings WHERE setting_key = 'platform_seal'`
-            )
+            ),
+            query(`SELECT * FROM universities ORDER BY name ASC`),
+            query(`SELECT * FROM authorized_entities ORDER BY name ASC`)
         ])
 
         const globalCeremony = globalCeremonyRow?.setting_value || { date: null, message: "" }
@@ -55,7 +58,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             applications,
             globalCeremony,
-            platformSealUrl
+            platformSealUrl,
+            universities,
+            entities
         })
     } catch (error) {
         console.error("Get certificates error:", error)
@@ -94,6 +99,37 @@ export async function PUT(req: NextRequest) {
                  ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()`,
                 [JSON.stringify({ url: url || null })]
             )
+            return NextResponse.json({ success: true })
+        }
+
+        // --- Manage Universities ---
+        if (action === "add_university") {
+            const { name } = body
+            if (!name) return NextResponse.json({ error: "الاسم مطلوب" }, { status: 400 })
+            const res = await query(`INSERT INTO universities (name) VALUES ($1) ON CONFLICT (name) DO NOTHING RETURNING *`, [name])
+            return NextResponse.json({ university: res[0] })
+        }
+        if (action === "delete_university") {
+            const { id } = body
+            await query(`DELETE FROM universities WHERE id = $1`, [id])
+            return NextResponse.json({ success: true })
+        }
+
+        // --- Manage Authorized Entities ---
+        if (action === "add_entity") {
+            const { name, seal_url } = body
+            if (!name) return NextResponse.json({ error: "الاسم مطلوب" }, { status: 400 })
+            const res = await query(`INSERT INTO authorized_entities (name, seal_url) VALUES ($1, $2) RETURNING *`, [name, seal_url || null])
+            return NextResponse.json({ entity: res[0] })
+        }
+        if (action === "update_entity") {
+            const { id, name, seal_url } = body
+            const res = await query(`UPDATE authorized_entities SET name = $1, seal_url = $2, updated_at = NOW() WHERE id = $3 RETURNING *`, [name, seal_url, id])
+            return NextResponse.json({ entity: res[0] })
+        }
+        if (action === "delete_entity") {
+            const { id } = body
+            await query(`DELETE FROM authorized_entities WHERE id = $1`, [id])
             return NextResponse.json({ success: true })
         }
 

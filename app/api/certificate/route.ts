@@ -31,16 +31,22 @@ export async function GET(req: NextRequest) {
 
   console.log('Certificate data for student', session.sub, ':', enhancedCertificate)
 
-  // Check if student is mastered
   const latestRecitation = await queryOne<{ status: string }>(
     `SELECT status FROM recitations WHERE student_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [session.sub]
   )
 
+  const [universities, entities] = await Promise.all([
+    query<{ name: string }>(`SELECT name FROM universities ORDER BY name ASC`),
+    query<{ id: string, name: string }>(`SELECT id, name FROM authorized_entities ORDER BY name ASC`)
+  ])
+
   return NextResponse.json({
     certificate: enhancedCertificate || null,
     certificateEnabled,
-    isMastered: latestRecitation?.status === 'mastered'
+    isMastered: latestRecitation?.status === 'mastered',
+    universities: universities.map(u => u.name),
+    entities: entities
   })
 }
 
@@ -64,21 +70,20 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { university, college, city, gender, pdfFileUrl } = await req.json()
+  const { university, college, city, entity_id } = await req.json()
 
   // Upsert certificate data
   const result = await query(
-    `INSERT INTO certificate_data (student_id, university, college, city, gender, pdf_file_url)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO certificate_data (student_id, university, college, city, entity_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (student_id) DO UPDATE SET
        university = COALESCE($2, certificate_data.university),
        college = COALESCE($3, certificate_data.college),
        city = COALESCE($4, certificate_data.city),
-       gender = COALESCE($5, certificate_data.gender),
-       pdf_file_url = COALESCE($6, certificate_data.pdf_file_url),
+       entity_id = COALESCE($5, certificate_data.entity_id),
        updated_at = NOW()
      RETURNING *`,
-    [session.sub, university || null, college || null, city || null, gender || null, pdfFileUrl || null]
+    [session.sub, university || null, college || null, city || null, entity_id || null]
   )
 
   return NextResponse.json({ certificate: result[0] }, { status: 201 })

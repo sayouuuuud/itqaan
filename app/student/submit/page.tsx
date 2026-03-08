@@ -216,175 +216,139 @@ export default function SubmitRecitationPage() {
         <p className="text-gray-500 dark:text-gray-400">{t.student.submitDescFatiha}</p>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[calc(100vh-14rem)] min-h-[600px]">
-        {/* Right Side: Fatiha Verses */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 relative flex flex-col items-center justify-center overflow-hidden order-1 lg:order-none">
-          <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-[#C9A227]/30 rounded-tr-xl"></div>
-          <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-[#C9A227]/30 rounded-bl-xl"></div>
-
-          <div className="text-center w-full max-w-lg mx-auto px-2 pt-2 pb-2 h-full flex flex-col justify-center" style={{ direction: 'rtl' }}>
-            <h3 className="text-[#C9A227] font-bold text-base md:text-lg mb-2 shrink-0" style={{ fontFamily: "var(--font-sans)" }}>{t.student.surahFatiha}</h3>
-            <div className="space-y-[0.6rem] text-lg md:text-xl lg:text-[1.35rem] leading-[1.9] text-gray-800 dark:text-gray-200 grow flex flex-col justify-center" style={{ fontFamily: "var(--font-quran)" }}>
-              <p className="text-center">
-                <span className="text-[#1B5E3B] dark:text-green-400">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
-                <span className="text-[#C9A227] text-sm md:text-base inline-block mr-2 align-middle opacity-80">&#xFD3F;١&#xFD3E;</span>
-              </p>
-              <p className="text-center">
-                ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ
-                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٢&#xFD3E;</span>
-              </p>
-              <p className="text-center">
-                ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
-                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٣&#xFD3E;</span>
-              </p>
-              <p className="text-center">
-                مَـٰلِكِ يَوْمِ ٱلدِّينِ
-                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٤&#xFD3E;</span>
-              </p>
-              <p className="text-center">
-                إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ
-                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٥&#xFD3E;</span>
-              </p>
-              <p className="text-center">
-                ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ
-                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٦&#xFD3E;</span>
-              </p>
-              <p className="text-center !leading-[2]">
-                صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ
-                <span className="text-[#C9A227] text-base inline-block mr-2 align-middle">&#xFD3F;٧&#xFD3E;</span>
-              </p>
+      <div className="max-w-3xl mx-auto flex flex-col gap-8">
+        {/* Recording Controls */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center relative min-h-[500px]">
+          <div className="mb-10 text-center">
+            <div className="text-7xl font-mono font-light tracking-widest text-gray-800 dark:text-white mb-3">
+              {formatTime(timer)}
             </div>
+            <span className="text-base text-gray-400 dark:text-gray-500 font-medium">
+              {recordingState === "idle" && t.student.readyToRecord}
+              {recordingState === "recording" && t.student.recordingStatus}
+              {recordingState === "saved" && t.student.recordingSavedStatus}
+            </span>
           </div>
-        </div>
 
-        {/* Left Side: Recording Controls */}
-        <div className="flex flex-col gap-6 h-full order-0 lg:order-none">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex-1 p-8 flex flex-col items-center justify-center relative">
-            <div className="mb-8 text-center">
-              <div className="text-6xl font-mono font-light tracking-widest text-gray-800 dark:text-white mb-2">
-                {formatTime(timer)}
-              </div>
-              <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">
-                {recordingState === "idle" && t.student.readyToRecord}
-                {recordingState === "recording" && t.student.recordingStatus}
-                {recordingState === "saved" && t.student.recordingSavedStatus}
+          <div className="h-16 w-full max-w-sm flex items-center justify-center gap-[4px] mb-14">
+            {waveformBars.map((h, i) => (
+              <div
+                key={i}
+                className={`w-1.5 rounded-full bg-slate-400 transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"}`}
+                style={{
+                  height: recordingState === "recording" ? `${h * 6}px` : `${h * 4}px`,
+                  animationDelay: `${i * 40}ms`,
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-end justify-center gap-12 mb-10">
+            <div className="flex flex-col items-center gap-2 group">
+              <button
+                disabled={recordingState === "idle"}
+                onClick={resetAll}
+                className={`w-14 h-14 rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-slate-50 hover:text-slate-600 cursor-pointer"}`}
+              >
+                <RotateCcw className="w-7 h-7" />
+              </button>
+              <span className="text-sm text-gray-400 dark:text-gray-500 font-bold">{t.student.resetBtn}</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-4 relative -top-6">
+              {recordingState === "idle" && (
+                <button
+                  onPointerDown={handlePointerDown}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                  className="w-28 h-28 rounded-full bg-[#C9A227] text-white shadow-lg hover:shadow-xl hover:bg-yellow-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-[#C9A227]/20 select-none touch-none"
+                >
+                  <Mic className="w-14 h-14" />
+                </button>
+              )}
+              {recordingState === "recording" && (
+                <button
+                  onPointerUp={handlePointerUp}
+                  className="w-28 h-28 rounded-full bg-red-500 text-white shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-red-500/20 select-none touch-none"
+                >
+                  <Square className="w-12 h-12" />
+                </button>
+              )}
+              {recordingState === "saved" && (
+                <button
+                  disabled
+                  className="w-28 h-28 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center select-none touch-none"
+                >
+                  <Mic className="w-14 h-14" />
+                </button>
+              )}
+              <span className="text-base font-bold text-[#1B5E3B] dark:text-[#C9A227]">
+                {recordingState === "recording" ? t.student.releaseToStop : t.student.holdToRecord}
               </span>
             </div>
 
-
-
-            <div className="h-16 w-full max-w-sm flex items-center justify-center gap-[3px] mb-12">
-              {waveformBars.map((h, i) => (
-                <div
-                  key={i}
-                  className={`w-1 rounded-full bg-slate-400 transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"}`}
-                  style={{
-                    height: recordingState === "recording" ? `${h * 5}px` : `${h * 4}px`,
-                    animationDelay: `${i * 40}ms`,
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="flex items-end justify-center gap-10">
-              <div className="flex flex-col items-center gap-2 group">
-                <button
-                  disabled={recordingState === "idle"}
-                  onClick={resetAll}
-                  className={`w-12 h-12 rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-slate-50 hover:text-slate-600 cursor-pointer"}`}
-                >
-                  <RotateCcw className="w-6 h-6" />
-                </button>
-                <span className="text-xs text-gray-400 dark:text-gray-500 font-bold">{t.student.resetBtn}</span>
-              </div>
-
-              <div className="flex flex-col items-center gap-3 relative -top-4">
-                {recordingState === "idle" && (
-                  <button
-                    onPointerDown={handlePointerDown}
-                    onPointerUp={handlePointerUp}
-                    onPointerLeave={handlePointerUp}
-                    className="w-24 h-24 rounded-full bg-[#C9A227] text-white shadow-lg hover:shadow-xl hover:bg-yellow-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-[#C9A227]/20 select-none touch-none"
-                  >
-                    <Mic className="w-12 h-12" />
-                  </button>
-                )}
-                {recordingState === "recording" && (
-                  <button
-                    onPointerUp={handlePointerUp}
-                    className="w-24 h-24 rounded-full bg-red-500 text-white shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-red-500/20 select-none touch-none"
-                  >
-                    <Square className="w-10 h-10" />
-                  </button>
-                )}
-                {recordingState === "saved" && (
-                  <button
-                    disabled
-                    className="w-24 h-24 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center select-none touch-none"
-                  >
-                    <Mic className="w-12 h-12" />
-                  </button>
-                )}
-                <span className="text-sm font-bold text-[#1B5E3B] dark:text-[#C9A227]">
-                  {recordingState === "recording" ? t.student.releaseToStop : t.student.holdToRecord}
-                </span>
-              </div>
-
-              <div className="flex flex-col items-center gap-2 group">
-                <button
-                  disabled={recordingState !== "saved"}
-                  onClick={togglePlayback}
-                  className={`w-12 h-12 rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-slate-50 hover:text-slate-600 cursor-pointer"}`}
-                >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
-                </button>
-                <span className="text-xs text-gray-400 dark:text-gray-500 font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
-              </div>
-            </div>
-
-            {/* Qira'ah Selection below the buttons */}
-            <div className="w-full max-w-sm mt-8 opacity-90">
-              <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 mr-1">{t.student.selectedQiraahLabel}</label>
-              <select
-                value={qiraah}
-                onChange={(e) => setQiraah(e.target.value)}
-                disabled={recordingState === "recording"}
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/10 transition-all appearance-none cursor-pointer"
-                style={{ direction: 'rtl' }}
+            <div className="flex flex-col items-center gap-2 group">
+              <button
+                disabled={recordingState !== "saved"}
+                onClick={togglePlayback}
+                className={`w-14 h-14 rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-slate-50 hover:text-slate-600 cursor-pointer"}`}
               >
-                <option value="hafs">{t.qiraat.hafs}</option>
-                <option value="warsh">{t.qiraat.warsh}</option>
-                <option value="qaloon">{t.qiraat.qaloon}</option>
-                <option value="duri_abu_amr">{t.qiraat.duri_abu_amr}</option>
-                <option value="shuba">{t.qiraat.shuba}</option>
-                <option value="bazzi">{t.qiraat.bazzi}</option>
-                <option value="qunbul">{t.qiraat.qunbul}</option>
-                <option value="hisham">{t.qiraat.hisham}</option>
-                <option value="ibn_dhakwan">{t.qiraat.ibn_dhakwan}</option>
-                <option value="khalaf">{t.qiraat.khalaf}</option>
-                <option value="khallad">{t.qiraat.khallad}</option>
-                <option value="abi_al_harith">{t.qiraat.abi_al_harith}</option>
-                <option value="duri_kisai">{t.qiraat.duri_kisai}</option>
-              </select>
+                {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
+              </button>
+              <span className="text-sm text-gray-400 dark:text-gray-500 font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => router.push('/student')}
-              className="flex-1 bg-white dark:bg-slate-800 border border-transparent text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-4 px-6 rounded-xl font-bold shadow-sm transition-colors text-center"
+          {/* Qira'ah Selection */}
+          <div className="w-full max-w-sm opacity-90">
+            <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 mr-1">{t.student.selectedQiraahLabel}</label>
+            <select
+              value={qiraah}
+              onChange={(e) => setQiraah(e.target.value)}
+              disabled={recordingState === "recording"}
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-4 px-5 text-base font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/10 transition-all appearance-none cursor-pointer"
+              style={{ direction: 'rtl' }}
             >
-              {t.student.cancelBtn}
-            </button>
-            <button
-              disabled={recordingState !== "saved" || submitting}
-              onClick={handleSubmit}
-              className="flex-[2] bg-[#C9A227] disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-yellow-600 py-4 px-6 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
-            >
-              <span>{submitting ? t.student.submittingStatus : t.student.submitBtn}</span>
-              {!submitting && <Send className="w-5 h-5 rtl:-scale-x-100 transform rotate-180" />}
-            </button>
+              <option value="hafs">{t.qiraat.hafs}</option>
+              {/* ... other options same ... */}
+              <option value="warsh">{t.qiraat.warsh}</option>
+              <option value="qaloon">{t.qiraat.qaloon}</option>
+              <option value="duri_abu_amr">{t.qiraat.duri_abu_amr}</option>
+              <option value="shuba">{t.qiraat.shuba}</option>
+              <option value="bazzi">{t.qiraat.bazzi}</option>
+              <option value="qunbul">{t.qiraat.qunbul}</option>
+              <option value="hisham">{t.qiraat.hisham}</option>
+              <option value="ibn_dhakwan">{t.qiraat.ibn_dhakwan}</option>
+              <option value="khalaf">{t.qiraat.khalaf}</option>
+              <option value="khallad">{t.qiraat.khallad}</option>
+              <option value="abi_al_harith">{t.qiraat.abi_al_harith}</option>
+              <option value="duri_kisai">{t.qiraat.duri_kisai}</option>
+            </select>
           </div>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.push('/student')}
+            className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-4 px-6 rounded-2xl font-bold shadow-sm transition-colors text-center"
+          >
+            {t.student.cancelBtn}
+          </button>
+          <button
+            disabled={recordingState !== "saved"}
+            onClick={handleSubmit}
+            className="flex-[2] bg-[#C9A227] disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-yellow-600 py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+          >
+            <span>{submitting ? t.student.submittingStatus : t.student.submitBtn}</span>
+            {!submitting && <Send className="w-5 h-5 rtl:-scale-x-100 transform rotate-180" />}
+          </button>
+        </div>
+
+        {/* Note at the bottom */}
+        <div className="text-center p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20">
+          <p className="text-[#C9A227] font-bold text-sm md:text-base leading-relaxed">
+            {t.student.recordingNote}
+          </p>
         </div>
       </div>
     </div>

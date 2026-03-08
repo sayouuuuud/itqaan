@@ -25,11 +25,10 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin', { section
       {
         items: [
           { href: '/student', label: t.student.dashboard, icon: LayoutDashboard },
-          { href: '/student/submit', label: t.student.newRecitationLine, icon: Mic },
-          { href: '/student/certificates', label: t.student.certificates || t.student.certificate, icon: Award },
           { href: '/student/recitations', label: t.student.recitations, icon: FileText },
           { href: '/student/sessions', label: t.student.sessions, icon: CalendarCheck },
           { href: '/student/chat', label: t.student.chat, icon: MessageSquare },
+          { href: '/student/certificates', label: t.student.certificates || t.student.certificate, icon: Award },
         ]
       },
       {
@@ -326,13 +325,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
               <LogOut className="w-5 h-5" />
             </button>
 
-            {role === 'student' && (
-              <Link href="/student/submit" className="bg-[#0B3D2E] hover:bg-[#0A3527] text-white font-bold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all shadow-md shadow-[#0B3D2E]/20 text-sm">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">{t.student.newRecitation}</span>
-              </Link>
-            )}
-          </div>
+                      </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">

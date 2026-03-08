@@ -53,7 +53,7 @@ export async function getSmtpFromEmail(): Promise<string> {
             : smtpConfig.fromEmail
     }
 
-    return '"إتقان الفاتحة" <itz4kairo@gmail.com>' // Default fallback
+    return '"إتقان الفاتحة" <itqaan69@gmail.com>' // New default fallback
 }
 
 // Helper for Cloudinary

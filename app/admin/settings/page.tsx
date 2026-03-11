@@ -244,33 +244,41 @@ export default function AdminSettingsPage() {
     ]
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto p-6" dir={isAr ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen relative pb-20" dir={isAr ? 'rtl' : 'ltr'}>
+            {/* Decorative background elements */}
+            <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
+            <div className="absolute top-20 right-[10%] w-64 h-64 bg-emerald-200/20 rounded-full blur-3xl -z-10 animate-pulse" />
+            <div className="absolute top-40 left-[15%] w-72 h-72 bg-amber-100/20 rounded-full blur-3xl -z-10 animate-pulse delay-700" />
 
-            {/* Page Header */}
-            <div className="flex items-center gap-3">
-                <div className="p-3 bg-[#1B5E3B]/5 rounded-2xl border border-[#1B5E3B]/10 shadow-sm">
-                    <Settings2 className="w-8 h-8 text-[#1B5E3B]" />
+            <div className="max-w-4xl mx-auto px-6 pt-10 space-y-8 relative z-10">
+                {/* Page Header */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-2">
+                            <Settings2 className="w-3 h-3" />
+                            {t.admin.settings}
+                        </div>
+                        <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-none">
+                            {t.admin.settings}
+                        </h1>
+                        <p className="text-slate-500 font-medium max-w-md">
+                            {t.admin.settingsDesc}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{t.admin.settings}</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                        {t.admin.settingsDesc}
-                    </p>
-                </div>
-            </div>
 
             {/* ── Admin Profile ── */}
-            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
-                            <User className="w-5 h-5 text-[#1B5E3B]" />
+            <Card className="border-white/40 shadow-2xl shadow-emerald-900/5 bg-white/70 backdrop-blur-xl rounded-3xl overflow-hidden border">
+                <CardHeader className="p-8 pb-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-[#1B5E3B]">
+                            <User className="w-5 h-5" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-lg font-bold text-slate-800">
                                 {t.admin.myAccount}
                             </CardTitle>
-                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                            <CardDescription className="text-slate-500 font-medium text-sm">
                                 {t.admin.myAccountDesc}
                             </CardDescription>
                         </div>
@@ -301,17 +309,17 @@ export default function AdminSettingsPage() {
                     {/* Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="admin-name" className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.auth.fullName}</Label>
+                            <Label htmlFor="admin-name" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.auth.fullName}</Label>
                             <Input
                                 id="admin-name"
                                 value={profile.name}
                                 onChange={e => setProfile({ ...profile, name: e.target.value })}
                                 placeholder={t.auth.fullName}
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="admin-email" className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.auth.email}</Label>
+                            <Label htmlFor="admin-email" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.auth.email}</Label>
                             <Input
                                 id="admin-email"
                                 type="email"
@@ -319,11 +327,11 @@ export default function AdminSettingsPage() {
                                 value={profile.email}
                                 onChange={e => setProfile({ ...profile, email: e.target.value })}
                                 placeholder={t.auth.email}
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
-                            <Label htmlFor="admin-pass" className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.newPassword}</Label>
+                            <Label htmlFor="admin-pass" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.admin.newPassword}</Label>
                             <Input
                                 id="admin-pass"
                                 type="password"
@@ -331,29 +339,25 @@ export default function AdminSettingsPage() {
                                 value={profile.password}
                                 onChange={e => setProfile({ ...profile, password: e.target.value })}
                                 placeholder={t.admin.passwordLeaveBlank}
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium"
                             />
                         </div>
                     </div>
 
                     {/* Save Button */}
-                    <div className="flex justify-end">
+                    <div className="pt-4 flex items-center justify-end gap-4 border-t border-slate-100 mt-6">
                         <Button
                             onClick={handleProfileSave}
                             disabled={profileSaving}
-                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="h-12 px-8 bg-gradient-to-r from-[#1B5E3B] to-[#2D8C5B] hover:shadow-lg hover:shadow-emerald-900/20 text-white rounded-2xl font-bold transition-all transform active:scale-95"
                         >
-                            {profileSaving
-                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                : profileSaved
-                                    ? <CheckCircle className="w-4 h-4" />
-                                    : <Save className="w-4 h-4" />}
-                            <span className="mx-2">
-                                {profileSaved
-                                    ? t.admin.savedSuccess
-                                    : t.profile.saveChanges}
-                            </span>
+                            {profileSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : t.profile.saveChanges}
                         </Button>
+                        {profileSaved && (
+                            <span className="flex items-center gap-2 text-sm text-emerald-600 font-bold animate-in fade-in slide-in-from-right-2">
+                                <CheckCircle className="w-5 h-5" /> {t.admin.savedSuccess}
+                            </span>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -703,6 +707,7 @@ export default function AdminSettingsPage() {
                     </div>
                 </CardContent>
             </Card>
+            </div>
         </div>
     )
 }

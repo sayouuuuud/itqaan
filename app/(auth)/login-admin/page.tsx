@@ -22,7 +22,8 @@ export default function AdminLoginPage() {
                 if (res.ok) {
                     const data = await res.json()
                     // If already an admin, go to admin dashboard
-                    if (data.user && data.user.role === 'admin') {
+                    const allowedRoles = ['admin', 'student_supervisor', 'reciter_supervisor']
+                    if (data.user && allowedRoles.includes(data.user.role)) {
                         router.push('/admin')
                     }
                 }
@@ -54,7 +55,12 @@ export default function AdminLoginPage() {
 
             // Redirect based on role (should be admin)
             const role = data.user?.role || 'admin'
-            router.push(`/${role}`)
+            const adminRoles = ['admin', 'student_supervisor', 'reciter_supervisor']
+            if (adminRoles.includes(role)) {
+                router.push('/admin')
+            } else {
+                router.push(`/${role}`)
+            }
         } catch {
             setError(t.auth.connectionError)
             setLoading(false)
@@ -72,7 +78,9 @@ export default function AdminLoginPage() {
 
             {/* Nav */}
             <nav className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 max-w-7xl mx-auto w-full">
-                <Link href="/" className="text-3xl font-bold tracking-tighter text-[#D4A843] hover:opacity-80 transition-opacity">{t.appName}</Link>
+                <Link href="/" className="hover:opacity-80 transition-opacity">
+                    <img src="/branding/main-logo.png" alt="Logo" className="h-16 w-auto object-contain" />
+                </Link>
                 <Link href="/login" className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-2">
                     <span>تسجيل دخول منصة الطلاب؟</span>
                     <span className="text-[#D4A843] font-bold">هنا</span>
@@ -131,8 +139,11 @@ export default function AdminLoginPage() {
                 </div>
             </main>
 
-            <footer className="absolute bottom-4 text-center w-full text-xs text-white/40 z-10">
-                {'2026 '}{t.appName}{'. '}{t.footer.rights}
+            <footer className="absolute bottom-4 text-center w-full z-10 flex flex-col items-center gap-2">
+                <img src="/branding/main-logo.png" alt="Itqan" className="h-10 w-auto opacity-30 grayscale brightness-200" />
+                <p className="text-xs text-white/20">
+                    {'2026 '}{t.appName}{'. '}{t.footer.rights}
+                </p>
             </footer>
         </div>
     )

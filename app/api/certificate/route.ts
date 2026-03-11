@@ -25,7 +25,9 @@ export async function GET(req: NextRequest) {
   let enhancedCertificate = certificate ? { ...certificate } : null;
 
   if (enhancedCertificate && enhancedCertificate.certificate_issued) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (req.headers.get("host") ? `http://${req.headers.get("host")}` : "");
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const host = req.headers.get("host");
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (host ? `${protocol}://${host}` : "");
     enhancedCertificate.certificate_url = `${baseUrl}/c/${session.sub}`;
   }
 
@@ -70,20 +72,32 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { university, college, city, entity_id } = await req.json()
+  const { university, college, city, entity_id, entity_other, phone, age } = await req.json()
 
   // Upsert certificate data
   const result = await query(
-    `INSERT INTO certificate_data (student_id, university, college, city, entity_id)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO certificate_data (student_id, university, college, city, entity_id, entity_other, phone, age)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      ON CONFLICT (student_id) DO UPDATE SET
        university = COALESCE($2, certificate_data.university),
        college = COALESCE($3, certificate_data.college),
        city = COALESCE($4, certificate_data.city),
        entity_id = COALESCE($5, certificate_data.entity_id),
+       entity_other = COALESCE($6, certificate_data.entity_other),
+       phone = COALESCE($7, certificate_data.phone),
+       age = COALESCE($8, certificate_data.age),
        updated_at = NOW()
      RETURNING *`,
-    [session.sub, university || null, college || null, city || null, entity_id || null]
+    [
+      session.sub,
+      university || null,
+      college || null,
+      city || null,
+      entity_id || null,
+      entity_other || null,
+      phone || null,
+      age ? parseInt(age.toString()) : null
+    ]
   )
 
   return NextResponse.json({ certificate: result[0] }, { status: 201 })

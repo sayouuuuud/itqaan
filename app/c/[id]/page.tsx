@@ -10,6 +10,7 @@ type CertificateData = {
     city: string
     issued_date: string
     platform_seal_url?: string
+    certificate_pdf_url?: string
 }
 
 export default function PublicCertificatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -181,6 +182,21 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                     </div>
                 </div>
             </div>
+
+            {/* Floating Action Button for Download (Desktop/Mobile) */}
+            {cert.certificate_pdf_url && (
+                <div className="fixed bottom-8 right-8 flex flex-col gap-3 print:hidden transition-all transform hover:scale-105">
+                    <a
+                        href={cert.certificate_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 bg-[#1B5E3B] text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:bg-[#124028] transition-all"
+                    >
+                        <Download className="w-6 h-6" />
+                        <span>{isAr ? "تحميل الشهادة (PDF)" : "Download Certificate (PDF)"}</span>
+                    </a>
+                </div>
+            )}
 
             <style jsx global>{`
         @media print {

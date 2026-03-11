@@ -20,8 +20,12 @@ export async function GET(req: NextRequest) {
     const params: unknown[] = []
 
     if (role) {
-      params.push(role)
-      whereClause += ` AND u.role = $${params.length}`
+      if (role === 'supervisors') {
+        whereClause += ` AND u.role IN ('student_supervisor', 'reciter_supervisor')`
+      } else {
+        params.push(role)
+        whereClause += ` AND u.role = $${params.length}`
+      }
     }
 
     if (search) {

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       name: string
       email: string
       password_hash: string
-      role: "student" | "reader" | "admin"
+      role: "student" | "reader" | "admin" | "student_supervisor" | "reciter_supervisor"
       is_active: boolean
       is_locked: boolean
       failed_login_count: number
@@ -123,13 +123,14 @@ export async function POST(req: NextRequest) {
 
     if (loginType === "admin") {
       // Admin login page check
-      if (user.role !== "admin") {
+      const allowedAdminRoles = ["admin", "student_supervisor", "reciter_supervisor"];
+      if (!allowedAdminRoles.includes(user.role)) {
         return NextResponse.json(
           { error: "غير مصرح لك بالدخول كمدير" },
           { status: 403 }
         );
       }
-      activeRole = "admin";
+      activeRole = user.role;
     } else {
       // Normal login page check: Force admin to student
       if (user.role === "admin") {

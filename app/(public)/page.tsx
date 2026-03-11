@@ -333,8 +333,14 @@ export default function LandingPage() {
       {/* ========== FOOTER ========== */}
       <footer className="py-8 px-4 bg-[#082A1F] border-t border-white/[0.06]">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <h3 className="text-2xl font-bold text-[#D4A843]">{t.appName}</h3>
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <Link href="/">
+              <img 
+                src="/branding/main-logo.png" 
+                alt={t.appName} 
+                className="h-20 w-auto object-contain" 
+              />
+            </Link>
             <p className="text-white/30 text-sm max-w-xs text-center md:text-right">
               {t.footer.desc}
             </p>

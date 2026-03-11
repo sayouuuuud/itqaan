@@ -112,6 +112,14 @@ function StudentChatInner() {
                     const d = await r.json()
                     const convs = d.conversations || []
                     setConversations(convs)
+                    
+                    // If we have an active conversation, find its latest version in the fresh list
+                    // to prevent state-drift or resets, but only update if it actually exists there.
+                    setActiveConv(prev => {
+                        if (!prev) return null;
+                        const updated = convs.find((c: Conversation) => c.id === prev.id);
+                        return updated || prev;
+                    });
 
                     if (init) {
                         if (withReaderId) {
@@ -314,7 +322,7 @@ function StudentChatInner() {
                         {t.student.messagesTitle}
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        {t.student.chatSubtitle}
+                        {t.student.chatDescription || "يمكنك هنا قراءة الرسائل والملاحظات التي يرسلها لك المقرئ بخصوص تلاوتك."}
                     </p>
                 </div>
                 <Button
@@ -328,18 +336,26 @@ function StudentChatInner() {
 
 
             <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setActiveConv(null); setMessages([]); }} className="flex-1 min-h-0 flex flex-col">
-                <TabsList className="bg-white p-1.5 rounded-2xl mb-6 flex-wrap justify-start gap-2 border border-slate-200 shadow-sm inline-flex">
-                    <TabsTrigger value="messages" className="rounded-xl font-bold gap-2 px-6 py-2.5 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm">
-                        <MessageSquare className="w-4 h-4" />
-                        {t.student.messagesTitle || (isAr ? "المحادثات" : "Messages")}
-                    </TabsTrigger>
-                    <TabsTrigger value="tickets" className="rounded-xl font-bold gap-2 px-6 py-2.5 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm">
-                        <MoreVertical className="w-4 h-4" />
-                        {isAr ? "تذاكر الدعم" : "Support Tickets"}
-                    </TabsTrigger>
-                </TabsList>
+                <div className="flex justify-end mb-6">
+                    <TabsList className="bg-white p-1 border border-slate-200 shadow-sm h-12 rounded-full overflow-hidden flex-row-reverse">
+                        <TabsTrigger 
+                            value="tickets" 
+                            className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center"
+                        >
+                            <span className="text-xl font-light opacity-50 mb-0.5">⋮</span>
+                            {isAr ? "تذاكر الدعم" : "Support Tickets"}
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="messages" 
+                            className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                            {t.student.messagesTitle || (isAr ? "الرسائل" : "Messages")}
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
-                <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 min-h-0 flex flex-col lg:flex-row-reverse gap-6">
                     {/* Conversations List */}
                     <Card className="border-slate-200 w-full lg:w-1/3 flex flex-col h-full overflow-hidden shadow-sm">
                         <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50">
@@ -356,10 +372,10 @@ function StudentChatInner() {
                                 <div className="p-8 text-center text-slate-500 flex flex-col items-center">
                                     <MessageSquare className="w-10 h-10 text-slate-300 mb-2" />
                                     <p className="font-medium text-slate-600">
-                                        {activeTab === "messages" ? t.student.noConversationsYet : (isAr ? "لا توجد تذاكر حالياً" : "No tickets yet")}
+                                        {activeTab === "messages" ? (t.student.noConversationsYet || (isAr ? "لا توجد رسائل حالياً." : "No messages currently.")) : (isAr ? "لا توجد تذاكر حالياً" : "No tickets yet")}
                                     </p>
-                                    <p className="text-xs text-slate-400 mt-1">
-                                        {activeTab === "messages" ? t.student.chatAfterBookingSubtitle : ""}
+                                    <p className="text-xs text-slate-400 mt-1 text-center">
+                                        {activeTab === "messages" ? (t.student.noMessagesDesc || (isAr ? "ستظهر هنا ملاحظات المقرئ أو أي رسائل متعلقة بتلاوتك." : "The reciter's notes or any messages related to your recitation will appear here.")) : ""}
                                     </p>
                                 </div>
                             ) : (
@@ -385,9 +401,9 @@ function StudentChatInner() {
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <div className="flex justify-between items-baseline mb-1">
+                                                    <div className="flex justify-between items-baseline mb-1 gap-2">
                                                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                                                            <p className={`text-sm truncate ${hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
+                                                            <p className={`text-sm truncate ${hasUnread ? "font-extrabold text-[#1B5E3B]" : "font-semibold text-slate-800"}`}>
                                                                 {name}
                                                             </p>
                                                             {c.is_ticket && (
@@ -397,18 +413,20 @@ function StudentChatInner() {
                                                             )}
                                                         </div>
                                                         {c.last_message_at && (
-                                                            <span className="text-[10px] text-slate-400 shrink-0 whitespace-nowrap ml-2">
-                                                                {new Date(c.last_message_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                                                            <span className="text-[10px] text-slate-400 shrink-0 whitespace-nowrap">
+                                                                {new Date(c.last_message_at).toLocaleDateString(isAr ? "ar-SA" : "en-US", { day: 'numeric', month: 'short' })}
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className={`text-xs truncate ${hasUnread ? "font-medium text-slate-700" : "text-slate-500"}`}>
-                                                        {c.last_message_preview || t.student.startConversationMsg}
-                                                    </p>
+                                                    <div className="flex justify-between items-center gap-2">
+                                                        <p className={`text-xs truncate ${hasUnread ? "font-bold text-slate-900" : "text-slate-500"}`}>
+                                                            {c.last_message_preview || t.student.startConversationMsg}
+                                                        </p>
+                                                        {hasUnread && (
+                                                            <span className="shrink-0 w-2 h-2 rounded-full bg-red-500 flex animate-pulse" />
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                {hasUnread && (
-                                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#C9A227]" />
-                                                )}
                                             </button>
                                         )
                                     })}
@@ -454,16 +472,21 @@ function StudentChatInner() {
                                     </Button>
                                 </CardHeader>
 
-                                {/* Messages */}
-                                <CardContent className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50 space-y-4 border-t border-b border-transparent">
+                                <CardContent className="flex-1 overflow-y-auto p-5 space-y-6">
+                                    {/* Messages */}
                                     {loadingMsgs ? (
                                         <div className="h-full flex items-center justify-center">
                                             <Loader2 className="w-6 h-6 animate-spin text-[#1B5E3B]" />
                                         </div>
                                     ) : messages.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                                            <BookOpen className="w-12 h-12 text-slate-200 mb-3 opacity-50" />
-                                            <p>{t.student.startConversationMsg}</p>
+                                            <MessageSquare className="w-12 h-12 text-slate-200 mb-3 opacity-50" />
+                                            <p className="font-medium text-slate-600">
+                                                {isAr ? "لا توجد رسائل حاليًا." : "No messages currently."}
+                                            </p>
+                                            <p className="text-xs text-slate-400 mt-1 text-center">
+                                                {isAr ? "ستظهر هنا ملاحظات المقرئ أو أي رسائل متعلقة بتلاوتك." : "The reciter's notes or any messages related to your recitation will appear here."}
+                                            </p>
                                         </div>
                                     ) : (
                                         <>
@@ -496,17 +519,50 @@ function StudentChatInner() {
                                                             </div>
                                                         )}
                                                         <div
-                                                            className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm shadow-sm ${isMe
-                                                                ? "bg-[#1B5E3B] text-white rounded-br-sm"
-                                                                : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
+                                                            className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-4 py-3 text-sm shadow-md transition-all ${isMe
+                                                                ? "bg-[#1B5E3B] text-white rounded-br-sm list-item-box-me"
+                                                                : "bg-white border border-slate-100 text-slate-800 rounded-bl-sm list-item-box-reader shadow-emerald-500/5"
                                                                 }`}
                                                         >
-                                                            {!isMe && <p className="text-[10px] font-bold mb-1.5 text-[#C9A227]">{msg.sender_role === 'admin' ? t.admin?.administration || "الإدارة" : msg.sender_name}</p>}
-                                                            <p className="whitespace-pre-wrap leading-relaxed">{msg.message_text}</p>
-                                                            <div className={`text-[10px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-slate-400"
+                                                            {!isMe && (
+                                                                <div className="flex items-center justify-between mb-1.5">
+                                                                    <p className="text-[11px] font-bold text-[#C9A227]">
+                                                                        {msg.sender_role === 'admin' ? t.admin?.administration || "الإدارة" : msg.sender_name}
+                                                                    </p>
+                                                                    <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                                                                        {new Date(msg.created_at).toLocaleDateString(isAr ? "ar-SA" : "en-US", { day: 'numeric', month: 'short' })}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            <div className="space-y-2.5">
+                                                                <p className="whitespace-pre-wrap leading-relaxed text-[14px]">{msg.message_text}</p>
+                                                                {!isMe && activeTab === "messages" && (
+                                                                    <div className="pt-2 border-t border-slate-50">
+                                                                        <h4 className="text-[9px] font-bold uppercase tracking-wider text-[#1B5E3B] mb-0.5">
+                                                                            {isAr ? "ملاحظات المقرئ" : "Reciter Notes"}
+                                                                        </h4>
+                                                                        <div className="bg-emerald-50/50 p-1.5 rounded-lg italic text-slate-600 text-[13px]">
+                                                                            {isAr ? "تأكد من تطبيق التجويد في المواضع المذكورة." : "Make sure to apply Tajweed in the mentioned places."}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-slate-400"
                                                                 }`}>
-                                                                <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-                                                                {msg.updated_at && <span className="ml-2 rtl:mr-2 rtl:ml-0 opacity-70 italic">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                                    {isMe && (
+                                                                        <span className="flex items-center">
+                                                                            {/* Simulating read status since the schema doesn't explicitly have it per message */}
+                                                                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                <path d="M4 12.89L9.11 18L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                <path d="M4 7.89L9.11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40" />
+                                                                            </svg>
+                                                                            <span className="sr-only">{isAr ? "مقروءة" : "Read"}</span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {msg.updated_at && <span className="opacity-70 italic font-medium">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -518,7 +574,7 @@ function StudentChatInner() {
                                 </CardContent>
 
                                 {/* Input */}
-                                <div className="p-4 space-y-3">
+                                <div className="p-4 border-t border-slate-100 bg-white">
                                     {currentConv.is_ticket && currentConv.ticket_status === 'closed' ? (
                                         <div className="text-center p-3 bg-slate-50 text-slate-500 rounded-xl text-sm border border-slate-200">
                                             {isAr ? "تم إغلاق هذه التذكرة. يمكنك إنشاء تذكرة جديدة إذا كان لديك استفسار آخر." : "This ticket is closed. You can create a new ticket if you have another inquiry."}
@@ -545,8 +601,8 @@ function StudentChatInner() {
                                                     placeholder={t.student.writeMessagePlaceholder || (isAr ? "اكتب رسالتك..." : "Type your message...")}
                                                     value={messageText}
                                                     onChange={(e) => setMessageText(e.target.value)}
-                                                    rows={2}
-                                                    className="resize-none border-slate-200 bg-slate-50 focus-visible:ring-[#1B5E3B]"
+                                                    rows={1}
+                                                    className="resize-none border-slate-200 bg-slate-50 focus-visible:ring-[#1B5E3B] min-h-[44px] py-2.5"
                                                     onKeyDown={(e) => {
                                                         if (e.key === "Enter" && !e.shiftKey) {
                                                             e.preventDefault()
@@ -576,7 +632,7 @@ function StudentChatInner() {
                         )}
                     </Card>
                 </div>
-            </Tabs>
+            </Tabs >
 
             <Dialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen}>
                 <DialogContent className="sm:max-w-md bg-white p-0 border-0 rounded-2xl overflow-hidden shadow-2xl">
@@ -624,6 +680,6 @@ function StudentChatInner() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }

@@ -21,7 +21,7 @@ export default function AdminUsersPage() {
   const isAr = t.locale === "ar"
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState<"students" | "readers" | "admins">("students")
+  const [activeTab, setActiveTab] = useState<"students" | "readers" | "admins" | "supervisors">("students")
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const role = activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin"
+      const role = activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : activeTab === "supervisors" ? "supervisors" : "admin"
       const res = await fetch(`/api/admin/users?role=${role}`)
       if (res.ok) {
         const data = await res.json()
@@ -188,6 +188,15 @@ export default function AdminUsersPage() {
             >
               {t.admin.admins}
             </button>
+            <button
+              onClick={() => setActiveTab("supervisors")}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "supervisors"
+                ? "bg-white text-[#1B5E3B] shadow-sm"
+                : "text-gray-500 hover:text-gray-900"
+                }`}
+            >
+              {t.admin.supervisors}
+            </button>
           </div>
           <div className="flex gap-3">
             <div className="relative hidden sm:block">
@@ -294,10 +303,20 @@ export default function AdminUsersPage() {
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           {t.auth.admin}
                         </span>
-                      ) : (
+                      ) : user.role === 'reader' ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6]" />
                           {t.auth.reader}
+                        </span>
+                      ) : user.role === 'student_supervisor' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          {t.auth.studentSupervisor}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                          {t.auth.reciterSupervisor}
                         </span>
                       )}
                     </td>
@@ -409,6 +428,8 @@ export default function AdminUsersPage() {
                 <option value="student">{t.auth.student}</option>
                 <option value="reader">{t.auth.reader}</option>
                 <option value="admin">{t.auth.admin}</option>
+                <option value="student_supervisor">{t.auth.studentSupervisor}</option>
+                <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -476,6 +497,8 @@ export default function AdminUsersPage() {
                 <option value="student">{t.auth.student}</option>
                 <option value="reader">{t.auth.reader}</option>
                 <option value="admin">{t.auth.admin}</option>
+                <option value="student_supervisor">{t.auth.studentSupervisor}</option>
+                <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
               </select>
             </div>
             <div className="space-y-2">

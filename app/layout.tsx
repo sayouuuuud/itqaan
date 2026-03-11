@@ -17,7 +17,7 @@ const amiri = Amiri({
 })
 
 export const metadata: Metadata = {
-  title: 'دلال البيان التعليمية',
+  title: 'منصة إتقان التعليمية',
   description: 'منصة متكاملة لتحسين تلاوة القرآن الكريم - سجّل تلاوتك واحصل على تقييم من مقرئين معتمدين',
   generator: 'v0.app',
   icons: {

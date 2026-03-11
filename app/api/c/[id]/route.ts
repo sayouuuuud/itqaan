@@ -13,8 +13,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 city: string;
                 student_name: string;
                 issued_date: Date;
+                certificate_pdf_url: string | null;
             }>(
-                `SELECT cd.student_id, cd.certificate_issued, cd.university, cd.city, cd.updated_at as issued_date, u.name as student_name
+                `SELECT cd.student_id, cd.certificate_issued, cd.university, cd.city, cd.updated_at as issued_date, 
+                        u.name as student_name, cd.certificate_pdf_url
                  FROM certificate_data cd
                  JOIN users u ON u.id = cd.student_id
                  WHERE cd.student_id = $1`,

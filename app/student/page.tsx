@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin } from 'lucide-react'
+import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin, ExternalLink, Download } from 'lucide-react'
 
 type FatihaStatus = 'no_recitation' | 'pending' | 'in_review' | 'mastered' | 'needs_session' | 'session_booked'
 
@@ -25,6 +25,7 @@ interface CertificateInfo {
   university: string
   college: string
   city: string
+  student_id?: string
   certificate_issued: boolean
   certificate_url?: string
   certificate_pdf_url?: string
@@ -214,7 +215,7 @@ export default function StudentDashboard() {
                             <MapPin className="w-5 h-5 text-cyan-700" />
                           </div>
                           <div className="flex-1 text-right">
-                            <p className="text-sm text-cyan-600 font-medium">{t.student.cityPlaceholder}</p>
+                            <p className="text-sm text-cyan-600 font-medium">{t.student.cityLabel}</p>
                             <p className="text-base font-bold text-cyan-800">{certificate.city}</p>
                           </div>
                         </div>
@@ -244,20 +245,31 @@ export default function StudentDashboard() {
                     </div>
                   </div>
 
-                  {/* Download Button */}
-                  {certificate.certificate_issued && certificate.certificate_pdf_url && (
-                    <div className="pt-2">
+                  {/* Certificate Action Buttons */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+                    {certificate.certificate_issued && certificate.certificate_url && (
                       <a
-                        href={certificate.certificate_pdf_url}
+                        href={certificate.certificate_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/40 transform hover:scale-105"
+                        className="inline-flex items-center gap-3 bg-white border-2 border-emerald-600 text-emerald-700 font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-sm hover:bg-emerald-50 hover:shadow-md transform hover:-translate-y-0.5"
                       >
-                        <span className="text-lg">{t.student.downloadCert}</span>
-                        <ArrowLeft className="w-5 h-5" />
+                        <ExternalLink className="w-5 h-5" />
+                        <span>{t.student.digitalCertLink}</span>
                       </a>
-                    </div>
-                  )}
+                    )}
+
+                    {certificate.certificate_issued && (
+                      <a
+                        href={`/api/certificate/download?student_id=${certificate.student_id || ''}`}
+                        download
+                        className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/40 transform hover:-translate-y-0.5"
+                      >
+                        <Download className="w-5 h-5" />
+                        <span>{t.student.downloadCert}</span>
+                      </a>
+                    )}
+                  </div>
 
                   {/* Ceremony Info */}
                   {certificate.certificate_issued && certificate.ceremony_date && (

@@ -180,8 +180,11 @@ export default function RegisterPage() {
         </div>
       </main>
 
-      <footer className="absolute bottom-4 text-center w-full text-xs text-white/40 z-10">
-        {'2026 '}{t.appName}{'. '}{t.footer.rights}
+      <footer className="absolute bottom-4 text-center w-full z-10 flex flex-col items-center gap-2">
+          <img src="/branding/main-logo.png" alt="Itqan" className="h-10 w-auto opacity-30 grayscale brightness-200" />
+          <p className="text-xs text-white/20">
+              {'2026 '}{t.appName}{'. '}{t.footer.rights}
+          </p>
       </footer>
     </div>
   )

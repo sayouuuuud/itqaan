@@ -39,8 +39,8 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
   return (
     <nav className={`${isHome ? 'absolute' : 'sticky bg-[#0B3D2E] shadow-md'} top-0 left-0 right-0 z-40 transition-all duration-300`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold tracking-tighter text-[#D4A843]" style={{ textShadow: '0 0 20px rgba(212,168,67,0.3)' }}>
-          {t.appName}
+        <Link href="/" className="hover:opacity-80 transition-opacity">
+          <img src="/branding/main-logo.png" alt={t.appName} className="h-22 w-30 object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-4">

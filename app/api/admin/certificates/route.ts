@@ -181,7 +181,10 @@ export async function PUT(req: NextRequest) {
                 }
             }
 
-            const certificateUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${cert.student_id}`
+            const protocol = req.headers.get("x-forwarded-proto") || "http";
+            const host = req.headers.get("host");
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (host ? `${protocol}://${host}` : "http://localhost:3000");
+            const certificateUrl = `${baseUrl}/c/${cert.student_id}`
 
             // Generate certificate PDF
             const pdfResult = await generateCertificatePDF(cert.student_id)

@@ -19,7 +19,7 @@ import {
 type NavItem = { href: string; label: string; icon: React.ElementType; badge?: number | string | null }
 type NavSection = { title?: string; items: NavItem[] }
 
-const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin', { sections: NavSection[], label: string, name: string, sublabel: string }> => ({
+const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student_supervisor' | 'reciter_supervisor', { sections: NavSection[], label: string, name: string, sublabel: string }> => ({
   student: {
     sections: [
       {
@@ -95,14 +95,42 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin', { section
           { href: '/admin/seo', label: t.admin.seo, icon: Globe },
           { href: '/admin/security', label: t.admin.security, icon: Shield },
           { href: '/admin/backup', label: t.admin.backup, icon: Archive },
+          { href: '/admin/security', label: t.admin.security, icon: Shield },
+          { href: '/admin/backup', label: t.admin.backup, icon: Archive },
         ]
       },
     ],
     label: t.shell?.generalSupervisor, name: t.shell?.generalSupervisor, sublabel: t.shell?.generalSupervisor
   },
+  student_supervisor: {
+    sections: [
+      {
+        items: [
+          { href: '/admin', label: t.admin.dashboard, icon: LayoutDashboard },
+          { href: '/admin/users', label: t.admin.users, icon: Users },
+          { href: '/admin/recitations', label: t.admin.recitations, icon: FileText },
+          { href: '/admin/conversations', label: t.admin.conversations, icon: MessagesSquare },
+        ]
+      }
+    ],
+    label: t.auth.studentSupervisor, name: t.auth.studentSupervisor, sublabel: t.auth.studentSupervisor
+  },
+  reciter_supervisor: {
+    sections: [
+      {
+        items: [
+          { href: '/admin', label: t.admin.dashboard, icon: LayoutDashboard },
+          { href: '/admin/readers', label: t.admin.readers, icon: BookOpen },
+          { href: '/admin/reader-applications', label: t.admin.readerApplications, icon: UserCheck },
+          { href: '/admin/recitations', label: t.admin.recitations, icon: FileText },
+        ]
+      }
+    ],
+    label: t.auth.reciterSupervisor, name: t.auth.reciterSupervisor, sublabel: t.auth.reciterSupervisor
+  }
 })
 
-export function DashboardShell({ role, children, headerTitle }: { role: 'student' | 'reader' | 'admin'; children: React.ReactNode; headerTitle?: string }) {
+export function DashboardShell({ role, children, headerTitle }: { role: 'student' | 'reader' | 'admin' | 'student_supervisor' | 'reciter_supervisor'; children: React.ReactNode; headerTitle?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -189,16 +217,15 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         sidebarOpen ? 'translate-x-0' : 'translate-x-full',
         sidebarBase
       )}>
-        <div className="p-6 flex items-center gap-3 border-b border-gray-100">
-          {role === 'admin' ? (
-            <>
-              <div className="w-11 h-11 shrink-0 bg-white shadow-sm rounded-md p-1">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
-              </div>
-              <span className="font-bold text-2xl text-slate-700">{t.shell.sidebarTitle}</span>
-            </>
-          ) : null}
-          <button className="lg:hidden mr-auto p-1" onClick={() => setSidebarOpen(false)} aria-label="close">
+        <div className="w-full flex items-center border-b border-gray-100">
+          <Link href="/" className="w-full">
+            <img 
+              src="/branding/dashboard-logo.png" 
+              alt="Itqan Dashboard Logo" 
+              className="w-full h-auto object-cover" 
+            />
+          </Link>
+          <button className="lg:hidden absolute left-4 p-1" onClick={() => setSidebarOpen(false)} aria-label="close">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -237,15 +264,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
 
         {/* Bottom section */}
         <div className="p-4 border-t border-gray-100">
-          <div
-            className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 hover:bg-gray-50 bg-slate-50 border border-slate-100 cursor-pointer transition-colors"
-            onClick={async () => {
-              const res = await fetch('/api/auth/logout', { method: 'POST' });
-              if (res.ok) {
-                window.location.href = role === 'admin' ? '/login-admin' : '/login';
-              }
-            }}
-          >
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 bg-slate-50 border border-slate-100 transition-colors">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 text-[#0B3D2E] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm shrink-0">
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
@@ -257,20 +276,6 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
               <p className="text-sm font-bold text-slate-800 truncate">{config.name}</p>
               <p className="text-xs text-slate-500 truncate">{config.sublabel}</p>
             </div>
-            <button
-              type="button"
-              title="تسجيل الخروج"
-              className="p-1 hover:bg-gray-200 rounded-md transition-colors"
-              onClick={async (e) => {
-                e.stopPropagation();
-                const res = await fetch('/api/auth/logout', { method: 'POST' });
-                if (res.ok) {
-                  window.location.href = role === 'admin' ? '/login-admin' : '/login';
-                }
-              }}
-            >
-              <LogOut className="w-4 h-4 text-gray-500 hover:text-red-500 transition-colors" />
-            </button>
           </div>
 
           <Link href="/" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm text-slate-500 hover:text-[#0B3D2E]">
@@ -314,18 +319,17 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
 
             <button
               onClick={async () => {
-                const res = await fetch('/api/auth/logout', { method: 'POST' });
-                if (res.ok) {
-                  window.location.href = role === 'admin' ? '/login-admin' : '/login';
-                }
+                await fetch('/api/auth/logout', { method: 'POST' })
+                router.push('/')
+                router.refresh()
               }}
-              className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-              title="تسجيل الخروج"
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              title={t.logout}
             >
               <LogOut className="w-5 h-5" />
             </button>
 
-                      </div>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">

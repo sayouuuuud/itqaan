@@ -17,9 +17,15 @@ export default function CertificatePage() {
 
   const [formData, setFormData] = useState({
     university: "",
+    university_other: "",
     college: "",
+    college_other: "",
     city: "",
-    entity_id: ""
+    city_other: "",
+    entity_id: "",
+    entity_other: "",
+    phone: "",
+    age: ""
   })
 
   const [universities, setUniversities] = useState<string[]>([])
@@ -38,12 +44,31 @@ export default function CertificatePage() {
           }
           if (data.certificate) {
             console.log('Certificate data found:', data.certificate)
-            console.log('Certificate issued status:', data.certificate.certificate_issued)
+            const predefinedUniversities = data.universities || t.student.universities || []
+            const predefinedColleges = ["كلية الشريعة", "كلية الطب", "كلية الهندسة", "كلية علوم الحاسب"]
+            const predefinedCities = ["الرياض", "جدة", "مكة المكرمة", "المدينة المنورة", "الدمام"]
+
+            const dbUniv = data.certificate.university || ""
+            const dbColl = data.certificate.college || ""
+            const dbCity = data.certificate.city || ""
+            const dbEntityId = data.certificate.entity_id || ""
+            const dbEntityOther = data.certificate.entity_other || ""
+
+            const isUnivOther = dbUniv && !predefinedUniversities.includes(dbUniv)
+            const isCollOther = dbColl && !predefinedColleges.includes(dbColl)
+            const isCityOther = dbCity && !predefinedCities.includes(dbCity)
+
             setFormData({
-              university: data.certificate.university || "",
-              college: data.certificate.college || "",
-              city: data.certificate.city || "",
-              entity_id: data.certificate.entity_id || ""
+              university: isUnivOther ? "أخرى" : dbUniv,
+              university_other: isUnivOther ? dbUniv : "",
+              college: isCollOther ? "أخرى" : dbColl,
+              college_other: isCollOther ? dbColl : "",
+              city: isCityOther ? "أخرى" : dbCity,
+              city_other: isCityOther ? dbCity : "",
+              entity_id: dbEntityId ? dbEntityId : (dbEntityOther ? "other" : ""),
+              entity_other: dbEntityOther,
+              phone: data.certificate.phone || "",
+              age: data.certificate.age ? data.certificate.age.toString() : ""
             })
             if (data.universities) setUniversities(data.universities)
             if (data.entities) setEntities(data.entities)
@@ -85,10 +110,20 @@ export default function CertificatePage() {
     setError("")
 
     try {
+      const payload = {
+        university: formData.university === 'أخرى' ? formData.university_other : formData.university,
+        college: formData.college === 'أخرى' ? formData.college_other : formData.college,
+        city: formData.city === 'أخرى' ? formData.city_other : formData.city,
+        entity_id: formData.entity_id === 'other' ? null : formData.entity_id,
+        entity_other: formData.entity_id === 'other' ? formData.entity_other : null,
+        phone: formData.phone,
+        age: formData.age
+      }
+
       const res = await fetch("/api/certificate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       })
 
       if (res.ok) {
@@ -113,149 +148,335 @@ export default function CertificatePage() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/student" className="hover:text-[#1B5E3B] transition-colors">{t.student.dashboard}</Link>
-        <ChevronLeft className="w-3 h-3 rotate-180" />
-        <span className="text-slate-800 font-medium">{t.student.certificate}</span>
+    <div className="relative min-h-screen -mt-10 pt-10 px-4">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] bg-[#C9A227]/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[20%] -left-[10%] w-[30%] h-[30%] bg-[#1B5E3B]/5 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/pinstripe.png')] opacity-[0.03]" />
       </div>
 
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-[#C9A227]/10 rounded-xl">
-          <Award className="w-8 h-8 text-[#C9A227]" />
+      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+          <Link href="/student" className="hover:text-[#1B5E3B] transition-colors">{t.student.dashboard}</Link>
+          <ChevronLeft className="w-3 h-3 rotate-180" />
+          <span className="text-[#1B5E3B] opacity-80">{t.student.certificate}</span>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800">{t.student.certificateTitle}</h1>
-          <p className="text-slate-500">{t.student.issueCertificateDesc}</p>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        {success ? (
-          <div className="p-12 text-center space-y-4">
-            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Award className="w-10 h-10 text-emerald-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800">{t.student.certificateSuccessTitle}</h2>
-            <p className="text-slate-500 max-w-md mx-auto">
-              {t.student.certificateSuccessDesc}
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-right">
+          <div className="relative p-5 bg-gradient-to-br from-[#C9A227] to-[#A6841E] rounded-3xl shadow-xl shadow-[#C9A227]/20 transform hover:scale-110 transition-transform duration-500">
+            <Award className="w-10 h-10 text-white" />
+            <div className="absolute -inset-1 bg-white/20 rounded-3xl blur-md -z-10 animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              {t.student.certificateTitle}
+            </h1>
+            <p className="text-slate-500 text-lg mt-2 font-medium">
+              {t.student.issueCertificateDesc}
             </p>
-            <div className="pt-6">
-              <Link href="/student" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3 px-8 rounded-xl transition-colors">
-                {t.student.backToDashboard}
-                <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-              </Link>
+          </div>
+        </div>
+
+        <div className="relative group">
+          {/* Glass Card Container */}
+          <div className="absolute -inset-[1px] bg-gradient-to-br from-white/40 to-transparent rounded-[2.5rem] blur-[1px] -z-10" />
+          <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] overflow-hidden">
+
+            {success ? (
+              <div className="p-16 text-center animate-in zoom-in-95 duration-500">
+                <div className="relative w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                  <Award className="w-12 h-12 text-emerald-600 animate-bounce" />
+                  <div className="absolute inset-0 rounded-full border-4 border-emerald-100 animate-ping" />
+                </div>
+                <h2 className="text-3xl font-black text-slate-800 mb-4">{t.student.certificateSuccessTitle}</h2>
+                <p className="text-slate-500 text-lg max-w-sm mx-auto leading-relaxed">
+                  {t.student.certificateSuccessDesc}
+                </p>
+                <div className="pt-10">
+                  <Link href="/student" className="inline-flex items-center gap-3 bg-gradient-to-r from-[#1B5E3B] to-[#2D8C5B] hover:from-[#124028] hover:to-[#1B5E3B] text-white font-bold py-4 px-10 rounded-2xl transition-all shadow-lg shadow-[#1B5E3B]/20 hover:shadow-xl hover:-translate-y-1">
+                    {t.student.backToDashboard}
+                    <ArrowLeft className="w-5 h-5 rtl:rotate-180" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10">
+                {error && (
+                  <div className="bg-red-50/80 backdrop-blur-sm text-red-700 p-5 rounded-2xl text-sm border border-red-100 flex items-center gap-3 animate-shake">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    {error}
+                  </div>
+                )}
+
+                <div className="bg-[#1B5E3B]/5 p-5 rounded-2xl border border-[#1B5E3B]/10 flex items-start gap-4">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <Info className="w-5 h-5 text-[#1B5E3B]" />
+                  </div>
+                  <p className="text-sm text-[#1B5E3B] font-medium leading-relaxed">
+                    {t.student.certificateHint || "يرجى التأكد من صحة البيانات المدخلة، حيث سيتم طباعتها على الشهادة الرسمية الخاصة بك."}
+                  </p>
+                </div>
+
+                <div className="space-y-12">
+                  {/* Academic Info Group */}
+                  <section className="space-y-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
+                      <h2 className="text-xl font-bold text-slate-800">{isAr ? "البيانات الأكاديمية" : "Academic Information"}</h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                      {/* University */}
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-slate-600 px-1 uppercase tracking-wide">{t.student.universityLabel}</label>
+                        <div className="relative group/field">
+                          <Building className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <select
+                            name="university"
+                            value={formData.university}
+                            onChange={handleChange}
+                            required
+                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                          >
+                            <option value="">{t.student.selectUniversity}</option>
+                            {universities.length > 0 ? universities.map((u) => (
+                              <option key={u} value={u}>{u}</option>
+                            )) : t.student.universities.map((u: string) => (
+                              <option key={u} value={u}>{u}</option>
+                            ))}
+                            <option value="أخرى">{t.student.other}</option>
+                          </select>
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <ChevronLeft className="w-4 h-4 -rotate-90" />
+                          </div>
+                        </div>
+                        {formData.university === 'أخرى' && (
+                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
+                            <input
+                              type="text"
+                              name="university_other"
+                              value={formData.university_other}
+                              onChange={handleChange}
+                              placeholder={t.student.otherPlaceholder}
+                              required
+                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* College / Major */}
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-slate-600 px-1 uppercase tracking-wide">{t.student.collegeLabel}</label>
+                        <div className="relative group/field">
+                          <FileText className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <select
+                            name="college"
+                            value={formData.college}
+                            onChange={handleChange}
+                            required
+                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                          >
+                            <option value="">{t.student.collegePlaceholder}</option>
+                            <option value="كلية الشريعة">كلية الشريعة</option>
+                            <option value="كلية الطب">كلية الطب</option>
+                            <option value="كلية الهندسة">كلية الهندسة</option>
+                            <option value="كلية علوم الحاسب">كلية علوم الحاسب</option>
+                            <option value="أخرى">{t.student.other}</option>
+                          </select>
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <ChevronLeft className="w-4 h-4 -rotate-90" />
+                          </div>
+                        </div>
+                        {formData.college === 'أخرى' && (
+                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
+                            <input
+                              type="text"
+                              name="college_other"
+                              value={formData.college_other}
+                              onChange={handleChange}
+                              placeholder={t.student.otherPlaceholder}
+                              required
+                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Personal & Residency Group */}
+                  <section className="space-y-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-1.5 h-6 bg-[#1B5E3B] rounded-full" />
+                      <h2 className="text-xl font-bold text-slate-800">{isAr ? "بيانات السكن والتواصل" : "Residency & Contact"}</h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                      {/* City */}
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-slate-600 px-1 uppercase tracking-wide">{t.student.cityLabel}</label>
+                        <div className="relative group/field">
+                          <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <select
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            required
+                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                          >
+                            <option value="">{t.student.cityPlaceholder}</option>
+                            <option value="الرياض">الرياض</option>
+                            <option value="جدة">جدة</option>
+                            <option value="مكة المكرمة">مكة المكرمة</option>
+                            <option value="المدينة المنورة">المدينة المنورة</option>
+                            <option value="الدمام">الدمام</option>
+                            <option value="أخرى">{t.student.other}</option>
+                          </select>
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <ChevronLeft className="w-4 h-4 -rotate-90" />
+                          </div>
+                        </div>
+                        {formData.city === 'أخرى' && (
+                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
+                            <input
+                              type="text"
+                              name="city_other"
+                              value={formData.city_other}
+                              onChange={handleChange}
+                              placeholder={t.student.otherPlaceholder}
+                              required
+                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Mobile Number */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-end px-1">
+                          <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide">{t.student.mobileLabel}</label>
+                          <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
+                        </div>
+                        <div className="relative group/field">
+                          <User className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder="05xxxxxxxx"
+                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm text-left font-medium"
+                            dir="ltr"
+                          />
+                        </div>
+                        <p className="text-[10px] text-slate-400 px-1 font-medium">{t.student.mobilePurpose}</p>
+                      </div>
+
+                      {/* Age */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-end px-1">
+                          <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide">{t.student.ageLabel}</label>
+                          <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
+                        </div>
+                        <div className="relative group/field">
+                          <Info className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <input
+                            type="number"
+                            name="age"
+                            value={formData.age}
+                            onChange={handleChange}
+                            placeholder="25"
+                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm font-medium"
+                          />
+                        </div>
+                        <p className="text-[10px] text-slate-400 px-1 font-medium">{t.student.agePurpose}</p>
+                      </div>
+
+                      {/* Authorized Entity */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-end px-1">
+                          <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide">{isAr ? "الجهة المعتمدة" : "Authorized Entity"}</label>
+                          <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
+                        </div>
+                        <div className="relative group/field">
+                          <Building className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <select
+                            name="entity_id"
+                            value={formData.entity_id}
+                            onChange={handleChange}
+                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                          >
+                            <option value="">{isAr ? "اختر الجهة" : "Select Entity"}</option>
+                            {entities.map((e) => (
+                              <option key={e.id} value={e.id}>{e.name}</option>
+                            ))}
+                            <option value="other">{t.student.other}</option>
+                          </select>
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <ChevronLeft className="w-4 h-4 -rotate-90" />
+                          </div>
+                        </div>
+                        {formData.entity_id === 'other' && (
+                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
+                            <input
+                              type="text"
+                              name="entity_other"
+                              value={formData.entity_other}
+                              onChange={handleChange}
+                              placeholder={t.student.otherPlaceholder}
+                              required
+                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                </div>
+
+                {/* Submit Button Section */}
+                <div className="pt-10 border-t border-slate-100 flex flex-col items-center">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="group relative w-full md:w-80 flex justify-center items-center gap-3 py-5 px-8 rounded-2xl shadow-[0_20px_40px_-10px_rgba(201,162,39,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(201,162,39,0.4)] text-white bg-gradient-to-r from-[#C9A227] to-[#A6841E] focus:outline-none focus:ring-4 focus:ring-[#C9A227]/20 font-black text-lg transition-all disabled:opacity-50 overflow-hidden active:scale-95"
+                  >
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {submitting ? (
+                      <><Loader2 className="w-6 h-6 animate-spin" /> {t.student.savingData}</>
+                    ) : (
+                      <>{t.student.saveData} <ArrowLeft className="w-5 h-5 rtl:rotate-180 group-hover:-translate-x-1 transition-transform" /></>
+                    )}
+                  </button>
+                  <p className="mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                    {isAr ? "جميع البيانات سيتم مراجعتها قبل الإصدار" : "All data will be reviewed before issuance"}
+                  </p>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* Support Section */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-8 bg-slate-900 rounded-[2rem] text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A227]/10 blur-[50px] rounded-full" />
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-12 h-12 bg-[#C9A227]/20 rounded-xl flex items-center justify-center">
+              < Award className="w-6 h-6 text-[#C9A227]" />
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">{isAr ? "هل لديك استفسار؟" : "Have a question?"}</h4>
+              <p className="text-slate-400 text-sm">{isAr ? "تواصل مع الدعم الفني للمنصة." : "Contact our support team."}</p>
             </div>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
-            {error && (
-              <div className="bg-red-50 text-red-700 p-4 rounded-xl text-sm mb-6 border border-red-200">
-                {error}
-              </div>
-            )}
-
-            <div className="bg-[#1B5E3B]/5 p-4 rounded-xl border border-[#1B5E3B]/10 flex items-start gap-3 mb-6">
-              <Info className="w-5 h-5 text-[#1B5E3B] shrink-0 mt-0.5" />
-              <p className="text-sm text-[#1B5E3B]/80">
-                {t.student.certificateHint || t.student.issueCertificateDesc}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* University */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t.student.universityLabel}</label>
-                <div className="relative">
-                  <Building className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <select
-                    name="university"
-                    value={formData.university}
-                    onChange={handleChange}
-                    required
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm appearance-none"
-                  >
-                    <option value="">{t.student.selectUniversity}</option>
-                    {universities.length > 0 ? universities.map((u) => (
-                      <option key={u} value={u}>{u}</option>
-                    )) : t.student.universities.map((u: string) => (
-                      <option key={u} value={u}>{u}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* College / Major */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t.student.collegeLabel}</label>
-                <div className="relative">
-                  <FileText className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="college"
-                    value={formData.college}
-                    onChange={handleChange}
-                    placeholder={t.student.collegePlaceholder}
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* City */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t.student.cityLabel || t.student.city}</label>
-                <div className="relative">
-                  <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                    placeholder={t.student.cityPlaceholder}
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Authorized Entity */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{isAr ? "الجهة المعتمدة (اختياري)" : "Authorized Entity (Optional)"}</label>
-                <div className="relative">
-                  <Building className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <select
-                    name="entity_id"
-                    value={formData.entity_id}
-                    onChange={handleChange}
-                    className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] focus:border-transparent text-sm appearance-none"
-                  >
-                    <option value="">{isAr ? "اختر الجهة (اختياري)" : "Select Entity (Optional)"}</option>
-                    {entities.map((e) => (
-                      <option key={e.id} value={e.id}>{e.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Submit Button Section */}
-              <div className="md:col-span-2 pt-6 border-t border-slate-100">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#C9A227]/20 text-white bg-[#C9A227] hover:bg-[#A6841E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C9A227] font-bold transition-all disabled:opacity-50"
-                >
-                  {submitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> {t.student.savingData}</>
-                  ) : (
-                    <>{t.student.saveData} <ArrowLeft className="w-5 h-5 rtl:rotate-180" /></>
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
+          <Link href="/support" className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-all relative z-10 backdrop-blur-md border border-white/10">
+            {isAr ? "الدعم الفني" : "Technical Support"}
+          </Link>
+        </div>
       </div>
     </div>
   )

@@ -111,7 +111,9 @@ export default function ReaderRegisterPage() {
 
       {/* Nav */}
       <nav className="w-full p-6 flex justify-between items-center z-20 max-w-7xl mx-auto">
-        <Link href="/" className="text-3xl font-bold tracking-tighter text-[#D4A843] hover:opacity-80 transition-opacity">{t.appName}</Link>
+        <Link href="/" className="hover:opacity-80 transition-opacity">
+          <img src="/branding/main-logo.png" alt="Logo" className="h-16 w-auto object-contain" />
+        </Link>
         <Link href="/login" className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-2">
           <span>{t.readerRegister.hasAccount}</span>
           <span className="text-[#D4A843] font-bold">{t.login}</span>
@@ -300,8 +302,11 @@ export default function ReaderRegisterPage() {
         </div>
       </main>
 
-      <footer className="relative z-10 py-4 text-center w-full text-xs text-white/40">
-        {'2026 '}{t.appName}{'. '}{t.footer.rights}
+      <footer className="relative z-10 py-4 text-center w-full flex flex-col items-center gap-2">
+        <img src="/branding/main-logo.png" alt="Itqan" className="h-10 w-auto opacity-30 grayscale brightness-200" />
+        <p className="text-xs text-white/20">
+          {'2026 '}{t.appName}{'. '}{t.footer.rights}
+        </p>
       </footer>
     </div>
   )

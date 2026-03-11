@@ -402,6 +402,13 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                 const convs: Conversation[] = d.conversations || []
                 setConversations(convs)
 
+                // Stabilize active conversation state
+                setActiveConv(prev => {
+                    if (!prev) return null;
+                    const updated = convs.find(c => c.id === prev.id);
+                    return updated || prev;
+                });
+
                 if (!didInit.current && initialUserId && initialUserRole) {
                     didInit.current = true
                     const existing = convs.find(c =>
@@ -572,15 +579,25 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                                     const isMe = m.sender_id === currentUserId
                                     return (
                                         <div key={m.id} className={`flex ${isMe ? "justify-start" : "justify-end"}`}>
-                                            <div className={`max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm transition-all ${isMe
-                                                ? "bg-[#1B5E3B] text-white rounded-tl-none border-none"
-                                                : "bg-white border border-gray-100 text-gray-800 rounded-tr-none"
+                                            <div className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-md transition-all ${isMe
+                                                ? "bg-[#1B5E3B] text-white rounded-br-sm border-none"
+                                                : "bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-emerald-500/5"
                                                 }`}>
                                                 {!isMe && <p className="text-[10px] font-black mb-1.5 text-emerald-600 uppercase tracking-wider">{m.sender_name}</p>}
-                                                <p className="leading-relaxed font-medium text-sm">{m.message_text}</p>
-                                                <p className={`text-[10px] mt-2 font-bold ${isMe ? "text-emerald-100/50" : "text-gray-300"}`}>
-                                                    {new Date(m.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
-                                                </p>
+                                                <p className="leading-relaxed text-[14px]">{m.message_text}</p>
+                                                <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-gray-300"}`}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span>{new Date(m.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                        {isMe && (
+                                                            <span className="flex items-center">
+                                                                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M4 12.89L9.11 18L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                    <path d="M4 7.89L9.11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40" />
+                                                                </svg>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )
@@ -604,7 +621,7 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                                 onChange={e => setText(e.target.value)}
                                 onKeyDown={e => e.key === "Enter" && sendMessage()}
                                 placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
-                                className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-right text-sm font-bold text-gray-700 focus:ring-4 focus:ring-[#1B5E3B]/5 focus:border-[#1B5E3B]/20 focus:bg-white outline-none placeholder:text-gray-300 transition-all"
+                                className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-2.5 h-12 text-right text-sm font-bold text-gray-700 focus:ring-4 focus:ring-[#1B5E3B]/5 focus:border-[#1B5E3B]/20 focus:bg-white outline-none placeholder:text-gray-300 transition-all shadow-inner"
                             />
                         </div>
                     </>

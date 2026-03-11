@@ -71,8 +71,8 @@ export default function LoginPage() {
 
       {/* Nav */}
       <nav className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 max-w-7xl mx-auto w-full">
-        <Link href="/" className="w-16 h-16 pd overflow-hidden hover:opacity-80 transition-opacity">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+        <Link href="/" className="hover:opacity-80 transition-opacity">
+          <img src="/branding/main-logo.png" alt="Logo" className="h-16 w-auto object-contain" />
         </Link>
         <Link href="/register" className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-2">
           <span>{t.auth.noAccount}</span>
@@ -132,8 +132,11 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <footer className="absolute bottom-4 text-center w-full text-xs text-white/40 z-10">
-        {'2026 '}{t.appName}{'. '}{t.footer.rights}
+      <footer className="absolute bottom-4 text-center w-full z-10 flex flex-col items-center gap-2">
+        <img src="/branding/main-logo.png" alt="Itqan" className="h-10 w-auto opacity-30 grayscale brightness-200" />
+        <p className="text-xs text-white/20">
+          {'2026 '}{t.appName}{'. '}{t.footer.rights}
+        </p>
       </footer>
     </div>
   )

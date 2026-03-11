@@ -67,7 +67,14 @@ export default function ReaderChatPage() {
         const res = await fetch("/api/conversations")
         if (res.ok) {
           const data = await res.json()
-          setConversations(data.conversations || [])
+          const convs = data.conversations || []
+          setConversations(convs)
+
+          // Prevent active chat from closing/resetting by stabilizing its state
+          if (selectedConvId) {
+            const stillExists = convs.find((c: Conversation) => c.id === selectedConvId)
+            // If it doesn't exist anymore (e.g. deleted), we reset, otherwise we leave it
+          }
         }
       } catch (err) {
         console.error(err)
@@ -274,18 +281,20 @@ export default function ReaderChatPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); setSelectedConvId(null) }} className="flex-1 min-h-0 flex flex-col space-y-4">
-        <TabsList className="bg-white p-1.5 rounded-2xl flex-wrap justify-start gap-2 border border-slate-100 shadow-sm inline-flex w-fit shrink-0">
-          <TabsTrigger value="messages" className="rounded-xl font-bold gap-2 px-6 py-2.5 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-            <MessagesSquare className="w-4 h-4" />
-            {isAr ? "رسائل الطلاب" : "Student Messages"}
-          </TabsTrigger>
-          <TabsTrigger value="tickets" className="rounded-xl font-bold gap-2 px-6 py-2.5 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-            <Shield className="w-4 h-4" />
-            {isAr ? "تذاكر الدعم" : "Support Tickets"}
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-end shrink-0">
+          <TabsList className="bg-white p-1 border border-slate-200 shadow-sm h-12 rounded-full overflow-hidden flex-row-reverse">
+            <TabsTrigger value="tickets" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
+              <Shield className="w-4 h-4" />
+              {isAr ? "تذاكر الدعم" : "Support Tickets"}
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
+              <MessagesSquare className="w-4 h-4" />
+              {isAr ? "رسائل الطلاب" : "Student Messages"}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row-reverse gap-6">
           {/* Conversations List */}
           <Card className="border-slate-200 w-full lg:w-1/3 flex flex-col h-full overflow-hidden shadow-sm shrink-0">
             <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50">
@@ -441,21 +450,31 @@ export default function ReaderChatPage() {
                               </div>
                             )}
                             <div
-                              className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm shadow-sm ${isMe
-                                ? "bg-[#1B5E3B] text-white rounded-br-sm"
-                                : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
-                                }`}
-                            >
-                              {!isMe && currentConv.is_ticket && (
-                                <p className="text-[10px] font-black mb-1.5 text-blue-600 uppercase tracking-wider">{msg.sender_name}</p>
-                              )}
-                              <p className="whitespace-pre-wrap leading-relaxed">{msg.message_text}</p>
-                              <div className={`text-[10px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-slate-400"
-                                }`}>
-                                <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-                                {msg.updated_at && <span className="ml-2 rtl:mr-2 rtl:ml-0 opacity-70 italic">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
-                              </div>
-                            </div>
+                               className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-4 py-3 text-sm shadow-md transition-all ${isMe
+                                 ? "bg-[#1B5E3B] text-white rounded-br-sm"
+                                 : "bg-white border border-slate-100 text-slate-800 rounded-bl-sm shadow-emerald-500/5"
+                                 }`}
+                             >
+                               {!isMe && currentConv.is_ticket && (
+                                 <p className="text-[10px] font-black mb-1.5 text-blue-600 uppercase tracking-wider">{msg.sender_name}</p>
+                               )}
+                               <p className="whitespace-pre-wrap leading-relaxed text-[14px]">{msg.message_text}</p>
+                               <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-slate-400"
+                                 }`}>
+                                 <div className="flex items-center gap-1.5">
+                                   <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                                   {isMe && (
+                                     <span className="flex items-center">
+                                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                         <path d="M4 12.89L9.11 18L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                         <path d="M4 7.89L9.11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40" />
+                                       </svg>
+                                     </span>
+                                   )}
+                                 </div>
+                                 {msg.updated_at && <span className="opacity-70 italic font-medium">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
+                               </div>
+                             </div>
                           </div>
                         )
                       })}
@@ -504,8 +523,8 @@ export default function ReaderChatPage() {
                           placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
                           value={messageText}
                           onChange={(e) => setMessageText(e.target.value)}
-                          rows={2}
-                          className="resize-none border-slate-200 bg-slate-50 focus-visible:ring-[#1B5E3B]"
+                          rows={1}
+                          className="resize-none border-slate-200 bg-slate-50 focus-visible:ring-[#1B5E3B] min-h-[44px] py-2.5"
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                               e.preventDefault()

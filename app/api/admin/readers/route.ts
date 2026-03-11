@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getSession, requireRole } from '@/lib/auth'
 import { query } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    const allowedRoles: ("admin" | "reciter_supervisor")[] = ["admin", "reciter_supervisor"]
+    if (!requireRole(session, allowedRoles)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -64,7 +65,8 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    const allowedRoles: ("admin" | "reciter_supervisor")[] = ["admin", "reciter_supervisor"]
+    if (!requireRole(session, allowedRoles)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

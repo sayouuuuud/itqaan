@@ -8,13 +8,13 @@ export async function GET(
 ) {
     try {
         const session = await getSession()
-        if (!session || session.role !== 'admin') {
+        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+        if (!session || !allowedRoles.includes(session.role as any)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const { id: userId } = await params
 
-        // 1. Basic User Info (including phone)
         const user = await db.queryOne<any>(
             `SELECT id, name, email, phone, role, avatar_url, bio, is_active, created_at, last_login_at,
              EXISTS(
@@ -28,6 +28,14 @@ export async function GET(
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        }
+
+        // Access Control for Supervisors
+        if (session.role === 'student_supervisor' && user.role !== 'student' && user.id !== session.sub) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+        }
+        if (session.role === 'reciter_supervisor' && user.role !== 'reader' && user.id !== session.sub) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
         }
 
         // Fetch history based on user role
@@ -146,21 +154,21 @@ export async function GET(
             user,
             metrics: {
                 recitations: {
-                    daily: parseInt(dailyRec?.count || "0"),
-                    weekly: parseInt(weeklyRec?.count || "0"),
-                    monthly: parseInt(monthlyRec?.count || "0")
+                    daily: parseInt(dailyRec?.count || "0") || 0,
+                    weekly: parseInt(weeklyRec?.count || "0") || 0,
+                    monthly: parseInt(monthlyRec?.count || "0") || 0
                 },
                 sessions: {
-                    completed: parseInt(completedSessions?.count || "0"),
-                    noShow: parseInt(noShows?.count || "0"),
-                    cancelled: parseInt(cancelledSessions?.count || "0")
+                    completed: parseInt(completedSessions?.count || "0") || 0,
+                    noShow: parseInt(noShows?.count || "0") || 0,
+                    cancelled: parseInt(cancelledSessions?.count || "0") || 0
                 },
-                rating: averageRating
+                rating: averageRating || 0
             },
-            history,
-            lastSession,
+            history: history || [],
+            lastSession: lastSession || null,
             country: countryRes?.country || null,
-            activityData
+            activityData: activityData || []
         })
     } catch (err) {
         console.error(err)

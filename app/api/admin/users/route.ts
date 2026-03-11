@@ -8,7 +8,8 @@ import { logAdminAction } from "@/lib/activity-log"
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession()
-    if (!requireRole(session, ["admin"])) {
+    const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+    if (!requireRole(session, allowedRoles)) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -19,7 +20,14 @@ export async function GET(req: NextRequest) {
     let whereClause = "WHERE 1=1"
     const params: unknown[] = []
 
-    if (role) {
+    // Enforce role restrictions for supervisors
+    if (session!.role === 'student_supervisor') {
+      params.push('student')
+      whereClause += ` AND u.role = $${params.length}`
+    } else if (session!.role === 'reciter_supervisor') {
+      params.push('reader')
+      whereClause += ` AND u.role = $${params.length}`
+    } else if (role) {
       if (role === 'supervisors') {
         whereClause += ` AND u.role IN ('student_supervisor', 'reciter_supervisor')`
       } else {
@@ -60,7 +68,8 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getSession()
-    if (!requireRole(session, ["admin"])) {
+    const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+    if (!requireRole(session, allowedRoles)) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -68,6 +77,21 @@ export async function PATCH(req: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: "معرف المستخدم مطلوب" }, { status: 400 })
+    }
+
+    // Role-based validation for supervisors
+    const currentUsers = await query("SELECT role FROM users WHERE id = $1", [userId])
+    if (currentUsers.length === 0) return NextResponse.json({ error: "المستخدم غير موجود" }, { status: 404 })
+    const currentUser = currentUsers[0] as any
+
+    if (session!.role === 'student_supervisor') {
+      if (currentUser.role !== 'student' || (role && role !== 'student')) {
+        return NextResponse.json({ error: "غير مصرح لك بتعديل هذا المستخدم" }, { status: 403 })
+      }
+    } else if (session!.role === 'reciter_supervisor') {
+      if (currentUser.role !== 'reader' || (role && role !== 'reader')) {
+        return NextResponse.json({ error: "غير مصرح لك بتعديل هذا المستخدم" }, { status: 403 })
+      }
     }
 
     const updates: string[] = []
@@ -145,7 +169,8 @@ export async function PATCH(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession()
-    if (!requireRole(session, ["admin"])) {
+    const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+    if (!requireRole(session, allowedRoles)) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -153,6 +178,14 @@ export async function POST(req: NextRequest) {
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 })
+    }
+
+    // Role-based validation for supervisors
+    if (session!.role === 'student_supervisor' && role !== 'student') {
+      return NextResponse.json({ error: "مشرف الطلاب يمكنه إضافة طلاب فقط" }, { status: 403 })
+    }
+    if (session!.role === 'reciter_supervisor' && role !== 'reader') {
+      return NextResponse.json({ error: "مشرف المقرئين يمكنه إضافة مقرئين فقط" }, { status: 403 })
     }
 
     const existing = await query("SELECT id FROM users WHERE email = $1", [

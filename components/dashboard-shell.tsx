@@ -95,8 +95,6 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
           { href: '/admin/seo', label: t.admin.seo, icon: Globe },
           { href: '/admin/security', label: t.admin.security, icon: Shield },
           { href: '/admin/backup', label: t.admin.backup, icon: Archive },
-          { href: '/admin/security', label: t.admin.security, icon: Shield },
-          { href: '/admin/backup', label: t.admin.backup, icon: Archive },
         ]
       },
     ],
@@ -111,6 +109,12 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
           { href: '/admin/recitations', label: t.admin.recitations, icon: FileText },
           { href: '/admin/conversations', label: t.admin.conversations, icon: MessagesSquare },
         ]
+      },
+      {
+        title: t.shell.account,
+        items: [
+          { href: '/admin/profile', label: t.student.profile, icon: User },
+        ]
       }
     ],
     label: t.auth.studentSupervisor, name: t.auth.studentSupervisor, sublabel: t.auth.studentSupervisor
@@ -123,6 +127,13 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
           { href: '/admin/readers', label: t.admin.readers, icon: BookOpen },
           { href: '/admin/reader-applications', label: t.admin.readerApplications, icon: UserCheck },
           { href: '/admin/recitations', label: t.admin.recitations, icon: FileText },
+          { href: '/admin/conversations', label: t.admin.conversations, icon: MessagesSquare },
+        ]
+      },
+      {
+        title: t.shell.account,
+        items: [
+          { href: '/admin/profile', label: t.student.profile, icon: User },
         ]
       }
     ],

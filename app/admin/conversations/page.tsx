@@ -29,6 +29,8 @@ type Conversation = {
     last_message_at: string | null
     is_ticket?: boolean
     ticket_status?: string
+    assigned_supervisor_id?: string | null
+    supervisor_name?: string | null
 }
 
 type Message = {
@@ -640,6 +642,8 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
     const [loading, setLoading] = useState(true)
     const [loadingMsgs, setLoadingMsgs] = useState(false)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
+    const [supervisors, setSupervisors] = useState<any[]>([])
     const bottomRef = useRef<HTMLDivElement>(null)
     const pollRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -679,8 +683,33 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
             console.error(error)
         }
     }
+
+    const delegateTicket = async (id: string, supervisorId: string) => {
+        try {
+            const res = await fetch(`/api/admin/conversations`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, assigned_supervisor_id: supervisorId || null }),
+            })
+            if (res.ok) {
+                // Refresh conversations
+                const cRes = await fetch("/api/conversations")
+                const cd = await cRes.json()
+                const convs = (cd.conversations || []).filter((c: Conversation) => c.is_ticket)
+                setConversations(convs)
+                const updatedConv = convs.find((c: Conversation) => c.id === id)
+                if (updatedConv) setActiveConv(updatedConv)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
     useEffect(() => {
-        fetch("/api/auth/me").then(r => r.json()).then(d => setCurrentUserId(d.user?.id || null))
+        fetch("/api/auth/me").then(r => r.json()).then(d => {
+            setCurrentUserId(d.user?.id || null)
+            setCurrentUserRole(d.user?.role || null)
+        })
+        fetch("/api/admin/users?role=supervisors").then(r => r.json()).then(d => setSupervisors(d.users || []))
     }, [])
 
     useEffect(() => {
@@ -834,15 +863,33 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
                                     <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter mt-1">{getOtherPartyRole(activeConv)}</p>
                                 </div>
                             </div>
-                            {activeConv.ticket_status !== 'closed' && (
-                                <Button
-                                    variant="outline"
-                                    onClick={() => updateTicketStatus(activeConv.id, 'closed')}
-                                    className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-bold h-9 px-4 text-xs transition-colors shrink-0"
-                                >
-                                    {isAr ? "إغلاق التذكرة" : "Close Ticket"}
-                                </Button>
-                            )}
+
+                            <div className="flex items-center gap-3">
+                                {currentUserRole === 'admin' && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[11px] font-bold text-gray-400">{isAr ? 'تحويل إلى:' : 'Delegate to:'}</span>
+                                        <select
+                                            value={activeConv.assigned_supervisor_id || ""}
+                                            onChange={(e) => delegateTicket(activeConv.id, e.target.value)}
+                                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20"
+                                        >
+                                            <option value="">{isAr ? 'غير محول' : 'Unassigned'}</option>
+                                            {supervisors.map(s => (
+                                                <option key={s.id} value={s.id}>{s.name} ({s.role === 'student_supervisor' ? (isAr ? 'طلاب' : 'Students') : (isAr ? 'مقرئين' : 'Reciters')})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                                {activeConv.ticket_status !== 'closed' && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => updateTicketStatus(activeConv.id, 'closed')}
+                                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-bold h-9 px-4 text-xs transition-colors shrink-0"
+                                    >
+                                        {isAr ? "إغلاق التذكرة" : "Close Ticket"}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Messages */}

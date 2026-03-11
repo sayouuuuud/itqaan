@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
             queryStr += " WHERE c.reader_id = $1"
         } else if (session.role === "admin") {
             queryStr += " WHERE c.admin_id = $1 OR c.is_ticket = true"
+        } else if (session.role === "student_supervisor" || session.role === "reciter_supervisor") {
+            queryStr += " WHERE c.admin_id = $1 OR c.assigned_supervisor_id = $1"
         } else {
             return NextResponse.json({ conversations: [] })
         }

@@ -63,7 +63,7 @@ export default function LandingPage() {
             {t.landing.heroDesc}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-6 w-full justify-center">
-            <Link href="/login" className="group bg-[#D4A843] text-white hover:bg-[#C49A3A] font-bold py-4 px-10 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl shadow-[#D4A843]/20 flex items-center justify-center gap-2 min-w-[240px]">
+            <Link href="/register" className="group bg-[#D4A843] text-white hover:bg-[#C49A3A] font-bold py-4 px-10 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl shadow-[#D4A843]/20 flex items-center justify-center gap-2 min-w-[240px]">
               <span>{t.landing.startNow}</span>
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             </Link>

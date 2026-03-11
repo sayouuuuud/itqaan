@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
                 [session.sub]
             )
             messageCount = parseInt(msgRes[0]?.sum || "0")
-        } else if (session.role === "admin") {
+        } else if (session.role === "admin" || session.role === "student_supervisor" || session.role === "reciter_supervisor") {
             const msgRes = await query<{ sum: string }>(
                 `SELECT SUM(unread_count_admin) as sum FROM conversations WHERE admin_id = $1`,
                 [session.sub]

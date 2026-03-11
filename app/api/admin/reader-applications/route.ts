@@ -7,8 +7,9 @@ import { logAdminAction } from "@/lib/activity-log"
 // GET /api/admin/reader-applications
 export async function GET() {
   const session = await getSession()
-  if (!session || !requireRole(session, ["admin"])) {
-    return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+  const allowedRoles: ("admin" | "reciter_supervisor")[] = ["admin", "reciter_supervisor"]
+  if (!requireRole(session, allowedRoles)) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
   }
 
   const applications = await query(
@@ -32,8 +33,9 @@ export async function GET() {
 // PUT /api/admin/reader-applications - approve or reject
 export async function PUT(req: NextRequest) {
   const session = await getSession()
-  if (!session || !requireRole(session, ["admin"])) {
-    return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+  const allowedRoles: ("admin" | "reciter_supervisor")[] = ["admin", "reciter_supervisor"]
+  if (!requireRole(session, allowedRoles)) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
   }
 
   const { userId, action } = await req.json()
@@ -64,7 +66,7 @@ export async function PUT(req: NextRequest) {
   }
 
   await logAdminAction({
-    userId: session.sub,
+    userId: session!.sub,
     action: action === 'approve' ? 'reader_approved' : 'reader_rejected',
     entityType: 'reader',
     entityId: userId,

@@ -33,6 +33,23 @@ export default function AdminUsersPage() {
   // Form state
   const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "student", gender: "" })
   const [submitting, setSubmitting] = useState(false)
+  const [currentUserRole, setCurrentUserRole] = useState<string>("")
+
+  // Fetch current user to check role
+  useEffect(() => {
+    async function fetchMe() {
+      try {
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const data = await res.json()
+          setCurrentUserRole(data.user.role)
+        }
+      } catch (err) {
+        console.error("Failed to fetch current user", err)
+      }
+    }
+    fetchMe()
+  }, [])
 
   // Fetch users based on activeTab
   useEffect(() => {
@@ -94,7 +111,8 @@ export default function AdminUsersPage() {
       alert(t.auth.errorOccurred)
     } finally {
       setSubmitting(false)
-      setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin", gender: "" })
+      const defaultRole = currentUserRole === 'reciter_supervisor' ? 'reader' : 'student'
+      setFormData({ name: "", email: "", password: "", role: defaultRole, gender: "" })
     }
   }
 
@@ -209,7 +227,8 @@ export default function AdminUsersPage() {
               />
             </div>
             <Button size="sm" className="flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#0a3326] text-white" onClick={() => {
-              setFormData({ name: "", email: "", password: "", role: activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : "admin", gender: "" })
+              const defaultRole = currentUserRole === 'reciter_supervisor' ? 'reader' : 'student'
+              setFormData({ name: "", email: "", password: "", role: defaultRole, gender: "" })
               setIsAddUserOpen(true)
             }}>
               <UserPlus className="w-4 h-4" />
@@ -425,11 +444,19 @@ export default function AdminUsersPage() {
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="student">{t.auth.student}</option>
-                <option value="reader">{t.auth.reader}</option>
-                <option value="admin">{t.auth.admin}</option>
-                <option value="student_supervisor">{t.auth.studentSupervisor}</option>
-                <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
+                {(currentUserRole === 'admin' || currentUserRole === 'student_supervisor') && (
+                  <option value="student">{t.auth.student}</option>
+                )}
+                {(currentUserRole === 'admin' || currentUserRole === 'reciter_supervisor') && (
+                  <option value="reader">{t.auth.reader}</option>
+                )}
+                {currentUserRole === 'admin' && (
+                  <>
+                    <option value="admin">{t.auth.admin}</option>
+                    <option value="student_supervisor">{t.auth.studentSupervisor}</option>
+                    <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
+                  </>
+                )}
               </select>
             </div>
             <div className="space-y-2">
@@ -494,11 +521,19 @@ export default function AdminUsersPage() {
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="student">{t.auth.student}</option>
-                <option value="reader">{t.auth.reader}</option>
-                <option value="admin">{t.auth.admin}</option>
-                <option value="student_supervisor">{t.auth.studentSupervisor}</option>
-                <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
+                {(currentUserRole === 'admin' || currentUserRole === 'student_supervisor') && (
+                  <option value="student">{t.auth.student}</option>
+                )}
+                {(currentUserRole === 'admin' || currentUserRole === 'reciter_supervisor') && (
+                  <option value="reader">{t.auth.reader}</option>
+                )}
+                {currentUserRole === 'admin' && (
+                  <>
+                    <option value="admin">{t.auth.admin}</option>
+                    <option value="student_supervisor">{t.auth.studentSupervisor}</option>
+                    <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
+                  </>
+                )}
               </select>
             </div>
             <div className="space-y-2">

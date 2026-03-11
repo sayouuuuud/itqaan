@@ -56,8 +56,11 @@ export async function middleware(req: NextRequest) {
         if (pathname.startsWith("/reader") && role !== "reader" && role !== "admin") {
             return NextResponse.redirect(new URL("/login", req.url))
         }
-        if (pathname.startsWith("/admin") && role !== "admin") {
-            return NextResponse.redirect(new URL("/login-admin", req.url))
+        if (pathname.startsWith("/admin")) {
+            const adminRoles = ["admin", "student_supervisor", "reciter_supervisor"]
+            if (!adminRoles.includes(role)) {
+                return NextResponse.redirect(new URL("/login-admin", req.url))
+            }
         }
 
         // Add user info to headers for API routes

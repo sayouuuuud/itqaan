@@ -134,11 +134,15 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                 <div className="flex flex-col sm:flex-row items-center gap-3">
                                     <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
                                     <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 capitalize font-bold px-3 py-1 rounded-full">
-                                        {user.role === 'student' ? t.student.studentLabel || t.auth.student : t.reader.readerLabel || t.auth.reader}
+                                        {user.role === 'student' ? (t.student.studentLabel || t.auth.student) : 
+                                         user.role === 'reader' ? (t.reader.readerLabel || t.auth.reader) :
+                                         user.role === 'student_supervisor' ? (t.auth.studentSupervisor || "Student Supervisor") :
+                                         user.role === 'reciter_supervisor' ? (t.auth.reciterSupervisor || "Reciter Supervisor") :
+                                         user.role === 'admin' ? t.auth.admin : user.role}
                                     </Badge>
                                 </div>
                                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-gray-500 text-sm font-medium">
-                                    <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100"><Mail className="w-4 h-4 text-gray-400" /> {user.email}</span>
+                                    <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100"><Mail className="w-4 h-4 text-gray-400" /> {user.email || "---"}</span>
                                     {user.phone && <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100"><Phone className="w-4 h-4 text-gray-400" /> {user.phone}</span>}
                                     <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">
                                         <Calendar className="w-4 h-4 text-gray-400" />
@@ -194,7 +198,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                 <div className="flex justify-between items-center py-2 border-b border-gray-50">
                                     <span className="text-gray-500 font-medium">{t.auth.role}</span>
                                     <Badge variant="outline" className="bg-gray-50 text-gray-700 capitalize border-gray-200">
-                                        {user.role === 'student' ? t.student.studentLabel || t.auth.student : t.reader.readerLabel || t.auth.reader}
+                                        {user.role === 'student' ? (t.student.studentLabel || t.auth.student) : 
+                                         user.role === 'reader' ? (t.reader.readerLabel || t.auth.reader) :
+                                         user.role === 'student_supervisor' ? (t.auth.studentSupervisor || "Student Supervisor") :
+                                         user.role === 'reciter_supervisor' ? (t.auth.reciterSupervisor || "Reciter Supervisor") :
+                                         user.role === 'admin' ? t.auth.admin : user.role}
                                     </Badge>
                                 </div>
                                 <div className="flex justify-between items-center py-2 border-b border-gray-50">

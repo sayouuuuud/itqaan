@@ -7,12 +7,13 @@ import bcrypt from "bcryptjs"
 export async function GET() {
     try {
         const session = await getSession()
-        if (!session || !requireRole(session, ["admin"])) {
+        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+        if (!session || !allowedRoles.includes(session.role as any)) {
             return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
         }
 
         const user = await queryOne(
-            "SELECT id, name, email FROM users WHERE id = $1",
+            "SELECT id, name, email, avatar_url FROM users WHERE id = $1",
             [session.sub]
         )
 
@@ -27,11 +28,12 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
     try {
         const session = await getSession()
-        if (!session || !requireRole(session, ["admin"])) {
+        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+        if (!session || !allowedRoles.includes(session.role as any)) {
             return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
         }
 
-        const { name, email, password } = await req.json()
+        const { name, email, password, avatar_url } = await req.json()
         const adminId = session.sub
 
         const updates: string[] = []
@@ -51,6 +53,11 @@ export async function PATCH(req: NextRequest) {
             const passwordHash = await bcrypt.hash(password, 10)
             values.push(passwordHash)
             updates.push(`password_hash = $${values.length}`)
+        }
+
+        if (avatar_url !== undefined) {
+            values.push(avatar_url)
+            updates.push(`avatar_url = $${values.length}`)
         }
 
         if (updates.length === 0) {

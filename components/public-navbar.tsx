@@ -49,7 +49,10 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
           <div className="flex items-center gap-3">
             {!loading && (
               user ? (
-                <Link href={`/${user.role}`} className="text-sm font-semibold px-6 py-2.5 rounded-full transition-all bg-[#D4A843] text-white hover:bg-[#C49A3A] shadow-lg shadow-[#D4A843]/20 flex items-center gap-2">
+                <Link 
+                  href={["admin", "student_supervisor", "reciter_supervisor"].includes(user.role) ? "/admin" : `/${user.role}`} 
+                  className="text-sm font-semibold px-6 py-2.5 rounded-full transition-all bg-[#D4A843] text-white hover:bg-[#C49A3A] shadow-lg shadow-[#D4A843]/20 flex items-center gap-2"
+                >
                   {t.locale === 'ar' ? 'الدخول للحساب' : 'Go to Account'}
                   <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </Link>
@@ -81,7 +84,11 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
             <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
               {!loading && (
                 user ? (
-                  <Link href={`/${user.role}`} onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-semibold py-2.5 rounded-full bg-[#D4A843] text-white flex items-center justify-center gap-2">
+                  <Link 
+                    href={["admin", "student_supervisor", "reciter_supervisor"].includes(user.role) ? "/admin" : `/${user.role}`} 
+                    onClick={() => setMobileOpen(false)} 
+                    className="flex-1 text-center text-sm font-semibold py-2.5 rounded-full bg-[#D4A843] text-white flex items-center justify-center gap-2"
+                  >
                     {t.locale === 'ar' ? 'الدخول للحساب' : 'Go to Account'}
                     <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                   </Link>

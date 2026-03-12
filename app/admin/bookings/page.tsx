@@ -145,31 +145,28 @@ export default function AdminBookingsPage() {
             )}
 
             {/* Filters */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-wrap gap-3">
-                <div className="flex items-center gap-2 flex-1 min-w-[180px]">
-                    <Filter className="w-4 h-4 text-gray-400 shrink-0" />
-                    <select
-                        className="flex-1 h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
-                        value={filterStatus}
-                        onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
+            {/* Filter Pills */}
+            <div className="flex flex-wrap gap-2">
+                {[
+                    { key: '', label: t.admin.allSessions },
+                    { key: 'upcoming', label: t.admin.upcoming },
+                    { key: 'today', label: t.admin.today },
+                    { key: 'completed', label: t.admin.completed },
+                ].map((btn) => (
+                    <button
+                        key={btn.key}
+                        onClick={() => {
+                            setFilterStatus(btn.key)
+                            setPage(1)
+                        }}
+                        className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all border ${filterStatus === btn.key
+                            ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                            }`}
                     >
-                        {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{isAr ? o.label : o.labelEn}</option>)}
-                    </select>
-                </div>
-                <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <Input
-                        type="date"
-                        className="h-10 w-44"
-                        value={filterDate}
-                        onChange={e => { setFilterDate(e.target.value); setPage(1) }}
-                    />
-                </div>
-                {(filterStatus || filterDate) && (
-                    <Button variant="ghost" size="sm" onClick={() => { setFilterStatus(''); setFilterDate(''); setPage(1) }}>
-                        {isAr ? 'مسح الفلاتر' : 'Clear Filters'}
-                    </Button>
-                )}
+                        {btn.label}
+                    </button>
+                ))}
             </div>
 
             {/* Table */}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { query } from "@/lib/db"
+import { createNotification } from "@/lib/notifications"
 
 // GET /api/bookings/:id/comments
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -55,6 +56,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
      RETURNING *, (SELECT name FROM users WHERE id = $2) as author_name`,
     [id, session.sub, text.trim()]
   )
+
+  // Send notification to the other party
+  const recipientId = session.sub === b.student_id ? b.reader_id : b.student_id
+  const authorName = (comment[0] as any).author_name
+  const isReader = session.role === "reader"
+
+  await createNotification({
+    userId: recipientId,
+    type: "new_message", // Use general message type for comments too
+    title: isReader ? "تعليق جديد من المقرئ" : "تعليق جديد من الطالب",
+    message: `${authorName} أضاف تعليقاً جديداً على جلستك: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`,
+    category: "session",
+    link: isReader ? `/student/sessions` : `/reader/sessions`,
+    relatedBookingId: id
+  })
 
   return NextResponse.json({ comment: comment[0] })
 }

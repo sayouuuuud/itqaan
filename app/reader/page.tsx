@@ -41,9 +41,9 @@ export default function ReaderDashboard() {
       label: t.reader.pendingReviewsLabel,
       value: stats?.pendingReviews ?? 0,
       icon: ClipboardList,
-      color: "text-[#1B5E3B]",
-      bg: "bg-[#1B5E3B]/10",
-      iconBig: "text-[#1B5E3B]",
+      color: "text-[#C9A227]",
+      bg: "bg-[#C9A227]/10",
+      iconBig: "text-[#C9A227]",
       urgent: (stats?.pendingReviews ?? 0) > 0,
     },
     {
@@ -110,6 +110,15 @@ export default function ReaderDashboard() {
           )
         })}
       </div>
+
+      {/* Empty State Message */}
+      {stats?.pendingReviews === 0 && (
+        <div className="text-center py-4 bg-[#F8FAF9] rounded-2xl border border-dashed border-[#1B5E3B]/20">
+          <p className="text-[#1B5E3B]/70 font-medium">
+            {(t.reader as any).noNewRecitationsForReview}
+          </p>
+        </div>
+      )}
 
       {/* Quick Action Button */}
       <div className="flex justify-center">

@@ -81,7 +81,10 @@ export async function middleware(req: NextRequest) {
             return response
         }
 
-        const response = NextResponse.redirect(new URL("/login", req.url))
+        const isAdminRole = ["admin", "student_supervisor", "reciter_supervisor"]
+        const loginPath = isAdminRole.includes(req.cookies.get("user-role")?.value || "") ? "/login-admin" : "/login"
+
+        const response = NextResponse.redirect(new URL(loginPath, req.url))
         response.cookies.delete("auth-token")
         return response
     }

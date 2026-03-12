@@ -40,7 +40,7 @@ export default function ReaderSessionsPage() {
   const isAr = locale === "ar"
   const [sessions, setSessions] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<"all" | "upcoming" | "completed" | "pending">("all")
+  const [filter, setFilter] = useState<"all" | "upcoming" | "today" | "completed">("all")
   const [meetingLinks, setMeetingLinks] = useState<Record<string, string>>({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [savingLink, setSavingLink] = useState<string | null>(null)
@@ -89,9 +89,13 @@ export default function ReaderSessionsPage() {
   }, [])
 
   const filtered = sessions.filter((s) => {
-    if (filter === "upcoming") return s.status === "confirmed"
+    if (filter === "upcoming") return s.status === "confirmed" || s.status === "pending"
+    if (filter === "today") {
+      const today = new Date().toISOString().split('T')[0]
+      const sessionDate = new Date(s.slot_start).toISOString().split('T')[0]
+      return sessionDate === today
+    }
     if (filter === "completed") return s.status === "completed"
-    if (filter === "pending") return !s.meeting_link && s.status !== "completed"
     return true
   })
 
@@ -203,16 +207,17 @@ export default function ReaderSessionsPage() {
   const filterButtons = [
     { key: "all" as const, label: t.admin.allSessions },
     { key: "upcoming" as const, label: t.admin.upcoming },
+    { key: "today" as const, label: t.admin.today },
     { key: "completed" as const, label: t.admin.completed },
-    { key: "pending" as const, label: t.admin.pendingLinks },
   ]
 
   const STATUS = {
-    confirmed: { label: isAr ? "مؤكد" : "Confirmed", color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
-    completed: { label: isAr ? "مكتمل" : "Completed", color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
-    cancelled: { label: isAr ? "ملغي" : "Cancelled", color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
-    pending: { label: isAr ? "قيد الانتظار" : "Pending", color: "bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30 ring-[#C9A227]/10" },
-    rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
+    confirmed: { label: t.admin.statuses.confirmed, color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
+    completed: { label: t.admin.statuses.completed, color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
+    cancelled: { label: t.admin.statuses.cancelled, color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
+    pending: { label: t.admin.statuses.pending, color: "bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30 ring-[#C9A227]/10" },
+    rescheduled: { label: t.admin.statuses.rescheduled, color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
+    in_progress: { label: t.admin.statuses.in_progress, color: "bg-amber-50 text-amber-700 border-amber-200 ring-amber-100" },
   }
 
   return (
@@ -260,12 +265,12 @@ export default function ReaderSessionsPage() {
             const pendingReqs = pendingRequests[session.id] || []
 
             return (
-              <div key={session.id} className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300
-                ${isExpanded ? 'border-[#1B5E3B]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
+              <div key={session.id} className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300 transform group
+                ${isExpanded ? 'border-[#1B5E3B]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-[#1B5E3B]/30 hover:shadow-lg hover:-translate-y-1'}`}>
 
                 {/* Card Header (Clickable) */}
                 <div
-                  className={`p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer bg-white relative overflow-hidden ${isCompleted ? 'grayscale-[0.5] opacity-70 hover:grayscale-0 hover:opacity-100' : ''}`}
+                  className={`p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer bg-white relative overflow-hidden transition-colors hover:bg-slate-50/80 ${isCompleted ? 'grayscale-[0.5] opacity-70 hover:grayscale-0 hover:opacity-100' : ''}`}
                   onClick={() => setExpandedId(isExpanded ? null : session.id)}
                 >
                   {/* Status indicator line */}
@@ -420,7 +425,7 @@ export default function ReaderSessionsPage() {
                                 className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-slate-600 px-4 py-3 text-sm font-bold hover:bg-slate-50 transition-all font-medium"
                               >
                                 <Calendar className="w-4 h-4 opacity-70" />
-                                {isAr ? "تعديل الميعاد" : "Reschedule"}
+                                {isAr ? t.reader.reschedule : "Reschedule"}
                               </button>
                             )}
                           </div>

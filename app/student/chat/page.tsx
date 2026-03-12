@@ -276,33 +276,44 @@ function StudentChatInner() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ isTicket: true }),
             });
+            
             if (res.ok) {
                 const convData = await res.json();
                 const targetConvId = convData.conversation?.id;
 
                 // 2. Send the initial message immediately
-                await fetch(`/api/conversations/${targetConvId}/messages`, {
+                const msgRes = await fetch(`/api/conversations/${targetConvId}/messages`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ text: newTicketMessage }),
                 });
 
-                // Refresh UI
-                const r2 = await fetch("/api/conversations");
-                if (r2.ok) {
-                    const d2 = await r2.json();
-                    const allConvs = d2.conversations || [];
-                    setConversations(allConvs);
-                    const target = allConvs.find((c: Conversation) => c.id === targetConvId);
+                if (msgRes.ok) {
+                    // Refresh UI
+                    const r2 = await fetch("/api/conversations");
+                    if (r2.ok) {
+                        const d2 = await r2.json();
+                        const allConvs = d2.conversations || [];
+                        setConversations(allConvs);
+                        const target = allConvs.find((c: Conversation) => c.id === targetConvId);
 
-                    setIsTicketDialogOpen(false);
-                    setNewTicketMessage("");
-                    setActiveTab("tickets");
+                        setIsTicketDialogOpen(false);
+                        setNewTicketMessage("");
+                        setActiveTab("tickets");
 
-                    if (target) openConversation(target);
+                        if (target) {
+                            openConversation(target);
+                            // Show success message
+                            alert(isAr ? "تم إرسال التذكرة بنجاح." : "Ticket sent successfully.");
+                        }
+                    }
+                } else {
+                    const errorData = await msgRes.json();
+                    alert(errorData.error || (isAr ? "حدث خطأ أثناء إرسال الرسالة" : "Error sending message"));
                 }
             } else {
-                alert(isAr ? "حدث خطأ أثناء إنشاء التذكرة" : "Error creating ticket");
+                const errorData = await res.json();
+                alert(errorData.error || (isAr ? "حدث خطأ أثناء إنشاء التذكرة" : "Error creating ticket"));
             }
         } catch (e) {
             console.error(e);

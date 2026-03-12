@@ -230,24 +230,36 @@ export default function ReaderChatPage() {
       if (res.ok) {
         const data = await res.json()
         const convId = data.conversation.id
-        await fetch(`/api/conversations/${convId}/messages`, {
+        const msgRes = await fetch(`/api/conversations/${convId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: newTicketMessage }),
         })
-        setTicketDialogOpen(false)
-        setNewTicketMessage("")
-        setActiveTab("tickets")
-        setSelectedConvId(convId)
+        
+        if (msgRes.ok) {
+          setTicketDialogOpen(false)
+          setNewTicketMessage("")
+          setActiveTab("tickets")
+          setSelectedConvId(convId)
 
-        const cRes = await fetch("/api/conversations")
-        if (cRes.ok) {
-          const cd = await cRes.json()
-          setConversations(cd.conversations || [])
+          const cRes = await fetch("/api/conversations")
+          if (cRes.ok) {
+            const cd = await cRes.json()
+            setConversations(cd.conversations || [])
+            // Show success message
+            alert(isAr ? "تم إرسال التذكرة بنجاح." : "Ticket sent successfully.")
+          }
+        } else {
+          const errorData = await msgRes.json()
+          alert(errorData.error || (isAr ? "حدث خطأ أثناء إرسال الرسالة" : "Error sending message"))
         }
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || (isAr ? "حدث خطأ أثناء إنشاء التذكرة" : "Error creating ticket"))
       }
     } catch (error) {
       console.error(error)
+      alert(isAr ? "حدث خطأ" : "An error occurred")
     } finally {
       setCreatingTicket(false)
     }
@@ -265,31 +277,33 @@ export default function ReaderChatPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-            {isAr ? "المحادثات" : "Messages"}
+            {t.reader.chat}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            {isAr ? "تواصل مع الطلاب حول ملاحظات التلاوة وتذاكر الدعم" : "Communicate with students and support tickets"}
+            {t.reader.chatDesc}
           </p>
         </div>
-        <Button
-          onClick={() => setTicketDialogOpen(true)}
-          className="bg-[#C9A227] hover:bg-[#A6841E] text-white rounded-xl shadow-sm gap-2"
-        >
-          <Shield className="w-4 h-4" />
-          {isAr ? "إنشاء تذكرة دعم فني" : "Create Support Ticket"}
-        </Button>
+        {activeTab === 'tickets' && (
+          <Button
+            onClick={() => setTicketDialogOpen(true)}
+            className="bg-[#C9A227] hover:bg-[#A6841E] text-white rounded-xl shadow-sm gap-2 animate-in fade-in zoom-in duration-200"
+          >
+            <Shield className="w-4 h-4" />
+            {isAr ? "إنشاء تذكرة دعم فني" : "Create Support Ticket"}
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); setSelectedConvId(null) }} className="flex-1 min-h-0 flex flex-col space-y-4">
         <div className="flex justify-end shrink-0">
-          <TabsList className="bg-white p-1 border border-slate-200 shadow-sm h-12 rounded-full overflow-hidden flex-row-reverse">
-            <TabsTrigger value="tickets" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
-              <Shield className="w-4 h-4" />
-              {isAr ? "تذاكر الدعم" : "Support Tickets"}
-            </TabsTrigger>
+          <TabsList className="bg-white p-1 border border-slate-200 shadow-sm h-12 rounded-full overflow-hidden">
             <TabsTrigger value="messages" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
               <MessagesSquare className="w-4 h-4" />
               {isAr ? "رسائل الطلاب" : "Student Messages"}
+            </TabsTrigger>
+            <TabsTrigger value="tickets" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
+              <Shield className="w-4 h-4" />
+              {isAr ? "تذاكر الدعم" : "Support Tickets"}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -310,7 +324,7 @@ export default function ReaderChatPage() {
               ) : conversations.length === 0 ? (
                 <div className="p-8 text-center text-slate-500 flex flex-col items-center">
                   <MessageSquare className="w-10 h-10 text-slate-300 mb-2" />
-                  <p>{isAr ? "لا توجد محادثات سابقة" : "No conversations yet"}</p>
+                  <p>{t.reader.noMessagesInList}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
@@ -319,7 +333,9 @@ export default function ReaderChatPage() {
                     const isSelected = selectedConvId === conv.id
                     const hasUnread = conv.unread_count_reader > 0
 
-                    const name = conv.is_ticket ? (isAr ? "فريق الدعم الفني" : "Technical Support") : (conv.student_name || t.student.certifiedReaderFallback)
+                    const name = conv.is_ticket 
+                      ? (conv.admin_name || (isAr ? "فريق الدعم الفني" : "Technical Support")) 
+                      : (conv.student_name || (isAr ? "طالب" : "Student"))
 
                     return (
                       <button
@@ -383,7 +399,7 @@ export default function ReaderChatPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <CardTitle className="text-base text-slate-800 truncate max-w-full">
-                        {currentConv.is_ticket ? (isAr ? "فريق الدعم الفني" : "Technical Support") : (currentConv.student_name || "طالب")}
+                        {currentConv.is_ticket ? (currentConv.admin_name || (isAr ? "فريق الدعم الفني" : "Technical Support")) : (currentConv.student_name || (isAr ? "طالب" : "Student"))}
                       </CardTitle>
                       {currentConv.is_ticket && (
                         <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">
@@ -547,9 +563,9 @@ export default function ReaderChatPage() {
                 </div>
               </>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/30">
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/30">
                 <MessageSquare className="w-16 h-16 text-slate-200 mb-4" />
-                <p className="font-medium text-slate-500">{activeTab === 'tickets' ? (isAr ? "اختر تذكرة للبدء" : "Select a ticket to start in") : (isAr ? "اختر محادثة للبدء في التواصل" : "Select a conversation to start")}</p>
+                <p className="font-medium text-slate-500 max-w-[280px] text-center">{activeTab === 'tickets' ? (isAr ? "اختر تذكرة من القائمة لعرض الرسائل" : "Select a ticket from the list to view messages") : (t.reader.selectChatFromList)}</p>
               </div>
             )}
           </Card>

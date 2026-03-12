@@ -384,7 +384,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
           {/* Feedback Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-bold text-slate-700">{t.student.readerNotes}</label>
+              <label className="block text-sm font-bold text-slate-700">{t.reader.readerNotesLabel}</label>
               <div className="h-px flex-1 bg-slate-100 mx-4" />
               <Info className="w-4 h-4 text-slate-300" />
             </div>
@@ -395,12 +395,17 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
               onChange={(e) => setNotes(e.target.value)}
               readOnly={!isPending}
             />
+            {isPending && (
+              <p className="text-[11px] text-[#1B5E3B]/70 font-medium px-2">
+                {t.reader.readerNotesHint}
+              </p>
+            )}
           </div>
 
           {/* Word Mistakes Section */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-bold text-slate-700">{isAr ? "الكلمات الخاطئة في التلاوة" : "Missed or Mispronounced Words"}</label>
+              <label className="block text-sm font-bold text-slate-700">{t.reader.mistakeWordsLabel}</label>
               <div className="h-px flex-1 bg-slate-100 mx-4" />
             </div>
 
@@ -420,7 +425,7 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
                     }
                   }}
                   className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/20"
-                  placeholder={isAr ? "اكتب الكلمة واضغط إدخال (Enter) أو زر الإضافة" : "Type a word and press Enter or Add btn"}
+                  placeholder={t.reader.mistakeWordsPlaceholder}
                 />
                 <button
                   onClick={(e) => {
@@ -436,6 +441,12 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
                   {isAr ? "إضافة" : "Add"}
                 </button>
               </div>
+            )}
+            
+            {isPending && (
+              <p className="text-[11px] text-amber-600 font-medium px-2">
+                {t.reader.mistakeWordsHint}
+              </p>
             )}
 
             {mistakeWords.length > 0 && (

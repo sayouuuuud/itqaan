@@ -263,9 +263,15 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                   >
                     <item.icon className="w-5 h-5 shrink-0" />
                     <span className="font-medium">{item.label}</span>
-                    {item.badge && (
-                      <span className="mr-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{item.badge}</span>
-                    )}
+                    {item.badge ? (
+                      <span className="mr-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{item.badge}</span>
+                    ) : (item.label === t.student.notifications || item.label === t.notifications.title || item.href.includes('notifications')) ? (
+                      unreadCount > 0 && (
+                        <span className="mr-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )
+                    ) : null}
                   </Link>
                 )
               })}

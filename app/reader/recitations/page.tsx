@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/context"
 import { StatusBadge } from "@/components/status-badge"
 import { Search, Clock, Timer, Calendar, ChevronLeft, ChevronRight, CheckCircle, Play, Loader2 } from "lucide-react"
 
-type TabFilter = "new" | "in_review" | "reviewed"
+type TabFilter = "all" | "pending" | "reviewed" | "needs_session"
 
 const avatarColors = [
   "bg-indigo-100 text-indigo-600",
@@ -30,9 +30,10 @@ interface Recitation {
 
 export default function ReaderRecitationsPage() {
   const { t } = useI18n()
-  const [activeTab, setActiveTab] = useState<TabFilter>("new")
+  const [activeTab, setActiveTab] = useState<TabFilter>("all")
   const [recitations, setRecitations] = useState<Recitation[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     async function load() {
@@ -51,18 +52,42 @@ export default function ReaderRecitationsPage() {
     load()
   }, [])
 
-  const tabStatusMap: Record<TabFilter, string[]> = {
-    new: ["pending"],
-    in_review: ["in_review"],
-    reviewed: ["mastered", "needs_session", "session_booked"],
+  const refreshData = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/recitations?limit=100")
+      if (res.ok) {
+        const data = await res.json()
+        setRecitations(data.recitations || [])
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filtered = recitations.filter((rec) => tabStatusMap[activeTab].includes(rec.status))
+  const tabStatusMap: Record<TabFilter, string[]> = {
+    all: ["pending", "in_review", "mastered", "needs_session", "session_booked"],
+    pending: ["pending", "in_review"],
+    reviewed: ["mastered"],
+    needs_session: ["needs_session", "session_booked"],
+  }
+
+  const filtered = recitations.filter((rec) => {
+    const statusMatch = tabStatusMap[activeTab].includes(rec.status)
+    const searchMatch = !searchQuery || 
+      rec.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rec.surah_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    return statusMatch && searchMatch
+  })
 
   const tabs = [
-    { key: "new" as const, label: t.reader.new, count: recitations.filter((r) => r.status === "pending").length },
-    { key: "in_review" as const, label: t.reader.inReview, count: recitations.filter((r) => r.status === "in_review").length },
-    { key: "reviewed" as const, label: t.reader.done, count: recitations.filter((r) => ["mastered", "needs_session", "session_booked"].includes(r.status)).length },
+    { key: "all" as const, label: t.reader.all, count: recitations.length },
+    { key: "pending" as const, label: t.reader.pendingReview, count: recitations.filter((r) => ["pending", "in_review"].includes(r.status)).length },
+    { key: "reviewed" as const, label: t.reader.reviewed, count: recitations.filter((r) => r.status === "mastered").length },
+    { key: "needs_session" as const, label: t.reader.needsSession, count: recitations.filter((r) => ["needs_session", "session_booked"].includes(r.status)).length },
   ]
 
   const formatDuration = (seconds?: number) => {
@@ -79,11 +104,28 @@ export default function ReaderRecitationsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.reader.reviewList}</h1>
           <p className="text-gray-500">
-            {t.reader.reviewListDesc}<span className="font-bold text-[#1B5E3B] mx-1">{recitations.filter((r) => r.status === "pending").length}</span>
-            {t.reader.newRecitationsAwaitingReview}
+            {t.reader.reviewListDesc}
           </p>
         </div>
         <div className="flex gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t.auth.searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-11 pr-10 pl-4 rounded-xl border border-gray-200 focus:border-[#1B5E3B] focus:ring-1 focus:ring-[#1B5E3B] outline-none transition-all text-sm"
+            />
+          </div>
+          <button
+            onClick={refreshData}
+            disabled={loading}
+            className="h-11 bg-white hover:bg-gray-50 text-gray-700 px-5 rounded-xl border border-gray-200 shadow-sm font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin text-[#1B5E3B]" /> : <Clock className="w-4 h-4 text-[#1B5E3B]" />}
+            {t.reader.refreshList}
+          </button>
           <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 min-w-[140px]">
             <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl border border-emerald-100">
               <CheckCircle className="w-5 h-5" />
@@ -134,13 +176,14 @@ export default function ReaderRecitationsPage() {
                   <th className="px-6 py-4">{t.reader.submissionDate}</th>
                   <th className="px-6 py-4">{t.reader.recordingDuration}</th>
                   <th className="px-6 py-4">{t.reader.status}</th>
+                  <th className="px-6 py-4 text-center">{t.reader.playRecording}</th>
                   <th className="px-6 py-4 text-center">{t.reader.action}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                       {t.reader.noRecitationsInCategory}
                     </td>
                   </tr>
@@ -180,6 +223,19 @@ export default function ReaderRecitationsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={rec.status as any} />
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => {
+                            // Simple audio playback logic
+                            const audio = new Audio((rec as any).audio_url || '')
+                            audio.play().catch(e => console.error("Audio playback error:", e))
+                          }}
+                          className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors mx-auto"
+                          title={t.reader.playRecording}
+                        >
+                          <Play className="w-5 h-5 rtl:rotate-180" />
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-center">
                         {isReviewed ? (

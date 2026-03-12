@@ -42,6 +42,16 @@ export default function ScheduleManagementPage() {
   const [newSlotDay, setNewSlotDay] = useState(0)
   const [newSlotStart, setNewSlotStart] = useState("09:00")
   const [newSlotEnd, setNewSlotEnd] = useState("09:30")
+
+  // Function to handle start time change and update end time automatically to +30m
+  const handleStartChange = (val: string) => {
+    setNewSlotStart(val)
+    const [h, m] = val.split(':').map(Number)
+    const totalMinutes = h * 60 + m + 30
+    const newH = Math.floor(totalMinutes / 60).toString().padStart(2, '0')
+    const newM = (totalMinutes % 60).toString().padStart(2, '0')
+    setNewSlotEnd(`${newH}:${newM}`)
+  }
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false)
@@ -217,7 +227,19 @@ export default function ScheduleManagementPage() {
   }
 
   const updateBulkTime = (id: number, field: 'start' | 'end', val: string) => {
-    setBulkTimes(bulkTimes.map(t => t.id === id ? { ...t, [field]: val } : t))
+    setBulkTimes(bulkTimes.map(t => {
+      if (t.id === id) {
+        if (field === 'start') {
+          const [h, m] = val.split(':').map(Number)
+          const totalMinutes = h * 60 + m + 30
+          const newH = Math.floor(totalMinutes / 60).toString().padStart(2, '0')
+          const newM = (totalMinutes % 60).toString().padStart(2, '0')
+          return { ...t, start: val, end: `${newH}:${newM}` }
+        }
+        return { ...t, [field]: val }
+      }
+      return t
+    }))
   }
 
   const recurringSlots = slots.filter(s => s.is_recurring || !s.specific_date)
@@ -244,6 +266,10 @@ export default function ScheduleManagementPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t.reader.manageScheduleTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{t.reader.manageScheduleDesc}</p>
+          <div className="flex items-center gap-2 mt-2 bg-[#1B5E3B]/10 text-[#1B5E3B] px-3 py-1.5 rounded-lg w-fit">
+            <Clock className="w-4 h-4" />
+            <span className="text-sm font-bold">{t.reader.sessionDurationNote}</span>
+          </div>
         </div>
         <div className="flex gap-2">
           {/* Bulk Add Button */}
@@ -370,7 +396,7 @@ export default function ScheduleManagementPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="start-time">{t.reader.fromLabel}</Label>
-                    <Input id="start-time" type="time" value={newSlotStart} onChange={(e) => setNewSlotStart(e.target.value)} />
+                    <Input id="start-time" type="time" value={newSlotStart} onChange={(e) => handleStartChange(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="end-time">{t.reader.toLabel}</Label>
@@ -405,14 +431,30 @@ export default function ScheduleManagementPage() {
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-gray-50 p-1 border border-gray-100 h-auto rounded-xl">
-            <TabsTrigger value="recurring" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm font-medium">
-              {t.reader.weeklyRecurringTitle}
-            </TabsTrigger>
-            <TabsTrigger value="specific" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm font-medium">
-              {t.reader.specificDatesTitle}
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <TabsList className="bg-gray-50 p-1 border border-gray-100 h-auto rounded-xl">
+              <TabsTrigger value="recurring" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm font-medium">
+                {t.reader.weeklyRecurringTitle}
+              </TabsTrigger>
+              <TabsTrigger value="specific" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm font-medium">
+                {t.reader.specificDatesTitle}
+              </TabsTrigger>
+            </TabsList>
+            
+            <div className="text-sm text-gray-500 italic bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+              {activeTab === "recurring" ? (
+                <span className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[#1B5E3B]" />
+                  {t.reader.weeklyRecurringTitle}: {t.reader.weeklyRecurringExplanation}
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[#1B5E3B]" />
+                  {t.reader.specificDatesTitle}: {t.reader.specificDatesExplanation}
+                </span>
+              )}
+            </div>
+          </div>
 
           <TabsContent value="recurring" className="space-y-4">
             {Object.entries(groupedRecurringSlots).length === 0 ? (

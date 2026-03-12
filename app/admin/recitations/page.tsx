@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge } from "@/components/status-badge"
 import {
-  Search, Download, Plus, Eye, UserPlus, Filter, Loader2
+  Search, Download, Plus, Eye, UserPlus, Filter, Loader2, Clock, CheckCircle, Calendar
 } from "lucide-react"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -24,7 +24,7 @@ export default function AdminRecitationsPage() {
 
   const [searchQuery, setSearchQuery] = useState("")
   const [readerFilter, setReaderFilter] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
+  const [activeTab, setActiveTab] = useState("all")
 
   const [reassignDialog, setReassignDialog] = useState(false)
   const [selectedRecitationId, setSelectedRecitationId] = useState<string | null>(null)
@@ -32,6 +32,9 @@ export default function AdminRecitationsPage() {
 
   useEffect(() => {
     fetchRecitations()
+  }, [searchQuery, readerFilter, activeTab])
+
+  useEffect(() => {
     fetchReaders()
   }, [])
 
@@ -41,7 +44,7 @@ export default function AdminRecitationsPage() {
       const params = new URLSearchParams()
       if (searchQuery) params.append("search", searchQuery)
       if (readerFilter) params.append("reader", readerFilter)
-      if (statusFilter) params.append("status", statusFilter)
+      if (activeTab !== "all") params.append("status", activeTab)
 
       const res = await fetch(`/api/admin/recitations?${params.toString()}`)
       if (res.ok) {
@@ -124,21 +127,48 @@ export default function AdminRecitationsPage() {
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <form onSubmit={handleSearch} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-5 relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              className="pr-10 border-gray-200 focus:border-[#1B5E3B] focus:ring-[#1B5E3B]/20"
+      {/* Filters & Tabs Wrapper */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 overflow-hidden space-y-4">
+        {/* Status Tabs */}
+        <div className="flex flex-wrap gap-1 border-b border-gray-50 pb-2">
+          {[
+            { id: "all", label: t.admin.allStatuses, icon: Filter },
+            { id: "pending", label: t.pending, icon: Clock },
+            { id: "in_review", label: t.inReview, icon: Search },
+            { id: "mastered", label: t.mastered, icon: CheckCircle },
+            { id: "needs_session", label: t.needsSession, icon: Calendar },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === tab.id
+                  ? "bg-[#1B5E3B] text-white shadow-md shadow-emerald-900/10"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+              }`}
+            >
+              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "opacity-100" : "opacity-40"}`} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search & Reader Filter Row */}
+        <div className="flex flex-col md:flex-row gap-4 p-2">
+          <div className="flex-1 relative group">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#1B5E3B] transition-colors" />
+            <input
+              type="text"
               placeholder={t.admin.searchRecitationsPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-12 pr-11 pl-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:border-[#1B5E3B] focus:ring-4 focus:ring-[#1B5E3B]/5 outline-none transition-all text-sm font-medium"
             />
           </div>
-          <div className="md:col-span-3">
+          <div className="w-full md:w-64 relative group">
+            <UserPlus className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-[#1B5E3B] transition-colors" />
             <select
-              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B]"
+              className="w-full h-12 pr-11 pl-4 rounded-xl border border-gray-100 bg-gray-50/50 appearance-none focus:bg-white focus:border-[#1B5E3B] focus:ring-4 focus:ring-[#1B5E3B]/5 outline-none transition-all text-sm font-bold text-gray-700 cursor-pointer shadow-sm"
               value={readerFilter}
               onChange={(e) => setReaderFilter(e.target.value)}
             >
@@ -150,27 +180,20 @@ export default function AdminRecitationsPage() {
               ))}
             </select>
           </div>
-          <div className="md:col-span-3">
-            <select
-              className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B]"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+          {(searchQuery || readerFilter || activeTab !== "all") && (
+            <button
+              onClick={() => {
+                setSearchQuery("")
+                setReaderFilter("")
+                setActiveTab("all")
+              }}
+              className="px-4 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
             >
-              <option value="">{t.admin.allStatuses}</option>
-              <option value="pending">{t.pending}</option>
-              <option value="in_review">{t.inReview}</option>
-              <option value="mastered">{t.mastered}</option>
-              <option value="needs_session">{t.needsSession}</option>
-              <option value="session_booked">{t.sessionBooked}</option>
-            </select>
-          </div>
-          <div className="md:col-span-1">
-            <Button type="submit" className="w-full h-10 flex items-center justify-center rounded-xl bg-[#1B5E3B] hover:bg-[#0a3326] text-white">
-              <Filter className="w-4 h-4" />
-            </Button>
-          </div>
+              {isAr ? "مسح التصفية" : "Reset"}
+            </button>
+          )}
         </div>
-      </form>
+      </div>
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

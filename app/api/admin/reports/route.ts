@@ -10,17 +10,11 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const type = searchParams.get('type') || 'all'
-    const dateFrom = searchParams.get('dateFrom') || ''
-    const dateTo = searchParams.get('dateTo') || ''
-
-    // Validate date format to prevent injection
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    const hasDateFilter = dateFrom && dateTo && dateRegex.test(dateFrom) && dateRegex.test(dateTo)
-
-    const dateFilter = hasDateFilter
-      ? `AND created_at BETWEEN '${dateFrom}' AND '${dateTo}T23:59:59Z'`
-      : ''
+    const range = searchParams.get('range') || 'month'
+    let timeFilter = "AND created_at >= NOW() - INTERVAL '30 days'"
+    if (range === 'week') timeFilter = "AND created_at >= NOW() - INTERVAL '7 days'"
+    if (range === '3months') timeFilter = "AND created_at >= NOW() - INTERVAL '90 days'"
+    if (range === 'year') timeFilter = "AND created_at >= NOW() - INTERVAL '365 days'"
 
     const [
       recitationStats,
@@ -35,7 +29,7 @@ export async function GET(req: NextRequest) {
       masteryTrend,
       dailyRecitations,
       genderStats,
-      cityStats,
+      countryStats,
       userStats,
       wordMistakesSummary,
       topMistakeWords,
@@ -52,7 +46,7 @@ export async function GET(req: NextRequest) {
           COUNT(*) FILTER (WHERE status = 'session_booked') AS session_booked,
           ROUND(COUNT(*) FILTER (WHERE status = 'mastered') * 100.0 / NULLIF(COUNT(*), 0), 1) AS mastery_rate
         FROM recitations
-        WHERE 1=1 ${dateFilter}
+        WHERE 1=1 ${timeFilter}
       `),
       // Recitations by month
       query(`
@@ -75,70 +69,71 @@ export async function GET(req: NextRequest) {
           COUNT(*) FILTER (WHERE status = 'pending') AS pending,
           ROUND(AVG(duration_minutes) FILTER (WHERE status = 'completed'), 0) AS avg_duration
         FROM bookings
-        WHERE 1=1 ${dateFilter}
+        WHERE 1=1 ${timeFilter}
       `),
       // Top readers by reviews completed
       query(`
-        SELECT u.name, u.avatar_url,
+        SELECT u.id, u.name, u.avatar_url,
           COUNT(rev.id) AS reviews_count,
           ROUND(AVG(rev.overall_score), 1) AS avg_score,
           COUNT(rev.id) FILTER (WHERE rev.verdict = 'mastered') AS mastered_count
         FROM users u
         JOIN reviews rev ON rev.reader_id = u.id
-        WHERE u.role = 'reader'
+        WHERE u.role = 'reader' ${timeFilter.replace('created_at', 'rev.created_at')}
         GROUP BY u.id, u.name, u.avatar_url
         ORDER BY reviews_count DESC
         LIMIT 10
       `),
       // Top readers by sessions
       query(`
-        SELECT u.name, u.avatar_url,
+        SELECT u.id, u.name, u.avatar_url,
           COUNT(b.id) AS sessions_count,
           COUNT(b.id) FILTER (WHERE b.status = 'completed') AS completed_sessions,
           ROUND(AVG(rr.rating), 2) AS avg_rating
         FROM users u
         JOIN bookings b ON b.reader_id = u.id
         LEFT JOIN reader_ratings rr ON rr.booking_id = b.id
-        WHERE u.role = 'reader'
+        WHERE u.role = 'reader' ${timeFilter.replace('created_at', 'b.created_at')}
         GROUP BY u.id, u.name, u.avatar_url
         ORDER BY sessions_count DESC
         LIMIT 10
       `),
       // Top contributors overall (readers: reviews + sessions)
       query(`
-        SELECT u.name, u.avatar_url,
+        SELECT u.id, u.name, u.avatar_url,
           COALESCE(rev_count, 0) + COALESCE(sess_count, 0) AS total_contribution,
           COALESCE(rev_count, 0) AS reviews,
           COALESCE(sess_count, 0) AS sessions
         FROM users u
-        LEFT JOIN (SELECT reader_id, COUNT(*) AS rev_count FROM reviews GROUP BY reader_id) r ON r.reader_id = u.id
-        LEFT JOIN (SELECT reader_id, COUNT(*) AS sess_count FROM bookings WHERE status='completed' GROUP BY reader_id) s ON s.reader_id = u.id
+        LEFT JOIN (SELECT reader_id, COUNT(*) AS rev_count FROM reviews WHERE 1=1 ${timeFilter} GROUP BY reader_id) r ON r.reader_id = u.id
+        LEFT JOIN (SELECT reader_id, COUNT(*) AS sess_count FROM bookings WHERE status='completed' ${timeFilter} GROUP BY reader_id) s ON s.reader_id = u.id
         WHERE u.role = 'reader'
         ORDER BY total_contribution DESC
         LIMIT 10
       `),
       // Most active students
       query(`
-        SELECT u.name, u.email, u.avatar_url,
+        SELECT u.id, u.name, u.email, u.avatar_url,
           COUNT(DISTINCT rec.id) AS recitations,
           COUNT(DISTINCT b.id) AS bookings,
           COUNT(DISTINCT rr.id) AS ratings_given
         FROM users u
-        LEFT JOIN recitations rec ON rec.student_id = u.id
-        LEFT JOIN bookings b ON b.student_id = u.id
-        LEFT JOIN reader_ratings rr ON rr.student_id = u.id
+        LEFT JOIN recitations rec ON rec.student_id = u.id ${timeFilter.replace('created_at', 'rec.created_at')}
+        LEFT JOIN bookings b ON b.student_id = u.id ${timeFilter.replace('created_at', 'b.created_at')}
+        LEFT JOIN reader_ratings rr ON rr.student_id = u.id ${timeFilter.replace('created_at', 'rr.created_at')}
         WHERE u.role = 'student'
         GROUP BY u.id, u.name, u.email, u.avatar_url
+        HAVING COUNT(DISTINCT rec.id) > 0 OR COUNT(DISTINCT b.id) > 0
         ORDER BY recitations + bookings DESC
         LIMIT 10
       `),
       // Certificates issued
       query(`
-        SELECT COUNT(*) AS count FROM certificate_data WHERE certificate_issued = true
+        SELECT COUNT(*) AS count FROM certificate_data WHERE certificate_issued = true ${timeFilter.replace('created_at', 'issued_at')}
       `),
       // Emails sent (activity log)
       query(`
-        SELECT COUNT(*) AS count FROM activity_logs WHERE action LIKE 'email_%'
+        SELECT COUNT(*) AS count FROM activity_logs WHERE action LIKE 'email_%' ${timeFilter}
       `),
       // Mastery rate over time
       query(`
@@ -152,43 +147,44 @@ export async function GET(req: NextRequest) {
         GROUP BY raw_week, week
         ORDER BY raw_week ASC
       `),
-      // Daily recitations (30 days)
+      // Daily recitations
       query(`
         SELECT TO_CHAR(created_at, 'Mon DD') AS date, COUNT(*) AS count
         FROM recitations
-        ${hasDateFilter ? 'WHERE ' + dateFilter.substring(4) : "WHERE created_at >= NOW() - INTERVAL '30 days'"}
+        WHERE 1=1 ${timeFilter}
         GROUP BY date, created_at::date
         ORDER BY created_at::date ASC
-        LIMIT 30
       `),
       // Gender distribution
       query(`SELECT gender, COUNT(*) AS count FROM users WHERE role = 'student' GROUP BY gender`),
-      // City distribution
+      // Country distribution (from page_views context or IP)
       query(`
-        SELECT u.city, COUNT(*) AS count
-        FROM users u
-        WHERE u.role = 'student' AND u.city IS NOT NULL
-        GROUP BY u.city
+        SELECT country, COUNT(*) AS count
+        FROM page_views
+        WHERE country IS NOT NULL ${timeFilter}
+        GROUP BY country
         ORDER BY count DESC
         LIMIT 10
       `),
-      // User counts
+      // User counts and roles
       query(`
         SELECT
           (SELECT COUNT(*) FROM users WHERE role = 'student') AS total_students,
-          (SELECT COUNT(*) FROM users WHERE role = 'reader' AND approval_status = 'approved') AS total_readers
+          (SELECT COUNT(*) FROM users WHERE role = 'reader' AND approval_status = 'approved') AS total_readers,
+          (SELECT COUNT(*) FROM users WHERE is_banned = true) AS banned_users,
+          (SELECT COUNT(*) FROM users WHERE role IN ('student_supervisor', 'reciter_supervisor')) AS total_supervisors
       `),
       // Word mistakes summary
       query(`
         SELECT COUNT(*) as total_mistakes, COUNT(DISTINCT student_id) as total_students_with_mistakes
         FROM word_mistakes
-        WHERE 1=1 ${dateFilter}
+        WHERE 1=1 ${timeFilter}
       `),
       // Top mistaken words
       query(`
         SELECT word, COUNT(*) as frequency, COUNT(DISTINCT student_id) as students_count
         FROM word_mistakes
-        WHERE 1=1 ${dateFilter}
+        WHERE 1=1 ${timeFilter}
         GROUP BY word
         ORDER BY frequency DESC
         LIMIT 20
@@ -205,7 +201,7 @@ export async function GET(req: NextRequest) {
       users: {
         ...(userStats[0] as any),
         gender: genderStats,
-        byCity: cityStats,
+        byCountry: countryStats,
       },
       topReviewers,
       topSessionReaders,

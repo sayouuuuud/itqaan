@@ -3,6 +3,7 @@ import { getSession, requireRole } from "@/lib/auth"
 import { query } from "@/lib/db"
 import { sendReaderApprovedEmail, sendReaderRejectedEmail } from "@/lib/email"
 import { logAdminAction } from "@/lib/activity-log"
+import { createNotification } from "@/lib/notifications"
 
 // GET /api/admin/reader-applications
 export async function GET() {
@@ -60,8 +61,23 @@ export async function PUT(req: NextRequest) {
   if (reader[0]) {
     if (action === "approve") {
       await sendReaderApprovedEmail(reader[0].email, reader[0].name)
+      await createNotification({
+        userId,
+        type: 'reader_approved',
+        title: 'تم اعتماد حسابك ✅',
+        message: 'مبروك! تم اعتماد طلب انضمامك كمنقرئ للمنصة. يمكنك الآن البدء باستقبال التلاوات.',
+        category: 'account',
+        link: '/reader'
+      })
     } else {
       await sendReaderRejectedEmail(reader[0].email, reader[0].name)
+      await createNotification({
+        userId,
+        type: 'reader_rejected',
+        title: 'تحديث بشأن طلب الانضمام',
+        message: 'نأسف لإبلاغك بأنه لم يتم اعتماد طلب انضمامك في الوقت الحالي.',
+        category: 'account'
+      })
     }
   }
 

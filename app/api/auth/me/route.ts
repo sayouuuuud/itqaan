@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { query } from "@/lib/db"
+import { query, queryOne } from "@/lib/db"
 
 // GET /api/auth/me — return full user profile including avatar
 export async function GET() {
@@ -18,8 +18,10 @@ export async function GET() {
       avatar_url: string | null
       gender: string | null
       phone: string | null
+      is_accepting_recitations: boolean
+      student_status: string
     }>(
-      `SELECT id, name, email, role, avatar_url, gender, phone FROM users WHERE id = $1`,
+      `SELECT id, name, email, role, avatar_url, gender, phone, is_accepting_recitations, student_status FROM users WHERE id = $1`,
       [session.sub]
     )
 
@@ -27,7 +29,26 @@ export async function GET() {
       return NextResponse.json({ error: "المستخدم غير موجود" }, { status: 404 })
     }
 
-    return NextResponse.json({ user: rows[0] })
+    const user = rows[0]
+
+    // If reader, also fetch reader_profile fields
+    if (user.role === 'reader') {
+      const profile = await queryOne<{
+        availability_mode: string
+        availability_expires_at: string | null
+        current_reserved_slots: number
+        max_total_slots: number
+      }>(
+        `SELECT availability_mode, availability_expires_at, current_reserved_slots, max_total_slots 
+         FROM reader_profiles WHERE user_id = $1`,
+        [user.id]
+      )
+      if (profile) {
+        Object.assign(user, profile)
+      }
+    }
+
+    return NextResponse.json({ user })
   } catch (error) {
     console.error("Auth me error:", error)
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
@@ -41,7 +62,7 @@ export async function PATCH(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
     const body = await req.json()
-    const { name, avatar_url, phone, gender } = body
+    const { name, avatar_url, phone, gender, is_accepting_recitations } = body
 
     const updates: string[] = []
     const params: unknown[] = []
@@ -61,6 +82,38 @@ export async function PATCH(req: NextRequest) {
     if (gender !== undefined) {
       params.push(gender)
       updates.push(`gender = $${params.length}`)
+    }
+    if (is_accepting_recitations !== undefined) {
+      params.push(is_accepting_recitations)
+      updates.push(`is_accepting_recitations = $${params.length}`)
+    }
+
+    // Reader-only updates
+    const { availability_mode, max_total_slots, availability_expires_at } = body
+    if (session.role === 'reader') {
+      const readerUpdates: string[] = []
+      const readerParams: unknown[] = []
+      
+      if (availability_mode !== undefined) {
+        readerParams.push(availability_mode)
+        readerUpdates.push(`availability_mode = $${readerParams.length}`)
+      }
+      if (max_total_slots !== undefined) {
+        readerParams.push(max_total_slots)
+        readerUpdates.push(`max_total_slots = $${readerParams.length}`)
+      }
+      if (availability_expires_at !== undefined) {
+        readerParams.push(availability_expires_at)
+        readerUpdates.push(`availability_expires_at = $${readerParams.length}`)
+      }
+
+      if (readerUpdates.length > 0) {
+        readerParams.push(session.sub)
+        await query(
+          `UPDATE reader_profiles SET ${readerUpdates.join(", ")}, updated_at = NOW() WHERE user_id = $${readerParams.length}`,
+          readerParams
+        )
+      }
     }
 
     if (updates.length === 0) {

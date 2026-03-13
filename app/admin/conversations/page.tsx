@@ -966,6 +966,11 @@ function AdminConversationsContent() {
     const router = useRouter()
 
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "chat")
+    const [user, setUser] = useState<any>(null)
+
+    useEffect(() => {
+        fetch("/api/auth/me").then(r => r.json()).then(d => setUser(d.user || null))
+    }, [])
 
     useEffect(() => {
         const tab = searchParams.get("tab")
@@ -1012,15 +1017,19 @@ function AdminConversationsContent() {
                         <Shield className="w-4 h-4" />
                         {t.admin.supervision}
                     </TabsTrigger>
-                    <TabsTrigger value="contact" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-                        <Mail className="w-4 h-4" />
-                        {t.admin.contactMessages}
-                    </TabsTrigger>
+                    {user?.role === 'admin' && (
+                        <TabsTrigger value="contact" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
+                            <Mail className="w-4 h-4" />
+                            {t.admin.contactMessages}
+                        </TabsTrigger>
+                    )}
                 </TabsList>
 
-                <TabsContent value="contact" className="space-y-6">
-                    <ContactMessagesTab isAr={isAr} t={t} />
-                </TabsContent>
+                {user?.role === 'admin' && (
+                    <TabsContent value="contact" className="space-y-6">
+                        <ContactMessagesTab isAr={isAr} t={t} />
+                    </TabsContent>
+                )}
 
                 <TabsContent value="supervision" className="space-y-6">
                     <SupervisionTab isAr={isAr} t={t} />

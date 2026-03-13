@@ -209,6 +209,15 @@ export async function PUT(req: NextRequest) {
                 )
             }
 
+            const { createNotificationForAdmins } = await import('@/lib/notifications')
+            await createNotificationForAdmins({
+                type: 'general',
+                title: "إصدار شهادة 📜",
+                message: `قام المسؤول ${session.name} بإصدار شهادة للطالب ${cert.student_name}.`,
+                category: "general",
+                link: `/admin/certificates?status=issued`
+            })
+
             return NextResponse.json({ success: true, certificateUrl })
         }
 

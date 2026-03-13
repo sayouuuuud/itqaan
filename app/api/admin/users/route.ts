@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     }
 
     const users = await query(
-      `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url,
+      `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url, u.is_accepting_recitations,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
               rp.rating, rp.total_reviews, rp.nationality,
               EXISTS(
@@ -105,6 +105,9 @@ export async function PATCH(req: NextRequest) {
     if (role) {
       values.push(role)
       updates.push(`role = $${values.length}`)
+      if (role === 'reader') {
+        updates.push(`approval_status = 'approved'`)
+      }
     }
 
     if (name) {
@@ -201,8 +204,8 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     const result = await query(
-      `INSERT INTO users (name, email, password_hash, role, email_verified, is_active, gender)
-       VALUES ($1, $2, $3, $4, TRUE, TRUE, $5)
+      `INSERT INTO users (name, email, password_hash, role, email_verified, is_active, gender, approval_status)
+       VALUES ($1, $2, $3, $4, TRUE, TRUE, $5, 'approved')
        RETURNING id, name, email, role, is_active, created_at, gender`,
       [name, email.toLowerCase(), passwordHash, role, gender || null]
     )

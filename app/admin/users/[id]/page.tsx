@@ -29,7 +29,9 @@ import {
     TrendingUp,
     User as UserIcon,
     XCircle,
-    ClipboardList
+    ClipboardList,
+    Trash2,
+    AlertTriangle,
 } from "lucide-react"
 import {
     Bar,
@@ -55,7 +57,24 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState("info")
+    const [isDeleting, setIsDeleting] = useState(false)
     const { id } = use(params)
+
+    const handleDeleteUser = async () => {
+        if (!window.confirm(isAr ? "هل أنت متأكد من حذف هذا المستخدم نهائياً؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to permanently delete this user? This action cannot be undone.")) {
+            return
+        }
+
+        setIsDeleting(true)
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
+            if (!res.ok) throw new Error(t.admin.failedToDeleteUser || "Failed to delete user")
+            router.push('/admin/users')
+        } catch (err: any) {
+            alert(err.message)
+            setIsDeleting(false)
+        }
+    }
 
     useEffect(() => {
         async function fetchData() {
@@ -109,6 +128,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                     <Badge variant={user.is_active ? "default" : "destructive"} className="px-3 py-1">
                         {user.is_active ? t.active : t.blocked}
                     </Badge>
+                    <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        className="gap-2 font-bold px-3 rounded-lg bg-red-600 hover:bg-red-700 h-8"
+                        onClick={() => handleDeleteUser()}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {t.admin.deleteUser || "Delete"}
+                    </Button>
                 </div>
             </div>
 
@@ -154,10 +183,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
                         {/* Actions */}
                         <div className="flex justify-center sm:justify-start gap-3 shrink-0">
-                            <Button onClick={() => router.push(`/admin/conversations?tab=chat&userId=${user.id}&userRole=${user.role}`)} className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200">
-                                <MessageSquare className="w-4 h-4" />
-                                {t.admin.messageUser}
-                            </Button>
+                             {/* Chat integration removed - as per Phase 4 requirements */}
                         </div>
                     </div>
                 </CardContent>
@@ -178,10 +204,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <ClipboardList className="w-4 h-4" />
                         {user.role === 'student' ? t.admin.studentRecitationsHistory : t.admin.readerReviewsHistory}
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
-                        <MessageSquare className="w-4 h-4" />
-                        {t.admin.chat}
-                    </TabsTrigger>
+                    {user.role === 'student' && (
+                        <TabsTrigger value="errors" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 font-bold gap-2 px-5 py-2.5 transition-all">
+                            <AlertCircle className="w-4 h-4" />
+                            {t.admin.errorsLog || "Errors Log"}
+                        </TabsTrigger>
+                    )}
                 </TabsList>
 
                 {/* INFO TAB */}
@@ -238,7 +266,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                 </div>
                                 <div className="flex justify-between items-center py-2 border-b border-gray-50">
                                     <span className="text-gray-500 font-medium flex items-center gap-2.5">
-                                        <Laptop className="w-4 h-4 text-gray-400" /> {t.admin.device}
+                                        <Laptop className="w-4 h-4 text-gray-400" /> {isAr ? 'الجهاز والمنصفح' : 'Device & Browser'}
                                     </span>
                                     <span className="text-gray-900 font-bold text-xs max-w-[200px] truncate bg-gray-50 px-2 py-1 rounded-md border border-gray-100" title={data.lastSession?.user_agent}>
                                         {data.lastSession?.user_agent || "N/A"}
@@ -247,6 +275,57 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* Reader Profile Additional Info */}
+                    {user.role === 'reader' && (
+                        <Card className="border-gray-100 shadow-sm rounded-2xl bg-white mt-6">
+                            <CardHeader className="border-b border-gray-50/80 pb-4 mb-4 bg-gray-50/30 rounded-t-2xl">
+                                <CardTitle className="text-base font-bold text-gray-800 flex items-center gap-2">
+                                    <ClipboardList className="w-5 h-5 text-[#1B5E3B]" />
+                                    {isAr ? 'بيانات التسجيل (مقرئ)' : 'Registration Details (Reader)'}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                        <span className="text-gray-500 font-medium">{isAr ? 'الاسم الثلاثي' : 'Triple Full Name'}</span>
+                                        <span className="text-gray-900 font-bold">{user.full_name_triple || "---"}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                        <span className="text-gray-500 font-medium">{isAr ? 'المدينة' : 'City'}</span>
+                                        <span className="text-gray-900 font-bold">{user.city || "---"}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                        <span className="text-gray-500 font-medium">{isAr ? 'التخصص' : 'Specialization'}</span>
+                                        <span className="text-gray-900 font-bold">{user.specialization || "---"}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                        <span className="text-gray-500 font-medium">{isAr ? 'المؤهل' : 'Qualification'}</span>
+                                        <span className="text-gray-900 font-bold">{user.qualification || "---"}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                        <span className="text-gray-500 font-medium">{isAr ? 'الأجزاء المحفوظة' : 'Memorized Parts'}</span>
+                                        <span className="text-gray-900 font-bold">{user.memorized_parts || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                        <span className="text-gray-500 font-medium">{isAr ? 'سنوات الخبرة' : 'Years of Experience'}</span>
+                                        <span className="text-gray-900 font-bold">{user.years_of_experience || 0}</span>
+                                    </div>
+                                </div>
+                                {user.certificate_file_url && (
+                                    <div className="md:col-span-2 pt-4">
+                                        <Button asChild variant="outline" className="w-full border-dashed border-gray-300">
+                                            <a href={user.certificate_file_url} target="_blank" rel="noopener noreferrer">
+                                                {isAr ? 'عرض الشهادة المرفقة' : 'View Attached Certificate'}
+                                            </a>
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
                 </TabsContent>
 
                 {/* STATS TAB */}
@@ -387,23 +466,46 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                     )}
                 </TabsContent>
 
-                {/* CHAT TAB */}
-                <TabsContent value="chat" className="h-[500px]">
-                    <Card className="border border-gray-100 shadow-sm rounded-2xl bg-white h-full overflow-hidden">
-                        <div className="flex flex-col h-full items-center justify-center bg-white text-gray-400 gap-4">
-                            <div className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
-                                <MessageSquare className="w-10 h-10 text-gray-300" />
-                            </div>
-                            <div className="text-center">
-                                <h4 className="text-gray-900 font-bold text-xl mb-2">{t.admin.chatIntegration}</h4>
-                                <p className="text-sm text-gray-500 mb-6 max-w-sm">{t.admin.chatIntegrationDesc}</p>
-                                <Button onClick={() => router.push(`/admin/conversations?tab=chat&userId=${user.id}&userRole=${user.role}`)} variant="outline" className="border-gray-200 hover:bg-gray-50 font-bold text-gray-700 h-11 px-6 rounded-xl">
-                                    {t.admin.openConversationsCenter}
-                                </Button>
-                            </div>
-                        </div>
-                    </Card>
-                </TabsContent>
+                {/* CHAT TAB - REMOVED for Phase 4 */}
+                
+                {/* ERRORS TAB (Student only) */}
+                {user.role === 'student' && (
+                  <TabsContent value="errors" className="space-y-6">
+                    {data.errorsLog && data.errorsLog.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-4">
+                        {data.errorsLog.map((error: any, idx: number) => (
+                          <Card key={idx} className="border-red-100 shadow-sm rounded-2xl bg-white overflow-hidden border">
+                            <CardHeader className="bg-red-50/50 pb-3">
+                              <CardTitle className="text-sm font-bold text-red-900 flex items-center justify-between">
+                                <span>{t.reader.surah} {error.surah_name}</span>
+                                <span className="text-red-700/60 font-medium">{new Date(error.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}</span>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 space-y-3">
+                              {error.error_markers && error.error_markers.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                  {error.error_markers.map((m: any, i: number) => (
+                                    <Badge key={i} variant="outline" className="bg-red-50 text-red-700 border-red-100">
+                                      {m.type === 'tajweed' ? (isAr ? 'تجويد' : 'Tajweed') : (isAr ? 'نطق' : 'Pronunciation')}: {m.note}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              <p className="text-gray-700 text-sm italic">{error.detailed_feedback}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="border border-gray-100 shadow-sm rounded-2xl bg-white text-gray-500 min-h-[300px] flex items-center justify-center relative">
+                          <div className="p-12 text-center text-gray-400">
+                              <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                              <p>{isAr ? 'لا يوجد سجل أخطاء مسجل لهذا الطالب.' : 'No errors log recorded for this student.'}</p>
+                          </div>
+                      </Card>
+                    )}
+                  </TabsContent>
+                )}
             </Tabs>
         </div >
     )

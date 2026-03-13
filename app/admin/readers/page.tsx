@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog"
@@ -60,6 +61,9 @@ export default function AdminReadersPage() {
             memorized_parts: r.memorized_parts || '',
             years_of_experience: r.years_of_experience || 0,
             is_active: !!r.is_active,
+            is_accepting_recitations: !!r.is_accepting_recitations,
+            availability_mode: r.availability_mode || 'automatic',
+            max_total_slots: r.max_total_slots || 50,
         })
     }
 
@@ -128,9 +132,14 @@ export default function AdminReadersPage() {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-gray-900">{r.name}</h3>
+                                            <Link href={`/admin/users/${r.id}`} className="hover:text-[#1B5E3B] transition-colors">
+                                                <h3 className="font-bold text-gray-900">{r.name}</h3>
+                                            </Link>
                                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                                                 {r.is_active ? t.admin.adminReaders.active : t.admin.adminReaders.inactive}
+                                            </span>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_accepting_recitations ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                {r.is_accepting_recitations ? t.reader.active : t.reader.inactive}
                                             </span>
                                             <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
                                                 {r.gender === 'male' ? t.auth.male : r.gender === 'female' ? t.auth.female : ''}
@@ -140,6 +149,14 @@ export default function AdminReadersPage() {
                                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                                             {r.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{r.phone}</span>}
                                             {r.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{r.city}</span>}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${r.availability_mode === 'manual' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                                {r.availability_mode === 'manual' ? t.reader.manualAvailability : t.reader.autoAvailability}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 font-medium">
+                                                {t.reader.maxTotalSlots}: <span className="text-gray-900 font-bold">{r.current_reserved_slots || 0}/{r.max_total_slots || 0}</span>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -234,10 +251,32 @@ export default function AdminReadersPage() {
                                 <Label>{t.admin.adminReaders.yearsExperience}</Label>
                                 <Input value={editForm.years_of_experience || 0} onChange={e => setEditForm((f: any) => ({ ...f, years_of_experience: Number(e.target.value) }))} type="number" min={0} />
                             </div>
+                            <div className="space-y-2">
+                                <Label>{t.reader.availabilityMode}</Label>
+                                <select 
+                                    className="w-full h-10 px-3 border rounded-md text-sm"
+                                    value={editForm.availability_mode}
+                                    onChange={e => setEditForm((f: any) => ({ ...f, availability_mode: e.target.value }))}
+                                >
+                                    <option value="automatic">{t.reader.autoAvailability}</option>
+                                    <option value="manual">{t.reader.manualAvailability}</option>
+                                    <option value="closed">{t.reader.closedAvailability}</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t.reader.maxTotalSlots}</Label>
+                                <Input value={editForm.max_total_slots || 0} onChange={e => setEditForm((f: any) => ({ ...f, max_total_slots: Number(e.target.value) }))} type="number" min={0} />
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <input type="checkbox" id="is_active" checked={!!editForm.is_active} onChange={e => setEditForm((f: any) => ({ ...f, is_active: e.target.checked }))} className="w-4 h-4" />
-                            <Label htmlFor="is_active">{t.admin.adminReaders.accountActive}</Label>
+                        <div className="flex flex-wrap items-center gap-6 pt-2">
+                            <div className="flex items-center gap-3">
+                                <input type="checkbox" id="is_active" checked={!!editForm.is_active} onChange={e => setEditForm((f: any) => ({ ...f, is_active: e.target.checked }))} className="w-4 h-4" />
+                                <Label htmlFor="is_active">{t.admin.adminReaders.accountActive}</Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input type="checkbox" id="is_accepting_recitations" checked={!!editForm.is_accepting_recitations} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_recitations: e.target.checked }))} className="w-4 h-4" />
+                                <Label htmlFor="is_accepting_recitations">{t.admin.adminReaders.evaluationActive}</Label>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>

@@ -44,7 +44,11 @@ export default function AdminRecitationsPage() {
       const params = new URLSearchParams()
       if (searchQuery) params.append("search", searchQuery)
       if (readerFilter) params.append("reader", readerFilter)
-      if (activeTab !== "all") params.append("status", activeTab)
+      if (activeTab === "unassigned") {
+        params.append("unassigned", "true")
+      } else if (activeTab !== "all") {
+        params.append("status", activeTab)
+      }
 
       const res = await fetch(`/api/admin/recitations?${params.toString()}`)
       if (res.ok) {
@@ -133,6 +137,7 @@ export default function AdminRecitationsPage() {
         <div className="flex flex-wrap gap-1 border-b border-gray-50 pb-2">
           {[
             { id: "all", label: t.admin.allStatuses, icon: Filter },
+            { id: "unassigned", label: t.admin.unassignedRecitations, icon: Clock, count: recitations.filter(r => !r.assignedReaderId && r.status === 'pending').length },
             { id: "pending", label: t.pending, icon: Clock },
             { id: "in_review", label: t.inReview, icon: Search },
             { id: "mastered", label: t.mastered, icon: CheckCircle },
@@ -141,7 +146,7 @@ export default function AdminRecitationsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all relative ${
                 activeTab === tab.id
                   ? "bg-[#1B5E3B] text-white shadow-md shadow-emerald-900/10"
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -149,6 +154,11 @@ export default function AdminRecitationsPage() {
             >
               <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "opacity-100" : "opacity-40"}`} />
               {tab.label}
+              {tab.id === 'unassigned' && (tab as any).count > 0 && (
+                <span className="absolute -top-1 -left-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full animate-pulse border-2 border-white">
+                  {(tab as any).count}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -360,9 +370,14 @@ export default function AdminRecitationsPage() {
                 disabled={processing}
               >
                 <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {reader.name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">
+                      {reader.name}
+                    </p>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${reader.is_accepting_recitations ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {reader.is_accepting_recitations ? t.reader.active : t.reader.inactive}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {t.auth.reader}
                   </p>

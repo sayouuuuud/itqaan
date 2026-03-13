@@ -16,13 +16,17 @@ export async function GET(
         const { id: userId } = await params
 
         const user = await db.queryOne<any>(
-            `SELECT id, name, email, phone, role, avatar_url, bio, is_active, created_at, last_login_at,
+            `SELECT u.id, u.name, u.email, u.phone, u.role, u.avatar_url, u.bio, u.is_active, u.created_at, u.last_login_at,
              EXISTS(
                 SELECT 1 FROM user_sessions us 
-                WHERE us.user_id = users.id 
+                WHERE us.user_id = u.id 
                 AND us.last_active_at > NOW() - INTERVAL '5 minutes'
-             ) as is_online
-             FROM users WHERE id = $1`,
+             ) as is_online,
+             rp.full_name_triple, rp.city, rp.qualification, rp.memorized_parts,
+             rp.years_of_experience, rp.certificate_file_url, rp.specialization, rp.about_me
+             FROM users u
+             LEFT JOIN reader_profiles rp ON rp.user_id = u.id
+             WHERE u.id = $1`,
             [userId]
         )
 
@@ -138,6 +142,19 @@ export async function GET(
             [userId]
         )
 
+        // 6b. Fetch Errors Log if student
+        let errorsLog: any[] = []
+        if (user.role === 'student') {
+            errorsLog = await db.query<any>(
+              `SELECT r.id as recitation_id, r.surah_name, rev.error_markers, rev.detailed_feedback, rev.created_at
+               FROM reviews rev
+               JOIN recitations r ON r.id = rev.recitation_id
+               WHERE r.student_id = $1 AND (rev.error_markers IS NOT NULL AND rev.error_markers != '[]'::jsonb)
+               ORDER BY rev.created_at DESC`,
+               [userId]
+            )
+        }
+
         // 7. Activity Data (Last 14 days)
         const activityData = await db.query<any>(
             `SELECT 
@@ -168,8 +185,44 @@ export async function GET(
             history: history || [],
             lastSession: lastSession || null,
             country: countryRes?.country || null,
-            activityData: activityData || []
+            activityData: activityData || [],
+            errorsLog: errorsLog || []
         })
+    } catch (err) {
+        console.error(err)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
+
+export async function DELETE(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getSession()
+        if (!session || session.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+        }
+
+        const { id: userId } = await params
+
+        // Get user info before deletion for logging
+        const user = await db.queryOne<any>('SELECT name, role FROM users WHERE id = $1', [userId])
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        }
+
+        // Permanent deletion - cascade handles related records in reader_profiles, student_stats, etc.
+        await db.query('DELETE FROM users WHERE id = $1', [userId])
+
+        // Log admin action
+        await db.query(
+            `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [session.sub, 'permanent_delete_user', 'user', userId, `Admin permanently deleted ${user.role} ${user.name}`]
+        )
+
+        return NextResponse.json({ success: true })
     } catch (err) {
         console.error(err)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

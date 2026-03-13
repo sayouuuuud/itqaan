@@ -148,8 +148,18 @@ export async function POST(req: NextRequest) {
     await query(
       `INSERT INTO activity_logs (user_id, action, description, ip_address)
        VALUES ($1, 'login_success', $2, $3)`,
-      [user.id, `Successful login for ${user.email}`, ip]
+       [user.id, `Successful login for ${user.email}`, ip]
     ).catch(() => { })
+
+    if (activeRole === 'admin' || activeRole === 'student_supervisor' || activeRole === 'reciter_supervisor') {
+      const { createNotificationForAdmins } = await import('@/lib/notifications')
+      await createNotificationForAdmins({
+        type: 'general',
+        title: 'تسجيل دخول إداري 🔐',
+        message: `قام ${user.name} بتسجيل الدخول إلى لوحة التحكم (${activeRole})`,
+        category: 'account'
+      })
+    }
 
     const token = await signToken({
       sub: user.id,

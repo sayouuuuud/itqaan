@@ -1,0 +1,78 @@
+
+<style>
+.wrap{padding:1rem 0;font-family:var(--font-sans);color:var(--color-text-primary);direction:rtl}
+.header{background:#EEEDFE;border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0;padding:14px 18px;border:0.5px solid #534AB7}
+.header-inner{display:flex;align-items:center;gap:10px}
+.badge{background:#534AB7;color:#EEEDFE;border-radius:6px;padding:3px 12px;font-size:12px;font-weight:500}
+.title{font-size:16px;font-weight:500;color:#3C3489}
+.body{border:0.5px solid var(--color-border-primary);border-top:none;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg);padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:5px}
+.p{font-size:14px;line-height:1.7;color:var(--color-text-primary)}
+.items{display:flex;flex-direction:column;gap:5px}
+.item{font-size:13px;color:var(--color-text-secondary);display:flex;gap:8px;line-height:1.6}
+.dot{margin-top:8px;width:4px;height:4px;border-radius:50%;flex-shrink:0;background:#534AB7}
+.dot-gray{margin-top:8px;width:4px;height:4px;border-radius:50%;flex-shrink:0;background:var(--color-border-secondary)}
+.box{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:10px 14px;background:var(--color-background-secondary);font-size:13px;line-height:1.65;color:var(--color-text-secondary)}
+.box strong{color:var(--color-text-primary);font-weight:500}
+.warn{font-size:12px;padding:8px 12px;border-radius:8px;background:var(--color-background-warning);color:var(--color-text-warning);border:0.5px solid var(--color-border-warning);line-height:1.55}
+.ok{font-size:12px;padding:8px 12px;border-radius:8px;background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success);line-height:1.55}
+.code{font-family:var(--font-mono);font-size:12px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:6px;padding:2px 6px;color:var(--color-text-primary)}
+@media(prefers-color-scheme:dark){
+  .header{background:#26215C;border-color:#AFA9EC}
+  .title{color:#CECBF6}
+  .badge{background:#AFA9EC;color:#26215C}
+  .dot{background:#AFA9EC}
+}
+</style>
+<div class="wrap">
+<div class="header"><div class="header-inner"><span class="badge">الجزء 1</span><span class="title">منطق الإتاحة والحجز الأساسي</span></div></div>
+<div class="body">
+
+<div>
+<div class="section-title">السياق — ليه الجزء ده موجود</div>
+<div class="p">دلوقتي المقرئ إما متاح أو مش متاح بشكل ثابت. المطلوب إننا نضيف منطق أذكى: المقرئ يحدد مواعيد جلسات محدودة، والنظام يوزع الطلاب عليها بشكل منظم ويحمي المقرئ من الاكتظاظ.</div>
+</div>
+
+<div>
+<div class="section-title">السيناريو الكامل خطوة بخطوة</div>
+<div class="items">
+<div class="item"><div class="dot"></div><span><strong>الطالب يسجل تلاوته</strong> وترسل تلقائيًا للمقرئ المتاح حاليًا.</span></div>
+<div class="item"><div class="dot"></div><span><strong>المقرئ يقيّم التلاوة</strong> — لو التقييم يحتاج جلسة، النظام يرسل للطالب قائمة بالمواعيد المتاحة للمقرئ نفسه.</span></div>
+<div class="item"><div class="dot"></div><span><strong>فور إرسال نتيجة التقييم</strong> (قبل ما الطالب يختار أي موعد)، النظام فورًا يحجز "مكان" للطالب عند المقرئ ده.</span></div>
+<div class="item"><div class="dot"></div><span><strong>الطالب عنده 3 أيام</strong> يختار فيها موعد من المتاحين. لو اختار → الحجز يكتمل. لو فضل 3 أيام ومختارش → المكان يتحرر تلقائيًا.</span></div>
+<div class="item"><div class="dot"></div><span><strong>لو بعد 3 أيام مفيش مواعيد متاحة</strong> أصلًا عند المقرئ → الطالب يتحول لحالة <span class="code">suspended</span> تلقائيًا ويظهر للأدمن والمشرفين.</span></div>
+<div class="item"><div class="dot"></div><span><strong>الطالب المعلق</strong> يشوف زر "طلب موعد جديد" في واجهته. المقرئ يستلم الطلب، يقدر يقبل ويفتح موعد جديد ويربط الطالب بيه → النظام يديه 3 أيام جديدة.</span></div>
+<div class="item"><div class="dot"></div><span><strong>لو اكتملت كل مواعيد المقرئ</strong>: إتاحته تتغلق تلقائيًا — بس التغلق ده يوقف استقبال تلاوات جديدة بس. الجلسات المحجوزة مسبقًا والمواعيد الخاصة بطلابه الحاليين تكمل عادي.</span></div>
+</div>
+</div>
+
+<div>
+<div class="section-title">النقطة الأصعب — فهمها كويس</div>
+<div class="box">
+النظام بيحجز <strong>"مكان"</strong> مش <strong>"وقت"</strong>. يعني:<br><br>
+المقرئ عنده 5 مواعيد متاحة. بعتله نتيجة تقييم لطالب → على طول النظام بيعتبر إن المتاح = 4 بس، حتى لو الطالب لسه ما اختارش أي موعد. الهدف إننا منجبش طالب تاني للمقرئ بناءً على رقم غلط. لما الطالب يختار الموعد الفعلي، النظام يسجل الموعد المحدد ويشيل الـ slot المحجوز.
+</div>
+</div>
+
+<div>
+<div class="section-title">أنواع الإتاحة اللي لازم تتبني</div>
+<div class="items">
+<div class="item"><div class="dot"></div><span><strong>يدوية:</strong> المقرئ يفتح ويغلق إتاحته يدويًا من واجهته.</span></div>
+<div class="item"><div class="dot"></div><span><strong>تلقائية:</strong> المقرئ يحدد مدة زمنية (مثلًا: متاح لمدة أسبوع) وبعدها تتغلق تلقائيًا.</span></div>
+<div class="item"><div class="dot"></div><span><strong>تلقائية بسبب اكتمال المواعيد:</strong> لما تتملى كل الـ slots المتاحة، تتغلق وحدها.</span></div>
+</div>
+</div>
+
+<div>
+<div class="section-title">الإشعارات المطلوبة في هذا الجزء</div>
+<div class="items">
+<div class="item"><div class="dot-gray"></div><span>إشعار للطالب: "تم تقييم تلاوتك، اختر موعدًا خلال 3 أيام"</span></div>
+<div class="item"><div class="dot-gray"></div><span>إشعار للطالب: "انتهت مهلة اختيار الموعد، يمكنك طلب موعد جديد"</span></div>
+<div class="item"><div class="dot-gray"></div><span>إشعار للمقرئ: "طالب يطلب موعدًا جديدًا" (عند الضغط على زر الطلب)</span></div>
+<div class="item"><div class="dot-gray"></div><span>إشعار للطالب: "قبل المقرئ طلبك، اختر موعدًا خلال 3 أيام"</span></div>
+</div>
+</div>
+
+<div class="warn">هذا الجزء أساس كل شيء. لا تبدأ أي جزء آخر قبل ما الـ DB models والـ states هنا تشتغل صح ويتعملهم testing كافي.</div>
+</div>
+</div>

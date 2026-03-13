@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Cairo, Amiri } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { AnalyticsTracker } from '@/components/analytics-tracker'
 import { LanguageProvider } from '@/lib/i18n/context'
 import './globals.css'
 
@@ -44,6 +45,7 @@ export default function RootLayout({
           {children}
         </LanguageProvider>
         <Analytics />
+        <AnalyticsTracker />
         {/* HMR Trigger */}
       </body>
     </html>

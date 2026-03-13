@@ -13,23 +13,19 @@ const STATUS_COLORS: Record<string, string> = { mastered: '#10b981', needs_sessi
 export default function AdminReportsPage() {
   const { t } = useI18n()
   const isAr = t.locale === 'ar'
+  const [range, setRange] = useState('month')
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
 
   const load = async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams()
-      if (dateFrom) params.set('dateFrom', dateFrom)
-      if (dateTo) params.set('dateTo', dateTo)
-      const res = await fetch(`/api/admin/reports?${params}`)
+      const res = await fetch(`/api/admin/reports?range=${range}`)
       if (res.ok) setData(await res.json())
     } finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [range])
 
   const exportCSV = () => {
     if (!data) return
@@ -96,16 +92,27 @@ export default function AdminReportsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm text-gray-600">{t.admin.reportsPage.from}</Label>
-            <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-36 text-sm" />
+          <div className="flex bg-gray-100/50 p-1 rounded-xl items-center gap-1 border border-gray-200/50">
+            {[
+              { id: 'week', label: t.admin.reportsPage.rangeWeek },
+              { id: 'month', label: t.admin.reportsPage.rangeMonth },
+              { id: '3months', label: t.admin.reportsPage.range3Months },
+              { id: 'year', label: t.admin.reportsPage.rangeYear },
+            ].map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRange(r.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  range === r.id
+                    ? 'bg-white text-[#1B5E3B] shadow-sm ring-1 ring-gray-200'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm text-gray-600">{t.admin.reportsPage.to}</Label>
-            <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36 text-sm" />
-          </div>
-          <Button onClick={load} size="sm" className="bg-[#1B5E3B] text-white hover:bg-[#1B5E3B]/90">{t.admin.reportsPage.apply}</Button>
-          <Button onClick={exportCSV} size="sm" variant="outline" className="gap-1"><Download className="w-4 h-4" />CSV</Button>
+          <Button onClick={exportCSV} size="sm" variant="outline" className="gap-1 rounded-xl h-9 border-gray-200 font-bold"><Download className="w-4 h-4" />CSV</Button>
         </div>
       </div>
 
@@ -114,6 +121,8 @@ export default function AdminReportsPage() {
         {[
           { label: t.admin.reportsPage.totalStudents, value: data?.users?.total_students || 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
           { label: t.admin.reportsPage.totalReaders, value: data?.users?.total_readers || 0, icon: Medal, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: t.admin.reportsPage.totalSupervisors, value: data?.users?.total_supervisors || 0, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
+          { label: t.admin.reportsPage.bannedUsers, value: data?.users?.banned_users || 0, icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
           { label: t.admin.reportsPage.totalRecitations, value: data?.recitations?.total || 0, icon: BarChart3, color: 'text-indigo-600', bg: 'bg-indigo-50' },
           { label: t.admin.reportsPage.mastered, value: data?.recitations?.mastered || 0, icon: Award, color: 'text-green-600', bg: 'bg-green-50' },
           { label: t.admin.reportsPage.masteryRate, value: `${data?.recitations?.mastery_rate || 0}%`, icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -365,7 +374,7 @@ export default function AdminReportsPage() {
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>{i + 1}</span>
-                  <p className="text-sm text-gray-800 font-medium truncate max-w-[120px]">{r.name}</p>
+                  <a href={`/admin/users/${r.id}`} className="text-sm text-gray-800 font-bold hover:text-[#1B5E3B] transition-colors truncate block max-w-[120px]">{r.name}</a>
                 </div>
                 <div className="text-end">
                   <p className="text-sm font-bold text-[#1B5E3B]">{r.reviews_count}</p>
@@ -387,7 +396,7 @@ export default function AdminReportsPage() {
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center ${i === 0 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{i + 1}</span>
-                  <p className="text-sm text-gray-800 font-medium truncate max-w-[120px]">{r.name}</p>
+                  <a href={`/admin/users/${r.id}`} className="text-sm text-gray-800 font-bold hover:text-[#1B5E3B] transition-colors truncate block max-w-[120px]">{r.name}</a>
                 </div>
                 <div className="text-end">
                   <p className="text-sm font-bold text-blue-600">{r.sessions_count}</p>
@@ -410,7 +419,7 @@ export default function AdminReportsPage() {
                 <div className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center ${i === 0 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>{i + 1}</span>
                   <div>
-                    <p className="text-sm text-gray-800 font-medium truncate max-w-[110px]">{s.name}</p>
+                    <a href={`/admin/users/${s.id}`} className="text-sm text-gray-800 font-bold hover:text-[#1B5E3B] transition-colors truncate block max-w-[110px]">{s.name}</a>
                     <p className="text-[10px] text-gray-400 truncate max-w-[110px]">{s.email}</p>
                   </div>
                 </div>
@@ -450,7 +459,7 @@ export default function AdminReportsPage() {
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       {r.avatar_url ? <img src={r.avatar_url} className="w-8 h-8 rounded-full border border-gray-100" /> : <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400">{r.name[0]}</div>}
-                      <span className="font-bold text-gray-700">{r.name}</span>
+                      <a href={`/admin/users/${r.id}`} className="font-bold text-gray-700 hover:text-[#1B5E3B] transition-colors">{r.name}</a>
                     </div>
                   </td>
                   <td className="py-4 px-6 text-blue-600 font-bold">{r.reviews}</td>

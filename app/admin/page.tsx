@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { ViewsChart } from "@/components/admin/analytics/views-chart"
 import { VisitorStats } from "@/components/admin/analytics/visitors-stats"
+import { SuspendedStudents } from "@/components/admin/SuspendedStudents"
 
 export default function AdminDashboard() {
   const { t } = useI18n()
@@ -162,6 +163,9 @@ export default function AdminDashboard() {
       {analytics && (
         <ViewsChart data={chartData} />
       )}
+
+      {/* Suspended Students Section */}
+      <SuspendedStudents />
 
       {/* Advanced Analytics */}
       {analytics && (

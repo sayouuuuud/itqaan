@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { query } from "@/lib/db"
+import { createNotificationForAdmins } from "@/lib/notifications"
 
 export async function POST(req: NextRequest) {
   try {
@@ -81,6 +82,19 @@ export async function POST(req: NextRequest) {
         years_of_experience || null,
       ]
     )
+
+    // Notify admins about the new reader application
+    try {
+      await createNotificationForAdmins({
+        type: 'new_reader_application',
+        title: 'طلب انضمام مقرئ جديد',
+        message: `قدم المقرئ ${full_name_triple} طلباً للانضمام إلى المنصة. يرجى مراجعة بياناته.`,
+        category: 'account',
+        link: '/admin/reader-applications'
+      })
+    } catch (notifError) {
+      console.error("Failed to notify admins about new reader:", notifError)
+    }
 
     // Do NOT create JWT or log in automatically
     return NextResponse.json(

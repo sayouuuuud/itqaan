@@ -93,17 +93,22 @@ export async function POST(req: NextRequest) {
       [session.sub, audioUrl, audioDuration || null, notes || null, qiraah || 'حفص عن عاصم']
     )
 
-    // Auto-assign a reader matching the student's gender
+    // Auto-assign a reader matching the student's gender and is active for evaluation
     const student = await query<{ gender: string }>("SELECT gender FROM users WHERE id = $1", [session.sub])
+    let readerFound = false
     if (student.length > 0 && student[0].gender) {
       const reader = await query<{ id: string }>(
         `SELECT u.id FROM users u
-         JOIN reader_profiles rp ON u.id = rp.user_id
-         WHERE u.role = 'reader' AND u.approval_status = 'approved' AND u.is_active = true AND rp.is_accepting_students = true AND u.gender = $1
+         WHERE u.role = 'reader' 
+         AND u.approval_status = 'approved' 
+         AND u.is_active = true 
+         AND u.is_accepting_recitations = true 
+         AND u.gender = $1
          ORDER BY RANDOM() LIMIT 1`,
         [student[0].gender]
       )
       if (reader.length > 0) {
+        readerFound = true
         await query("UPDATE recitations SET assigned_reader_id = $1, assigned_at = NOW() WHERE id = $2", [reader[0].id, result[0].id])
         
         // Notify the assigned reader
@@ -119,7 +124,6 @@ export async function POST(req: NextRequest) {
           })
         } catch (notifError) {
           console.error("Failed to create notification for reader:", notifError)
-          // Don't fail the request if notification fails
         }
       }
     }
@@ -129,7 +133,9 @@ export async function POST(req: NextRequest) {
       userId: session.sub,
       type: 'recitation_received',
       title: 'تم استلام تلاوتك ✅',
-      message: 'تم إرسال تلاوتك بنجاح وسيتم مراجعتها من قبل مقرئ معتمد قريبًا.',
+      message: readerFound 
+        ? 'تم إرسال تلاوتك بنجاح وسيتم مراجعتها من قبل مقرئ معتمد قريبًا.'
+        : 'تم استلام تلاوتك بنجاح. سنقوم بتعيين مقرئ لمراجعتها في أقرب وقت ممكن.',
       category: 'recitation',
       link: '/student/recitations',
       relatedRecitationId: result[0].id as string,
@@ -141,8 +147,10 @@ export async function POST(req: NextRequest) {
       await createNotification({
         userId: admin.id,
         type: 'new_recitation_admin',
-        title: 'تلاوة جديدة تنتظر المراجعة',
-        message: 'ارسل طالب تلاوته لسورة الفاتحة وتحتاج إلى تعيين مقرئ.',
+        title: readerFound ? 'تلاوة جديدة تنتظر المراجعة' : '⚠️ تلاوة معلقة - لا يوجد مقرئين نشطين',
+        message: readerFound 
+          ? 'ارسل طالب تلاوته لسورة الفاتحة وتحتاج إلى تعيين مقرئ.'
+          : 'ارسل طالب تلاوته ولكن لا يوجد مقرئين متاحين حالياً. يرجى تعيين مقرئ يدوياً.',
         category: 'recitation',
         link: '/admin/recitations',
         relatedRecitationId: result[0].id as string,

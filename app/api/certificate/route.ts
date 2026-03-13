@@ -100,5 +100,14 @@ export async function POST(req: NextRequest) {
     ]
   )
 
+  const { createNotificationForAdmins } = await import('@/lib/notifications')
+  await createNotificationForAdmins({
+    type: 'general',
+    title: 'طلب شهادة جديد 🎓',
+    message: `قام الطالب ${session.name} بتقديم طلب لإصدار شهادة إتقان.`,
+    category: 'general',
+    link: '/admin/certificates'
+  })
+
   return NextResponse.json({ certificate: result[0] }, { status: 201 })
 }

@@ -232,6 +232,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Link to reservation and update capacity
+    const pendingReservation = await query<{ id: string; reader_id: string }>(
+      `SELECT id, reader_id FROM reserved_slots 
+       WHERE student_id = $1 AND status = 'pending' 
+       ORDER BY reserved_at DESC LIMIT 1`,
+      [session.sub]
+    )
+
+    if (pendingReservation[0]) {
+      // Mark reservation as completed
+      await query(
+        `UPDATE reserved_slots SET status = 'completed', updated_at = NOW() WHERE id = $1`,
+        [pendingReservation[0].id]
+      )
+
+      // Decrement reserved slots count in reader profile
+      await query(
+        `UPDATE reader_profiles SET current_reserved_slots = GREATEST(0, current_reserved_slots - 1) WHERE user_id = $1`,
+        [pendingReservation[0].reader_id]
+      )
+    }
+
     return NextResponse.json({ booking: result[0] }, { status: 201 })
   } catch (error) {
     console.error("Create booking error:", error)

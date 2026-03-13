@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const date = searchParams.get("date")
+  const readerId = searchParams.get("readerId")
 
   if (!date) {
     return NextResponse.json({ error: "التاريخ مطلوب" }, { status: 400 })
@@ -26,8 +27,14 @@ export async function GET(req: NextRequest) {
   const queryParams: unknown[] = [date]
 
   if (studentGender) {
-    genderFilter = "AND (u.gender = $2 OR u.gender IS NULL)"
+    genderFilter = `AND (u.gender = $${queryParams.length + 1} OR u.gender IS NULL)`
     queryParams.push(studentGender)
+  }
+
+  let readerFilter = ""
+  if (readerId) {
+    readerFilter = `AND u.id = $${queryParams.length + 1}`
+    queryParams.push(readerId)
   }
 
   // Get all availability slots for the given date:
@@ -41,6 +48,7 @@ export async function GET(req: NextRequest) {
        AND u.is_active = true
        AND u.approval_status IN ('approved', 'auto_approved')
        ${genderFilter}
+       ${readerFilter}
        AND (
          (a.is_recurring = true AND a.specific_date IS NULL AND a.day_of_week = EXTRACT(DOW FROM $1::date)::int)
          OR

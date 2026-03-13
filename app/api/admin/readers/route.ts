@@ -34,9 +34,10 @@ export async function GET(req: NextRequest) {
     const q = `
     SELECT
       u.id, u.name, u.email, u.phone, u.is_active, u.created_at,
-      u.approval_status, u.gender, u.city,
+      u.approval_status, u.gender, u.city, u.is_accepting_recitations,
       u.full_name_triple, u.qualification, u.memorized_parts, u.years_of_experience,
       rp.rating, rp.total_reviews, rp.total_sessions_completed, rp.is_accepting_students,
+      rp.availability_mode, rp.max_total_slots, rp.current_reserved_slots,
       rsta.total_reviews_completed, rsta.total_sessions_completed AS sessions_done,
       rsta.average_session_rating, rsta.last_review_at
     FROM users u
@@ -74,13 +75,24 @@ export async function PATCH(req: NextRequest) {
     const { id, ...fields } = body
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-    const allowed = ['name', 'phone', 'city', 'gender', 'qualification', 'memorized_parts', 'years_of_experience', 'is_active']
+    const allowed = [
+      'name', 'phone', 'city', 'gender', 'qualification', 'memorized_parts', 
+      'years_of_experience', 'is_active', 'is_accepting_recitations',
+      'availability_mode', 'max_total_slots'
+    ]
     const setters: string[] = []
     const params: any[] = []
     let idx = 1
 
     for (const [k, v] of Object.entries(fields)) {
-        if (allowed.includes(k)) { setters.push(`${k} = $${idx++}`); params.push(v) }
+        if (allowed.includes(k)) {
+            if (['availability_mode', 'max_total_slots'].includes(k)) {
+                // These are on reader_profiles
+                await query(`UPDATE reader_profiles SET ${k} = $1 WHERE user_id = $2`, [v, id]);
+            } else {
+                setters.push(`${k} = $${idx++}`); params.push(v)
+            }
+        }
     }
 
     if (!setters.length) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
@@ -90,5 +102,30 @@ export async function PATCH(req: NextRequest) {
 
     await query(`UPDATE users SET ${setters.join(', ')} WHERE id = $${idx} AND role = 'reader'`, params)
 
+    return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(req: NextRequest) {
+    const session = await getSession()
+    if (!requireRole(session, ["admin"])) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+    // Check for active bookings
+    const bookings = await query(
+        `SELECT id FROM bookings WHERE reader_id = $1 AND status IN ('pending', 'confirmed')`,
+        [id]
+    )
+    if (bookings.length > 0) {
+        return NextResponse.json({ 
+            error: 'لا يمكن حذف المقرئ لوجود جلسات مجدولة نشطة. يرجى إلغاء الجلسات أو تحويل الطلاب أولاً.' 
+        }, { status: 400 })
+    }
+
+    await query(`DELETE FROM users WHERE id = $1 AND role = 'reader'`, [id])
     return NextResponse.json({ ok: true })
 }

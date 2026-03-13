@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin, ExternalLink, Download } from 'lucide-react'
+import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin, ExternalLink, Download, BarChart3, TrendingUp } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 type FatihaStatus = 'no_recitation' | 'pending' | 'in_review' | 'mastered' | 'needs_session' | 'session_booked'
 
 interface LatestRecitation {
   status: FatihaStatus
   created_at?: string
+  assigned_reader_name?: string
 }
 
 interface BookingInfo {
@@ -37,6 +39,8 @@ function useStudentData() {
   const [booking, setBooking] = useState<BookingInfo | null>(null)
   const [certificate, setCertificate] = useState<CertificateInfo | null>(null)
   const [hasCertData, setHasCertData] = useState(false)
+  const [studentStatus, setStudentStatus] = useState<string>('active')
+  const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -77,6 +81,19 @@ function useStudentData() {
           }
         }
 
+        // Fetch user status
+        const meRes = await fetch('/api/auth/me')
+        if (meRes.ok) {
+          const meData = await meRes.json()
+          setStudentStatus(meData.user?.student_status || 'active')
+        }
+
+        // Fetch stats
+        const statsRes = await fetch('/api/stats?range=month')
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats(statsData)
+        }
       } catch {
         setRecitation({ status: 'no_recitation' })
       } finally {
@@ -86,12 +103,12 @@ function useStudentData() {
     load()
   }, [])
 
-  return { recitation, booking, certificate, hasCertData, loading }
+  return { recitation, booking, certificate, hasCertData, studentStatus, stats, loading }
 }
 
 export default function StudentDashboard() {
   const { t, locale } = useI18n()
-  const { recitation, booking, certificate, hasCertData, loading } = useStudentData()
+  const { recitation, booking, certificate, hasCertData, studentStatus, stats, loading } = useStudentData()
 
   if (loading) {
     return (
@@ -102,9 +119,22 @@ export default function StudentDashboard() {
   }
 
   const rawStatus = recitation?.status || 'no_recitation'
-  // If they mastered BUT already submitted cert data, we treat it as if they are back to normal dashboard
-  // but we can maybe show a different small banner or just hide the big widget.
-  const status = rawStatus
+  const isSuspended = studentStatus === 'suspended'
+  
+  // Literal states mapping for Part 3
+  let state: 'new' | 'review' | 'waiting' | 'booked' | 'suspended' = 'new'
+  
+  if (isSuspended) {
+    state = 'suspended'
+  } else if (rawStatus === 'no_recitation') {
+    state = 'new'
+  } else if (['pending', 'in_review'].includes(rawStatus)) {
+    state = 'review'
+  } else if (rawStatus === 'needs_session') {
+    state = 'waiting'
+  } else if (rawStatus === 'session_booked') {
+    state = 'booked'
+  }
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center py-10 px-4">
@@ -115,240 +145,64 @@ export default function StudentDashboard() {
           <p className="text-gray-500">{t.student.fatihaStatus}</p>
         </div>
 
-        {/* State: No recitation yet */}
-        {status === 'no_recitation' && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-gray-800">{t.student.noRecitationTitle}</h2>
-            </div>
-          </div>
-        )}
-
-        {/* State: Pending / In Review */}
-        {(status === 'pending' || status === 'in_review') && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
-            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-100">
-              <Clock className="w-10 h-10 text-amber-500" />
+        {/* State 1: New - لم يسجل تلاوة */}
+        {state === 'new' && (
+          <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-center space-y-6">
+            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100">
+              <Mic className="w-10 h-10 text-emerald-600" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-gray-800">{t.student.recitationReceived}</h2>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                {t.student.recitationReceivedDesc}
+              <h2 className="text-2xl font-black text-[#1B5E3B]">{t.student.stateNew}</h2>
+              <p className="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
+                {t.student.noRecitationDesc || (locale === 'ar' ? 'ابدأ رحلتك بتسجيل سورة الفاتحة ليقوم المقرئ بمراجعتها.' : 'Start your journey by recording Surah Al-Fatiha for review.')}
               </p>
             </div>
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-              <p className="text-sm font-bold text-amber-700 mb-1">{t.student.statusInReviewBanner}</p>
-              <p className="text-xs text-amber-600/80">
-                {t.student.reviewTakesTime}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* State: Mastered */}
-        {status === 'mastered' && (
-          <div className="space-y-6">
-            {/* Certificate Section */}
-            {certificate ? (
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-8 shadow-lg">
-                <div className="text-center space-y-6">
-                  {/* Certificate Badge */}
-                  <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white">
-                      <Award className="w-12 h-12 text-white" />
-                    </div>
-                    {certificate.certificate_issued && (
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                        <CheckCircle className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Certificate Title */}
-                  <div className="space-y-3">
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
-                      {certificate.certificate_issued
-                        ? t.student.certIssuedTitle
-                        : t.student.certSavedTitle
-                      }
-                    </h2>
-                    <p className="text-gray-600 text-base leading-relaxed max-w-md mx-auto">
-                      {certificate.certificate_issued
-                        ? t.student.certIssuedDesc
-                        : t.student.certSavedDesc
-                      }
-                    </p>
-                  </div>
-
-                  {/* Certificate Details Card */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-emerald-100">
-                    <h3 className="text-lg font-bold text-emerald-800 mb-4 flex items-center justify-center gap-2">
-                      <FileText className="w-5 h-5" />
-                      {t.student.certDetails}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <User className="w-5 h-5 text-emerald-700" />
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-sm text-emerald-600 font-medium">{t.student.universityLabel}</p>
-                            <p className="text-base font-bold text-emerald-800">{certificate.university}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 border border-teal-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
-                            <Building className="w-5 h-5 text-teal-700" />
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-sm text-teal-600 font-medium">{t.student.collegeLabel}</p>
-                            <p className="text-base font-bold text-teal-800">{certificate.college}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl p-4 border border-cyan-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-cyan-700" />
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-sm text-cyan-600 font-medium">{t.student.cityLabel}</p>
-                            <p className="text-base font-bold text-cyan-800">{certificate.city}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className={`rounded-xl p-4 border-2 ${certificate.certificate_issued ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' : 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200'}`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${certificate.certificate_issued ? 'bg-green-100' : 'bg-amber-100'}`}>
-                            {certificate.certificate_issued ? (
-                              <CheckCircle className="w-5 h-5 text-green-700" />
-                            ) : (
-                              <Clock className="w-5 h-5 text-amber-700" />
-                            )}
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className={`text-sm font-medium ${certificate.certificate_issued ? 'text-green-600' : 'text-amber-600'}`}>
-                              {t.student.certStatus}
-                            </p>
-                            <p className={`text-base font-bold ${certificate.certificate_issued ? 'text-green-800' : 'text-amber-800'}`}>
-                              {certificate.certificate_issued
-                                ? t.student.statusIssued
-                                : t.student.statusPendingReview
-                              }
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Certificate Action Buttons */}
-                  <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-                    {certificate.certificate_issued && certificate.certificate_url && (
-                      <a
-                        href={certificate.certificate_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 bg-white border-2 border-emerald-600 text-emerald-700 font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-sm hover:bg-emerald-50 hover:shadow-md transform hover:-translate-y-0.5"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                        <span>{t.student.digitalCertLink}</span>
-                      </a>
-                    )}
-
-                    {certificate.certificate_issued && (
-                      <a
-                        href={`/api/certificate/download?student_id=${certificate.student_id || ''}`}
-                        download
-                        className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/40 transform hover:-translate-y-0.5"
-                      >
-                        <Download className="w-5 h-5" />
-                        <span>{t.student.downloadCert}</span>
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Ceremony Info */}
-                  {certificate.certificate_issued && certificate.ceremony_date && (
-                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-6 mt-6 shadow-md">
-                      <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <Calendar className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="text-center">
-                          <h4 className="text-lg font-bold text-purple-800">
-                            {t.student.ceremonyTitle}
-                          </h4>
-                          <p className="text-sm text-purple-600">
-                            {t.student.ceremonyDateTime}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
-                        <p className="text-center text-lg font-bold text-purple-800">
-                          {new Date(certificate.ceremony_date).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                        <p className="text-center text-base font-semibold text-purple-700 mt-1">
-                          {new Date(certificate.ceremony_date).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
-                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100">
-                  <CheckCircle className="w-10 h-10 text-emerald-600" />
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-xl font-bold text-emerald-700">{t.student.congratsMastered}</h2>
-                  <p className="text-gray-500 text-sm leading-relaxed">
-                    {t.student.masteredDesc}
-                  </p>
-                </div>
-                <Link href="/student/certificate" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3.5 px-8 rounded-xl transition-colors">
-                  <span>{t.student.completeCertData}</span>
-                  <ArrowLeft className="w-4 h-4" />
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-
-        {/* State: Needs Session */}
-        {status === 'needs_session' && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center space-y-6">
-            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto border border-blue-100">
-              <Calendar className="w-10 h-10 text-blue-600" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-gray-800">{t.student.needsSessionTitle}</h2>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                {t.student.needsSessionDesc}
-              </p>
-            </div>
-            <Link href="/student/booking" className="inline-flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#C9A227]/20">
-              <Calendar className="w-5 h-5" />
-              <span>{t.student.bookSessionBtnBase}</span>
+            <Link href="/student/record" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-[#1B5E3B]/20 transform hover:-translate-y-1">
+              <Mic className="w-5 h-5" />
+              <span>{t.student.recordNowBtn}</span>
             </Link>
           </div>
         )}
 
-        {/* State: Session Booked */}
-        {status === 'session_booked' && booking && (
+        {/* State 2: Review - قيد التقييم */}
+        {state === 'review' && (
+          <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-center space-y-6">
+            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-100">
+              <Clock className="w-10 h-10 text-amber-500 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-amber-700">{t.student.stateReview}</h2>
+              <p className="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
+                {t.student.recitationReceivedDesc}
+              </p>
+            </div>
+            <div className="bg-amber-50/50 border border-amber-100/50 rounded-2xl p-4">
+              <p className="text-xs text-amber-700 font-bold">{t.student.reviewTakesTime}</p>
+            </div>
+          </div>
+        )}
+
+        {/* State 3: Waiting - ينتظر اختيار موعد */}
+        {state === 'waiting' && (
+          <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-center space-y-6 animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto border border-blue-100">
+              <Calendar className="w-10 h-10 text-blue-600" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-blue-900">{t.student.stateWaiting}</h2>
+              <p className="text-blue-700/60 text-sm font-bold">
+                {t.student.slotsRemaining} {recitation?.assigned_reader_name || ''}
+              </p>
+            </div>
+            <Link href="/student/booking" className="inline-flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-[#C9A227]/30 transform hover:-translate-y-1">
+              <Calendar className="w-5 h-5" />
+              <span>{t.student.bookSessionBtnBase || 'حجز موعد'}</span>
+            </Link>
+          </div>
+        )}
+
+        {/* State 4: Booked - موعد محجوز */}
+        {state === 'booked' && booking && (
           <div className="bg-white border border-gray-100 rounded-[2rem] shadow-xl shadow-gray-200/50 overflow-hidden text-right">
             {/* Premium Header */}
             <div className="relative p-8 pb-10 overflow-hidden">
@@ -440,7 +294,85 @@ export default function StudentDashboard() {
             </div>
           </div>
         )}
+
+        {/* State 5: Suspended - معلق */}
+        {state === 'suspended' && (
+          <div className="bg-red-50 border border-red-100 rounded-3xl p-10 shadow-sm text-center space-y-6 animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-red-100">
+              <Clock className="w-10 h-10 text-red-500" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-red-900">{t.student.stateSuspended}</h2>
+              <p className="text-red-700/80 text-sm font-medium leading-relaxed max-w-sm mx-auto">
+                {locale === 'ar' 
+                  ? "لقد انتهت مهلة الـ 3 أيام الممنوحة لك لتحديد موعد الجلسة بعد تحويل تلاوتك للمراجعة."
+                  : "The 3-day window to book your session after your recitation review has expired."}
+              </p>
+            </div>
+            <button 
+              onClick={async () => {
+                const res = await fetch('/api/recitations/request-new-slot', { method: 'POST' });
+                if (res.ok) window.location.reload();
+              }}
+              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-red-500/20 transform hover:-translate-y-1 active:scale-95"
+            >
+              <Send className="w-5 h-5" />
+              <span>{locale === 'ar' ? "طلب موعد جديد من المقرئ" : "Request a new slot from the reader"}</span>
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Stats Section */}
+      {stats && (
+        <div className="w-full max-w-4xl mx-auto mt-16 space-y-8 px-4">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-6 h-6 text-[#1B5E3B]" />
+            <h2 className="text-xl font-bold text-gray-900">{t.admin.studentStats.title}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 border border-emerald-100">
+                  <Award className="w-5 h-5 text-emerald-600" />
+                </div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t.admin.studentStats.masteryRate}</p>
+                <p className="text-3xl font-black text-emerald-700">{stats.masteryRate}%</p>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-4 border border-blue-100">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                </div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t.admin.studentStats.completedSessions}</p>
+                <p className="text-3xl font-black text-blue-700">{stats.completedSessions}</p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm font-bold text-gray-800">{t.admin.studentStats.progress}</p>
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className="h-[120px]">
+                {stats.progress?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats.progress}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
+                      <XAxis dataKey="date" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }} />
+                      <Bar dataKey="count" fill="#1B5E3B" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-gray-400">{t.admin.studentStats.noData}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   )
 }

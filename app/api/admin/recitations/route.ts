@@ -17,9 +17,14 @@ export async function GET(req: NextRequest) {
         const search = searchParams.get("search")
         const readerName = searchParams.get("reader")
         const status = searchParams.get("status")
+        const unassigned = searchParams.get("unassigned")
 
         let whereClause = "WHERE 1=1"
         const params: any[] = []
+
+        if (unassigned === "true") {
+            whereClause += ` AND r.assigned_reader_id IS NULL AND r.status = 'pending'`
+        }
 
         if (search) {
             params.push(`%${search}%`)
@@ -44,6 +49,7 @@ export async function GET(req: NextRequest) {
          u.email as "studentEmail",
          r.status, 
          r.created_at as "createdAt",
+         r.assigned_reader_id as "assignedReaderId",
          reader.name as "assignedReaderName",
          r.ayah_from as "fromAyah",
          r.ayah_to as "toAyah",

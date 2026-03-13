@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { AvatarUpload } from '@/components/avatar-upload'
-import { User, Lock, CheckCircle, Loader2 } from 'lucide-react'
+import { User, Lock, CheckCircle, Loader2, Clock } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 
 interface UserProfile {
   id: string; name: string; email: string; role: string
   avatar_url: string | null; phone: string | null; gender: string | null
+  availability_mode?: 'manual' | 'automatic_time' | 'automatic_slots';
+  max_total_slots?: number;
+  current_reserved_slots?: number;
 }
 
 export default function ReaderProfilePage() {
@@ -29,10 +32,18 @@ export default function ReaderProfilePage() {
   const [pwSaving, setPwSaving] = useState(false)
   const [pwSaved, setPwSaved] = useState(false)
   const [pwError, setPwError] = useState('')
+  const [availabilityMode, setAvailabilityMode] = useState<'manual' | 'automatic_time' | 'automatic_slots'>('manual')
+  const [maxSlots, setMaxSlots] = useState(20)
 
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(d => {
-      if (d.user) { setProfile(d.user); setName(d.user.name || ''); setPhone(d.user.phone || '') }
+      if (d.user) { 
+        setProfile(d.user); 
+        setName(d.user.name || ''); 
+        setPhone(d.user.phone || ''); 
+        setAvailabilityMode(d.user.availability_mode || 'manual');
+        setMaxSlots(d.user.max_total_slots || 20);
+      }
     }).finally(() => setLoading(false))
   }, [])
 
@@ -44,8 +55,22 @@ export default function ReaderProfilePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true)
     try {
-      const res = await fetch('/api/auth/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone }) })
-      if (res.ok) { const d = await res.json(); setProfile(p => p ? { ...p, name: d.user.name } : p); setSaved(true); setTimeout(() => setSaved(false), 3000) }
+      const res = await fetch('/api/auth/me', { 
+        method: 'PATCH', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+          name, 
+          phone,
+          availability_mode: availabilityMode,
+          max_total_slots: maxSlots
+        }) 
+      })
+      if (res.ok) { 
+        const d = await res.json(); 
+        setProfile(p => p ? { ...p, ...d.user } : p); 
+        setSaved(true); 
+        setTimeout(() => setSaved(false), 3000) 
+      }
     } finally { setSaving(false) }
   }
 
@@ -164,6 +189,55 @@ export default function ReaderProfilePage() {
                     <Label htmlFor="reader-bio" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.locale === 'ar' ? "نبذة مختصرة" : "Bio"}</Label>
                     <Textarea id="reader-bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} className="border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium" placeholder={t.locale === 'ar' ? "أكتب نبذة عن تخصصك..." : "Write a short bio..."} />
                   </div>
+
+                  {/* Availability Settings */}
+                  <div className="pt-6 border-t border-slate-100 space-y-6">
+                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#1B5E3B]" />
+                      {t.locale === 'ar' ? "إعدادات الإتاحة والحجز" : "Availability & Booking Settings"}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">
+                          {t.locale === 'ar' ? "وضع الإتاحة" : "Availability Mode"}
+                        </Label>
+                        <select 
+                          value={availabilityMode} 
+                          onChange={(e) => setAvailabilityMode(e.target.value as any)}
+                          className="w-full h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium px-4"
+                        >
+                          <option value="manual">{t.locale === 'ar' ? "يدوي" : "Manual"}</option>
+                          <option value="automatic_slots">{t.locale === 'ar' ? "تلقائي (حسب المواعيد)" : "Automatic (by slots)"}</option>
+                          <option value="automatic_time">{t.locale === 'ar' ? "تلقائي (فترة زمنية)" : "Automatic (time period)"}</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">
+                          {t.locale === 'ar' ? "أقصى عدد للطلاب" : "Max Students Content"}
+                        </Label>
+                        <Input 
+                          type="number" 
+                          value={maxSlots} 
+                          onChange={e => setMaxSlots(parseInt(e.target.value))} 
+                          className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium" 
+                        />
+                      </div>
+                    </div>
+
+                    {profile?.current_reserved_slots !== undefined && (
+                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                        <span className="text-sm font-medium text-emerald-800">
+                          {t.locale === 'ar' ? "الأماكن المحجوزة حالياً:" : "Current reserved slots:"}
+                        </span>
+                        <span className="text-lg font-bold text-emerald-900">
+                          {profile.current_reserved_slots} / {maxSlots}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="pt-4 flex items-center justify-end gap-4 border-t border-slate-100 mt-6">
                     <Button type="submit" disabled={saving} className="h-12 px-8 bg-gradient-to-r from-[#1B5E3B] to-[#2D8C5B] hover:shadow-lg hover:shadow-emerald-900/20 text-white rounded-2xl font-bold transition-all transform active:scale-95">
                       {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : t.profile.saveChanges}

@@ -52,11 +52,11 @@ export async function POST(req: NextRequest) {
 
         const { studentId, readerId, userId, userRole, isTicket } = await req.json()
 
-        // Student creating a ticket
-        if (session.role === "student" && isTicket) {
+        // Create a ticket (Support Ticket)
+        if (isTicket) {
             const result = await query(
-                `INSERT INTO conversations (student_id, is_ticket, ticket_status) VALUES ($1, true, 'open') RETURNING id`,
-                [session.sub]
+                `INSERT INTO conversations (student_id, reader_id, is_ticket, ticket_status) VALUES ($1, $2, true, 'open') RETURNING id`,
+                [session.role === "student" ? session.sub : null, session.role === "reader" ? session.sub : null]
             )
             return NextResponse.json({ conversation: result[0] }, { status: 201 })
         }

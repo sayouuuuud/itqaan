@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { Menu, X, ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { usePathname } from 'next/navigation'
 
 export function PublicNavbar({ initialUser = null }: { initialUser?: { role: string } | null }) {
@@ -37,13 +38,14 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
   }, [])
 
   return (
-    <nav className={`${isHome ? 'absolute' : 'sticky bg-[#0B3D2E] shadow-md'} top-0 left-0 right-0 z-40 transition-all duration-300`}>
+    <nav className={`${isHome ? 'absolute' : 'sticky bg-primary dark:bg-card shadow-md'} top-0 left-0 right-0 z-40 transition-all duration-300`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="hover:opacity-80 transition-opacity">
           <img src="/branding/main-logo.png" alt={t.appName} className="h-22 w-30 object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-4">
+          <ThemeToggle className="text-white hover:text-white/80" />
           <LanguageSwitcher variant="ghost" className="text-white hover:text-white/80" />
           <div className="h-6 w-px bg-white/10 mx-1" />
           <div className="flex items-center gap-3">
@@ -51,13 +53,13 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
               user ? (
                 <Link 
                   href={["admin", "student_supervisor", "reciter_supervisor"].includes(user.role) ? "/admin" : `/${user.role}`} 
-                  className="text-sm font-semibold px-6 py-2.5 rounded-full transition-all bg-[#D4A843] text-white hover:bg-[#C49A3A] shadow-lg shadow-[#D4A843]/20 flex items-center gap-2"
+                  className="text-sm font-semibold px-6 py-2.5 rounded-full transition-all bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center gap-2"
                 >
                   {t.locale === 'ar' ? 'الدخول للحساب' : 'Go to Account'}
                   <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </Link>
               ) : (
-                <Link href="/login" className="text-sm font-medium px-8 py-2.5 rounded-full transition-all text-white border border-[#D4A843]/40 hover:bg-[#D4A843]/10">
+                <Link href="/login" className="text-sm font-medium px-8 py-2.5 rounded-full transition-all text-white border border-primary/40 hover:bg-primary/10">
                   {t.login}
                 </Link>
               )
@@ -80,25 +82,26 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
 
       {
         mobileOpen && (
-          <div className="md:hidden bg-[#0B3D2E]/95 backdrop-blur-md border-t border-white/10">
+          <div className="md:hidden bg-primary/95 dark:bg-card/95 backdrop-blur-md border-t border-white/10">
             <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
               {!loading && (
                 user ? (
                   <Link 
                     href={["admin", "student_supervisor", "reciter_supervisor"].includes(user.role) ? "/admin" : `/${user.role}`} 
                     onClick={() => setMobileOpen(false)} 
-                    className="flex-1 text-center text-sm font-semibold py-2.5 rounded-full bg-[#D4A843] text-white flex items-center justify-center gap-2"
+                    className="flex-1 text-center text-sm font-semibold py-2.5 rounded-full bg-primary text-white flex items-center justify-center gap-2"
                   >
                     {t.locale === 'ar' ? 'الدخول للحساب' : 'Go to Account'}
                     <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                   </Link>
                 ) : (
                   <>
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-medium py-3 rounded-full text-white border border-[#D4A843]/40">{t.login}</Link>
+                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-medium py-3 rounded-full text-white border border-primary/40">{t.login}</Link>
                   </>
                 )
               )}
-              <div className="flex justify-center pt-2 border-t border-white/5">
+              <div className="flex justify-center items-center gap-4 pt-2 border-t border-white/5">
+                <ThemeToggle className="text-white hover:text-white/80" />
                 <LanguageSwitcher variant="ghost" className="text-white border border-white/10 hover:bg-white/5 rounded-full px-6 h-10" />
               </div>
             </div>

@@ -80,10 +80,10 @@ export default function LandingPage() {
       </section>
 
       {/* ========== HOW IT WORKS - Stacked alternating rows ========== */}
-      <section id="how-it-works" className="relative py-28 md:py-36 px-4 bg-[#FAF8F4] overflow-hidden">
+      <section id="how-it-works" className="relative py-28 md:py-36 px-4 bg-secondary/30 dark:bg-background overflow-hidden">
         {/* Animated background orbs */}
-        <div className="absolute top-20 right-10 w-[500px] h-[500px] rounded-full bg-[#D4A843]/[0.04] blur-[120px] animate-blob-float pointer-events-none" />
-        <div className="absolute bottom-20 left-10 w-[400px] h-[400px] rounded-full bg-[#0B3D2E]/[0.04] blur-[100px] animate-blob-float-delayed pointer-events-none" />
+        <div className="absolute top-20 right-10 w-[500px] h-[500px] rounded-full bg-primary/5 dark:bg-primary/10 blur-[120px] animate-blob-float pointer-events-none" />
+        <div className="absolute bottom-20 left-10 w-[400px] h-[400px] rounded-full bg-primary/5 dark:bg-primary/20 blur-[100px] animate-blob-float-delayed pointer-events-none" />
 
         {/* Decorative top border */}
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-l from-transparent via-[#D4A843]/30 to-transparent" />
@@ -91,15 +91,15 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-6xl relative z-10">
           {/* Section heading */}
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-px flex-1 bg-[#0B3D2E]/10" />
-            <span className="text-[#D4A843] text-xs font-bold tracking-[0.3em] uppercase">{t.landing.stepsLabel}</span>
-            <div className="h-px flex-1 bg-[#0B3D2E]/10" />
+            <div className="h-px flex-1 bg-foreground/10" />
+            <span className="text-primary text-xs font-bold tracking-[0.3em] uppercase">{t.landing.stepsLabel}</span>
+            <div className="h-px flex-1 bg-foreground/10" />
           </div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-[#0B3D2E] text-center mb-6 text-balance leading-tight">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-foreground text-center mb-6 text-balance leading-tight">
             {t.landing.fatihaMasteryTitle}
           </h2>
-          <p className="text-center text-[#0B3D2E]/50 text-lg mb-16 md:mb-24 max-w-xl mx-auto">
+          <p className="text-center text-muted-foreground text-lg mb-16 md:mb-24 max-w-xl mx-auto">
             {t.landing.fatihaMasteryDesc}
           </p>
 
@@ -124,8 +124,8 @@ export default function LandingPage() {
               </div>
               {/* Text side */}
               <div className="text-center md:text-right">
-                <h3 className="text-2xl md:text-3xl font-bold text-[#0B3D2E] mb-4">{t.landing.step1Title}</h3>
-                <p className="text-[#0B3D2E]/55 text-base md:text-lg leading-relaxed max-w-md mx-auto md:mx-0 md:mr-0">
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{t.landing.step1Title}</h3>
+                <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-md mx-auto md:mx-0 md:mr-0">
                   {t.landing.step1Desc}
                 </p>
               </div>
@@ -140,8 +140,8 @@ export default function LandingPage() {
             <div className="group relative md:grid md:grid-cols-2 md:gap-16 items-center">
               {/* Text side (first on desktop for reverse) */}
               <div className="text-center md:text-right order-2 md:order-1">
-                <h3 className="text-2xl md:text-3xl font-bold text-[#0B3D2E] mb-4">{t.landing.step2Title}</h3>
-                <p className="text-[#0B3D2E]/55 text-base md:text-lg leading-relaxed max-w-md mx-auto md:mx-0 md:mr-0">
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{t.landing.step2Title}</h3>
+                <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-md mx-auto md:mx-0 md:mr-0">
                   {t.landing.step2Desc}
                 </p>
               </div>
@@ -180,8 +180,8 @@ export default function LandingPage() {
               </div>
               {/* Text side */}
               <div className="text-center md:text-right">
-                <h3 className="text-2xl md:text-3xl font-bold text-[#0B3D2E] mb-4">{t.landing.step3Title}</h3>
-                <p className="text-[#0B3D2E]/55 text-base md:text-lg leading-relaxed max-w-md mx-auto md:mx-0 md:mr-0">
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{t.landing.step3Title}</h3>
+                <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-md mx-auto md:mx-0 md:mr-0">
                   {t.landing.step3Desc}
                 </p>
               </div>
@@ -257,19 +257,19 @@ export default function LandingPage() {
       </section>
 
       {/* ========== STATS - Elegant counter strip ========== */}
-      <section className="relative py-24 px-4 bg-[#FAF8F4] overflow-hidden">
+      <section className="relative py-24 px-4 bg-secondary/30 dark:bg-background overflow-hidden">
         {/* Animated background orbs */}
-        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] rounded-full bg-[#D4A843]/[0.04] blur-[100px] animate-blob-float-delayed-2 pointer-events-none" />
-        <div className="absolute bottom-1/3 left-0 w-[350px] h-[350px] rounded-full bg-[#0B3D2E]/[0.03] blur-[100px] animate-blob-float pointer-events-none" />
+        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px] animate-blob-float-delayed-2 pointer-events-none" />
+        <div className="absolute bottom-1/3 left-0 w-[350px] h-[350px] rounded-full bg-foreground/5 blur-[100px] animate-blob-float pointer-events-none" />
 
-        <div className="absolute inset-0 opacity-[0.02]" style={{ background: 'radial-gradient(circle at 30% 50%, #D4A843 0%, transparent 50%), radial-gradient(circle at 70% 50%, #0B3D2E 0%, transparent 50%)' }} />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ background: 'radial-gradient(circle at 30% 50%, var(--primary) 0%, transparent 50%), radial-gradient(circle at 70% 50%, var(--foreground) 0%, transparent 50%)' }} />
 
         <div className="container mx-auto max-w-5xl relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-8">
             {/* Large stat */}
             <div className="inline-flex flex-col items-center md:items-end w-fit">
-              <div className="flex items-center text-6xl md:text-7xl lg:text-[7.5rem] font-bold text-[#0B3D2E] leading-none tracking-tighter" dir="ltr">
-                <span className="mr-2 text-[#D4A843]">+</span>
+              <div className="flex items-center text-6xl md:text-7xl lg:text-[7.5rem] font-bold text-foreground leading-none tracking-tighter" dir="ltr">
+                <span className="mr-2 text-primary">+</span>
                 <span style={{ fontFeatureSettings: '"tnum"' }}>
                   {(5000).toLocaleString(t.locale === 'ar' ? 'ar-SA' : 'en-US')}
                 </span>
@@ -287,13 +287,13 @@ export default function LandingPage() {
             <div className="flex-1 text-center md:text-right">
               <div className="flex items-center gap-1.5 justify-center md:justify-start mb-3">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#D4A843] text-[#D4A843]" />
+                  <Star key={i} className="w-4 h-4 fill-primary text-primary" />
                 ))}
               </div>
-              <p className="text-[#0B3D2E]/80 text-lg leading-relaxed font-medium">
+              <p className="text-foreground/80 text-lg leading-relaxed font-medium">
                 {t.landing.freeInitiative}
               </p>
-              <p className="text-[#0B3D2E]/50 text-[15px] leading-relaxed mt-1">
+              <p className="text-muted-foreground text-[15px] leading-relaxed mt-1">
                 {t.landing.initiativeGoal}
               </p>
             </div>

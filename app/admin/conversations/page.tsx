@@ -1,19 +1,21 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef, Suspense, use } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useState, useEffect, useCallback, useRef, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-    MessagesSquare, Search, MessageCircle, ChevronLeft,
+    MessagesSquare, Search, MessageCircle,
     CheckCircle, XCircle, Loader2, User, BookOpen,
-    Shield, Send, MessageSquare, Mail
+    Shield, Send, MessageSquare
 } from "lucide-react"
+import {
+    Tabs, TabsList, TabsTrigger, TabsContent
+} from "@/components/ui/tabs"
 
 // --- TYPES ---
 type Conversation = {
@@ -31,6 +33,8 @@ type Conversation = {
     ticket_status?: string
     assigned_supervisor_id?: string | null
     supervisor_name?: string | null
+    message_count?: number
+    is_active?: boolean
 }
 
 type Message = {
@@ -46,14 +50,14 @@ type Message = {
 // --- COMPONENTS ---
 
 function SupervisionTab({ isAr, t }: { isAr: boolean, t: any }) {
-    const [conversations, setConversations] = useState<any[]>([])
+    const [conversations, setConversations] = useState<Conversation[]>([])
     const [loading, setLoading] = useState(true)
     const [total, setTotal] = useState(0)
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
 
-    const [selectedConvo, setSelectedConvo] = useState<any>(null)
-    const [messages, setMessages] = useState<any[]>([])
+    const [selectedConvo, setSelectedConvo] = useState<Conversation | null>(null)
+    const [messages, setMessages] = useState<Message[]>([])
     const [loadingMessages, setLoadingMessages] = useState(false)
 
     const fetchConvos = useCallback(async () => {
@@ -77,7 +81,7 @@ function SupervisionTab({ isAr, t }: { isAr: boolean, t: any }) {
         return () => clearTimeout(t)
     }, [fetchConvos])
 
-    const openConvo = async (c: any) => {
+    const openConvo = async (c: Conversation) => {
         setSelectedConvo(c)
         setLoadingMessages(true)
         try {
@@ -107,66 +111,66 @@ function SupervisionTab({ isAr, t }: { isAr: boolean, t: any }) {
             <div className="relative max-w-sm">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-all" />
                 <Input
-                    className="pr-10 bg-white/50 border-gray-200 focus:bg-white transition-all rounded-xl"
+                    className="pr-10 bg-card border-border focus:bg-card transition-all rounded-xl"
                     placeholder={isAr ? 'البحث باسم الطالب أو المقرئ...' : 'Search by student or reader name...'}
                     value={search}
                     onChange={e => { setSearch(e.target.value); setPage(1) }}
                 />
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-800">
-                        {t.admin.supervision} <span className="text-gray-400 font-normal text-sm">({total})</span>
+            <div className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-border bg-muted/30 flex items-center justify-between">
+                    <h3 className="font-bold text-foreground">
+                        {t.admin.supervision} <span className="text-muted-foreground font-normal text-sm">({total})</span>
                     </h3>
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-[#1B5E3B]" /></div>
+                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
                 ) : conversations.length === 0 ? (
                     <div className="p-12 text-center text-gray-400 font-medium">{isAr ? 'لا توجد محادثات' : 'No conversations found'}</div>
                 ) : (
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-border">
                         {conversations.map(c => (
-                            <div key={c.id} className="flex items-center gap-4 p-5 hover:bg-gray-50/50 transition-colors">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                            <div key={c.id} className="flex items-center gap-4 p-5 hover:bg-muted/10 transition-colors">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
                                     <MessagesSquare className="w-6 h-6" />
                                 </div>
                                 <div className="flex-1 min-w-0 text-right">
                                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                                        <span className="flex items-center gap-1.5 text-sm font-bold text-gray-800 bg-gray-50 px-2 py-0.5 rounded-lg">
-                                            <User className="w-3.5 h-3.5 text-gray-400" /> {c.student_name}
+                                        <span className="flex items-center gap-1.5 text-sm font-bold text-foreground bg-muted px-2 py-0.5 rounded-lg">
+                                            <User className="w-3.5 h-3.5 text-muted-foreground" /> {c.student_name}
                                         </span>
-                                        <span className="text-gray-300 text-xs">↔</span>
-                                        <span className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-50 px-2 py-0.5 rounded-lg">
-                                            <BookOpen className="w-3.5 h-3.5 text-gray-400" /> {c.reader_name}
+                                        <span className="text-border text-xs">↔</span>
+                                        <span className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-lg">
+                                            <BookOpen className="w-3.5 h-3.5 text-muted-foreground" /> {c.reader_name}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-gray-500 truncate mb-2">{c.last_message_preview || (isAr ? 'لا توجد رسائل بعد' : 'No messages yet')}</p>
+                                    <p className="text-sm text-muted-foreground truncate mb-2">{c.last_message_preview || (isAr ? 'لا توجد رسائل بعد' : 'No messages yet')}</p>
                                     <div className="flex items-center gap-4">
-                                        <span className="text-[11px] font-bold text-gray-400 flex items-center gap-1">
+                                        <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
                                             <MessageCircle className="w-3 h-3" />
                                             {c.message_count} {isAr ? 'رسالة' : 'messages'}
                                         </span>
                                         {c.last_message_at && (
-                                            <span className="text-[11px] font-bold text-gray-400">
+                                            <span className="text-[11px] font-bold text-muted-foreground">
                                                 {new Date(c.last_message_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}
                                             </span>
                                         )}
-                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${c.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${c.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
                                             {c.is_active ? (isAr ? 'نشطة' : 'Active') : (isAr ? 'مغلقة' : 'Closed')}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <Button variant="outline" size="sm" onClick={() => openConvo(c)} className="rounded-xl border-gray-200 hover:bg-gray-100 h-9 px-4 font-bold text-xs gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => openConvo(c)} className="rounded-xl border-border hover:bg-muted h-9 px-4 font-bold text-xs gap-2">
                                         <MessageCircle className="w-3.5 h-3.5" />
                                         {isAr ? 'عرض' : 'View'}
                                     </Button>
                                     <Button
                                         variant="ghost" size="sm"
-                                        onClick={() => toggleActive(c.id, c.is_active)}
-                                        className={`rounded-xl h-9 w-9 p-0 ${c.is_active ? 'hover:bg-red-50 hover:text-red-500' : 'hover:bg-emerald-50 hover:text-emerald-500'}`}
+                                        onClick={() => toggleActive(c.id, c.is_active || false)}
+                                        className={`rounded-xl h-9 w-9 p-0 ${c.is_active ? 'hover:bg-red-500/10 hover:text-red-500' : 'hover:bg-emerald-500/10 hover:text-emerald-500'}`}
                                         title={c.is_active ? (isAr ? 'إغلاق المحادثة' : 'Close Conversation') : (isAr ? 'فتح المحادثة' : 'Open Conversation')}
                                     >
                                         {c.is_active
@@ -180,49 +184,49 @@ function SupervisionTab({ isAr, t }: { isAr: boolean, t: any }) {
                 )}
 
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between p-5 border-t border-gray-50 bg-gray-50/10">
+                    <div className="flex items-center justify-between p-5 border-t border-border bg-muted/10">
                         <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-xl font-bold">{t.previous}</Button>
-                        <span className="text-sm font-bold text-gray-500">{isAr ? `صفحة ${page} من ${totalPages}` : `Page ${page} of ${totalPages}`}</span>
+                        <span className="text-sm font-bold text-muted-foreground">{isAr ? `صفحة ${page} من ${totalPages}` : `Page ${page} of ${totalPages}`}</span>
                         <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="rounded-xl font-bold">{t.next}</Button>
                     </div>
                 )}
             </div>
 
             <Dialog open={!!selectedConvo} onOpenChange={() => setSelectedConvo(null)}>
-                <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0 overflow-hidden border-none rounded-3xl shadow-2xl">
-                    <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-white">
-                        <DialogTitle className="text-right text-gray-900 font-black text-xl flex items-center justify-between">
+                <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0 overflow-hidden border-none rounded-3xl shadow-2xl bg-card">
+                    <DialogHeader className="p-6 pb-4 border-b border-border bg-card">
+                        <DialogTitle className="text-right text-foreground font-black text-xl flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
+                                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-primary">
                                     <Shield className="w-5 h-5" />
                                 </div>
                                 <span>{isAr ? 'تفاصيل المحادثة' : 'Conversation Details'}</span>
                             </div>
-                            <span className="text-sm font-bold text-gray-400">{selectedConvo ? `${selectedConvo.student_name} ↔ ${selectedConvo.reader_name}` : ''}</span>
+                            <span className="text-sm font-bold text-muted-foreground">{selectedConvo ? `${selectedConvo.student_name} ↔ ${selectedConvo.reader_name}` : ''}</span>
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0 text-right bg-gray-50/50">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0 text-right bg-muted/10">
                         {loadingMessages ? (
                             <div className="flex flex-col items-center justify-center p-12 gap-3">
-                                <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
-                                <p className="text-gray-400 font-bold text-sm tracking-wide">{t.loading}</p>
+                                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                <p className="text-muted-foreground font-bold text-sm tracking-wide">{t.loading}</p>
                             </div>
                         ) : messages.length === 0 ? (
-                            <p className="text-center text-gray-400 font-bold text-sm py-12">{isAr ? 'لا توجد رسائل' : 'No messages'}</p>
+                            <p className="text-center text-muted-foreground font-bold text-sm py-12">{isAr ? 'لا توجد رسائل' : 'No messages'}</p>
                         ) : (
                             messages.map(m => (
                                 <div key={m.id} className={`flex gap-3 ${m.sender_role === 'reader' ? '' : 'flex-row-reverse'}`}>
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm border ${m.sender_role === 'reader' ? 'bg-white text-emerald-700 border-emerald-100' : 'bg-white text-blue-700 border-blue-100'}`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm border ${m.sender_role === 'reader' ? 'bg-card text-emerald-400 border-border' : 'bg-card text-blue-400 border-border'}`}>
                                         {m.sender_name?.[0] || '?'}
                                     </div>
                                     <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${m.sender_role === 'reader'
-                                        ? 'bg-white border border-emerald-50 text-emerald-900 rounded-tr-none'
-                                        : 'bg-white border border-blue-50 text-blue-900 rounded-tl-none'}`}>
+                                        ? 'bg-card border border-emerald-500/10 text-emerald-100 rounded-tr-none'
+                                        : 'bg-card border border-blue-500/10 text-blue-100 rounded-tl-none'}`}>
                                         <div className="flex items-center justify-between gap-4 mb-1.5">
-                                            <span className={`text-[11px] font-black uppercase tracking-wider ${m.sender_role === 'reader' ? 'text-emerald-500' : 'text-blue-500'}`}>
+                                            <span className={`text-[11px] font-black uppercase tracking-wider ${m.sender_role === 'reader' ? 'text-emerald-400' : 'text-blue-400'}`}>
                                                 {m.sender_name} · {m.sender_role === 'reader' ? (isAr ? 'مقرئ' : 'Reader') : (isAr ? 'طالب' : 'Student')}
                                             </span>
-                                            <span className="text-[10px] font-bold text-gray-300">
+                                            <span className="text-[10px] font-bold text-muted-foreground">
                                                 {new Date(m.created_at).toLocaleTimeString(isAr ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
@@ -282,22 +286,22 @@ function ContactMessagesTab({ isAr, t }: { isAr: boolean, t: any }) {
 
     return (
         <div className="space-y-6 text-right" dir={isAr ? 'rtl' : 'ltr'}>
-            <div className="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-800">
-                        {t.admin.contactMessages} <span className="text-gray-400 font-normal text-sm">({messages.length})</span>
+            <div className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-border bg-muted/30 flex items-center justify-between">
+                    <h3 className="font-bold text-foreground">
+                        {t.admin.contactMessages} <span className="text-muted-foreground font-normal text-sm">({messages.length})</span>
                     </h3>
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-[#1B5E3B]" /></div>
+                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
                 ) : messages.length === 0 ? (
-                    <div className="p-12 text-center text-gray-400 font-medium">{isAr ? 'لا توجد رسائل' : 'No messages found'}</div>
+                    <div className="p-12 text-center text-muted-foreground font-medium">{isAr ? 'لا توجد رسائل' : 'No messages found'}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-gray-50/50 text-gray-400 text-[11px] font-black uppercase tracking-widest border-b border-gray-50">
+                                <tr className="bg-muted/50 text-muted-foreground text-[11px] font-black uppercase tracking-widest border-b border-border">
                                     <th className="px-6 py-4 font-black">{t.admin.senderName}</th>
                                     <th className="px-6 py-4 font-black">{t.admin.contactSubject}</th>
                                     <th className="px-6 py-4 font-black">{t.admin.contactMessage}</th>
@@ -306,25 +310,25 @@ function ContactMessagesTab({ isAr, t }: { isAr: boolean, t: any }) {
                                     <th className="px-6 py-4 font-black text-center">{t.admin.action}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-border">
                                 {messages.map((m) => (
-                                    <tr key={m.id} className="hover:bg-gray-50/30 transition-colors">
+                                    <tr key={m.id} className="hover:bg-muted/30 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-gray-800 whitespace-nowrap">{m.name}</div>
-                                            <div className="text-[11px] text-gray-400 font-medium">{m.email}</div>
+                                            <div className="font-bold text-foreground whitespace-nowrap">{m.name}</div>
+                                            <div className="text-[11px] text-muted-foreground font-medium">{m.email}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-bold text-gray-700">{m.subject || '-'}</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-foreground">{m.subject || '-'}</td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-500 max-w-md line-clamp-2 leading-relaxed" title={m.message}>
+                                            <div className="text-sm text-muted-foreground max-w-md line-clamp-2 leading-relaxed" title={m.message}>
                                                 {m.message}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 whitespace-nowrap">
+                                        <td className="px-6 py-4 text-xs font-bold text-muted-foreground whitespace-nowrap">
                                             {new Date(m.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${m.status === 'unread' ? 'bg-orange-100 text-orange-700' :
-                                                m.status === 'read' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${m.status === 'unread' ? 'bg-orange-500/10 text-orange-400' :
+                                                m.status === 'read' ? 'bg-blue-500/10 text-blue-400' : 'bg-emerald-500/10 text-emerald-400'
                                                 }`}>
                                                 {t.admin[m.status]}
                                             </span>
@@ -332,16 +336,16 @@ function ContactMessagesTab({ isAr, t }: { isAr: boolean, t: any }) {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
                                                 {m.status === 'unread' && (
-                                                    <Button variant="ghost" size="sm" onClick={() => updateStatus(m.id, 'read')} className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg" title={t.admin.markAsRead}>
+                                                    <Button variant="ghost" size="sm" onClick={() => updateStatus(m.id, 'read')} className="h-8 w-8 p-0 text-blue-400 hover:bg-blue-500/10 rounded-lg" title={t.admin.markAsRead}>
                                                         <CheckCircle className="w-4 h-4" />
                                                     </Button>
                                                 )}
                                                 {m.status !== 'replied' && (
-                                                    <Button variant="ghost" size="sm" onClick={() => updateStatus(m.id, 'replied')} className="h-8 w-8 p-0 text-emerald-600 hover:bg-emerald-50 rounded-lg" title={t.admin.markAsReplied}>
+                                                    <Button variant="ghost" size="sm" onClick={() => updateStatus(m.id, 'replied')} className="h-8 w-8 p-0 text-emerald-400 hover:bg-emerald-500/10 rounded-lg" title={t.admin.markAsReplied}>
                                                         <MessageSquare className="w-4 h-4" />
                                                     </Button>
                                                 )}
-                                                <Button variant="ghost" size="sm" onClick={() => deleteMessage(m.id)} className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg" title={t.delete}>
+                                                <Button variant="ghost" size="sm" onClick={() => deleteMessage(m.id)} className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/10 rounded-lg" title={t.delete}>
                                                     <XCircle className="w-4 h-4" />
                                                 </Button>
                                             </div>
@@ -404,7 +408,6 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                 const convs: Conversation[] = d.conversations || []
                 setConversations(convs)
 
-                // Stabilize active conversation state
                 setActiveConv(prev => {
                     if (!prev) return null;
                     const updated = convs.find(c => c.id === prev.id);
@@ -436,7 +439,6 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                     }
                 } else if (!didInit.current && convs.length > 0) {
                     didInit.current = true
-                    // Removed auto-open behavior
                 }
             } finally {
                 if (firstRun) setLoading(false)
@@ -486,24 +488,24 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
     )
 
     return (
         <div className="flex flex-col lg:flex-row-reverse gap-6 h-[650px]">
             {/* Sidebar */}
-            <div className="w-full lg:w-72 shrink-0 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
-                <div className="px-5 py-4 border-b border-gray-50 bg-gray-50/30">
-                    <p className="font-black text-sm text-gray-800 tracking-wide uppercase">
-                        {t.admin.directChat} <span className="text-gray-400 font-bold ml-1">({conversations.filter(c => !c.is_ticket).length})</span>
+            <div className="w-full lg:w-72 shrink-0 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
+                <div className="px-5 py-4 border-b border-border bg-muted/30">
+                    <p className="font-black text-sm text-foreground tracking-wide uppercase">
+                        {t.admin.directChat} <span className="text-muted-foreground font-bold ml-1">({conversations.filter(c => !c.is_ticket).length})</span>
                     </p>
                 </div>
                 <div className="overflow-y-auto flex-1">
                     {conversations.filter(c => !c.is_ticket).length === 0 ? (
                         <div className="p-10 text-center space-y-3">
-                            <MessageSquare className="w-10 h-10 text-gray-200 mx-auto" />
-                            <p className="text-xs font-bold text-gray-400 leading-relaxed">
+                            <MessageSquare className="w-10 h-10 text-muted mx-auto" />
+                            <p className="text-xs font-bold text-muted-foreground leading-relaxed">
                                 {isAr ? "اذهب لصفحة المستخدم لبدء محادثة" : "Go to user profile to start chat"}
                             </p>
                         </div>
@@ -517,19 +519,19 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                                 <button
                                     key={c.id}
                                     onClick={() => openConversation(c)}
-                                    className={`w-full text-right px-5 py-4 border-b border-gray-50 transition-all hover:bg-gray-50 ${isActive ? "bg-emerald-50/50 border-r-4 border-r-[#1B5E3B]" : ""}`}
+                                    className={`w-full text-right px-5 py-4 border-b border-border transition-all hover:bg-muted/30 ${isActive ? "bg-primary/10 border-r-4 border-r-primary" : ""}`}
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-black shadow-sm border transition-all ${isActive ? 'bg-[#1B5E3B] text-white border-transparent' : 'bg-white text-emerald-700 border-gray-100'}`}>
+                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-black shadow-sm border transition-all ${isActive ? 'bg-primary text-primary-foreground border-transparent' : 'bg-card text-emerald-400 border-border'}`}>
                                             {avatar ? (
                                                 <img src={avatar} alt={name} className="w-full h-full rounded-2xl object-cover" />
                                             ) : (name[0] || "U")}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-black truncate mb-0.5 ${isActive ? 'text-[#1B5E3B]' : 'text-gray-900'}`}>{name}</p>
-                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{role}</p>
+                                            <p className={`text-sm font-black truncate mb-0.5 ${isActive ? 'text-primary' : 'text-foreground'}`}>{name}</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{role}</p>
                                             {c.last_message_preview && (
-                                                <p className="text-[11px] text-gray-400 truncate mt-1 opacity-80">{c.last_message_preview}</p>
+                                                <p className="text-[11px] text-muted-foreground truncate mt-1 opacity-80">{c.last_message_preview}</p>
                                             )}
                                         </div>
                                     </div>
@@ -541,38 +543,36 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
+            <div className="flex-1 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
                 {!activeConv || activeConv.is_ticket ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-300 gap-4">
-                        <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4">
+                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border border-border shadow-inner">
                             <MessageSquare className="w-10 h-10 opacity-30" />
                         </div>
                         <p className="text-sm font-black tracking-widest uppercase">{isAr ? "اختر محادثة للبدء" : "Select a conversation to start"}</p>
                     </div>
                 ) : (
                     <>
-                        {/* Header */}
-                        <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-4 bg-gray-50/20">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm font-black shadow-sm border border-emerald-100">
+                        <div className="px-6 py-4 border-b border-border flex items-center gap-4 bg-muted/20">
+                            <div className="w-10 h-10 rounded-xl bg-muted text-emerald-400 flex items-center justify-center text-sm font-black shadow-sm border border-border">
                                 {getOtherPartyAvatar(activeConv) ? (
                                     <img src={getOtherPartyAvatar(activeConv)!} alt="" className="w-full h-full rounded-xl object-cover" />
                                 ) : (getOtherPartyName(activeConv)[0])}
                             </div>
                             <div className="text-right">
-                                <p className="font-black text-gray-900 text-sm leading-tight">{getOtherPartyName(activeConv)}</p>
-                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">{getOtherPartyRole(activeConv)}</p>
+                                <p className="font-black text-foreground text-sm leading-tight">{getOtherPartyName(activeConv)}</p>
+                                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter">{getOtherPartyRole(activeConv)}</p>
                             </div>
                         </div>
 
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/10">
                             {loadingMsgs ? (
                                 <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                    <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t.loading}</p>
+                                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t.loading}</p>
                                 </div>
                             ) : messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-300 py-10 gap-3">
+                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-10 gap-3">
                                     <MessageSquare className="w-12 h-12 opacity-20" />
                                     <p className="text-xs font-black uppercase tracking-widest">{isAr ? "ابدأ المحادثة..." : "Start the conversation..."}</p>
                                 </div>
@@ -582,22 +582,14 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                                     return (
                                         <div key={m.id} className={`flex ${isMe ? "justify-start" : "justify-end"}`}>
                                             <div className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-md transition-all ${isMe
-                                                ? "bg-[#1B5E3B] text-white rounded-br-sm border-none"
-                                                : "bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-emerald-500/5"
+                                                ? "bg-primary text-primary-foreground rounded-br-sm border-none"
+                                                : "bg-card border border-border text-foreground rounded-bl-sm shadow-emerald-500/5"
                                                 }`}>
-                                                {!isMe && <p className="text-[10px] font-black mb-1.5 text-emerald-600 uppercase tracking-wider">{m.sender_name}</p>}
+                                                {!isMe && <p className="text-[10px] font-black mb-1.5 text-emerald-400 uppercase tracking-wider">{m.sender_name}</p>}
                                                 <p className="leading-relaxed text-[14px]">{m.message_text}</p>
-                                                <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-gray-300"}`}>
+                                                <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-muted-foreground"}`}>
                                                     <div className="flex items-center gap-1.5">
                                                         <span>{new Date(m.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-                                                        {isMe && (
-                                                            <span className="flex items-center">
-                                                                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path d="M4 12.89L9.11 18L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                    <path d="M4 7.89L9.11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40" />
-                                                                </svg>
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -608,12 +600,11 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                             <div ref={bottomRef} />
                         </div>
 
-                        {/* Input */}
-                        <div className="border-t border-gray-50 px-6 py-4 flex flex-row-reverse gap-3 bg-white">
+                        <div className="border-t border-border px-6 py-4 flex flex-row-reverse gap-3 bg-card">
                             <button
                                 onClick={sendMessage}
                                 disabled={!text.trim() || sending}
-                                className="h-12 px-6 bg-[#1B5E3B] text-white rounded-2xl font-black text-sm hover:bg-[#0A3527] disabled:opacity-50 transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center shrink-0"
+                                className="h-12 px-6 bg-primary text-primary-foreground rounded-2xl font-black text-sm hover:bg-primary/90 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center shrink-0"
                             >
                                 {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                             </button>
@@ -623,7 +614,7 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                                 onChange={e => setText(e.target.value)}
                                 onKeyDown={e => e.key === "Enter" && sendMessage()}
                                 placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
-                                className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-2.5 h-12 text-right text-sm font-bold text-gray-700 focus:ring-4 focus:ring-[#1B5E3B]/5 focus:border-[#1B5E3B]/20 focus:bg-white outline-none placeholder:text-gray-300 transition-all shadow-inner"
+                                className="flex-1 bg-muted/30 border border-border rounded-2xl px-5 py-2.5 h-12 text-right text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary/20 focus:bg-card outline-none placeholder:text-muted-foreground transition-all"
                             />
                         </div>
                     </>
@@ -671,7 +662,6 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
                 body: JSON.stringify({ id, ticket_status: status }),
             })
             if (res.ok) {
-                // Refresh conversations
                 const cRes = await fetch("/api/conversations")
                 const cd = await cRes.json()
                 const convs = (cd.conversations || []).filter((c: Conversation) => c.is_ticket)
@@ -692,7 +682,6 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
                 body: JSON.stringify({ id, assigned_supervisor_id: supervisorId || null }),
             })
             if (res.ok) {
-                // Refresh conversations
                 const cRes = await fetch("/api/conversations")
                 const cd = await cRes.json()
                 const convs = (cd.conversations || []).filter((c: Conversation) => c.is_ticket)
@@ -757,7 +746,6 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text: optimistic.message_text }),
             })
-            // refresh convo list to see ticket_status updates
             const cRes = await fetch("/api/conversations")
             const cd = await cRes.json()
             const updatedConv = cd.conversations.find((c: Conversation) => c.id === activeConv.id)
@@ -775,24 +763,24 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
     )
 
     return (
         <div className="flex flex-col lg:flex-row-reverse gap-6 h-[650px]">
             {/* Sidebar */}
-            <div className="w-full lg:w-72 shrink-0 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
-                <div className="px-5 py-4 border-b border-gray-50 bg-gray-50/30">
-                    <p className="font-black text-sm text-gray-800 tracking-wide uppercase">
-                        {isAr ? "تذاكر الدعم" : "Support Tickets"} <span className="text-gray-400 font-bold ml-1">({conversations.length})</span>
+            <div className="w-full lg:w-72 shrink-0 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
+                <div className="px-5 py-4 border-b border-border bg-muted/30">
+                    <p className="font-black text-sm text-foreground tracking-wide uppercase">
+                        {isAr ? "تذاكر الدعم" : "Support Tickets"} <span className="text-muted-foreground font-bold ml-1">({conversations.length})</span>
                     </p>
                 </div>
                 <div className="overflow-y-auto flex-1">
                     {conversations.length === 0 ? (
                         <div className="p-10 text-center space-y-3">
-                            <Shield className="w-10 h-10 text-gray-200 mx-auto" />
-                            <p className="text-xs font-bold text-gray-400 leading-relaxed">
+                            <Shield className="w-10 h-10 text-muted mx-auto" />
+                            <p className="text-xs font-bold text-muted-foreground leading-relaxed">
                                 {isAr ? "لا توجد تذاكر حالياً" : "No tickets yet"}
                             </p>
                         </div>
@@ -806,25 +794,28 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
                                 <button
                                     key={c.id}
                                     onClick={() => openConversation(c)}
-                                    className={`w-full text-right px-5 py-4 border-b border-gray-50 transition-all hover:bg-gray-50 ${isActive ? "bg-blue-50/50 border-r-4 border-r-blue-600" : ""}`}
+                                    className={`w-full text-right px-5 py-4 border-b border-border transition-all hover:bg-muted/30 ${isActive ? "bg-primary/10 border-r-4 border-r-primary" : ""}`}
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-black shadow-sm border transition-all ${isActive ? 'bg-blue-600 text-white border-transparent' : 'bg-white text-blue-700 border-gray-100'}`}>
+                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-black shadow-sm border transition-all ${isActive ? 'bg-primary text-primary-foreground border-transparent' : 'bg-card text-emerald-400 border-border'}`}>
                                             {avatar ? (
                                                 <img src={avatar} alt={name} className="w-full h-full rounded-2xl object-cover" />
                                             ) : (name[0] || "U")}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className={`text-sm font-black truncate mb-0.5 ${isActive ? 'text-blue-700' : 'text-gray-900'}`}>{name}</p>
-                                                <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded ${c.ticket_status === 'open' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                                    {c.ticket_status === 'open' ? (isAr ? 'جديدة' : 'New') : (isAr ? 'قيد المعالجة' : 'In Progress')}
+                                            <p className={`text-sm font-black truncate mb-0.5 ${isActive ? 'text-primary' : 'text-foreground'}`}>{name}</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{role}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${c.ticket_status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-orange-500/10 text-orange-400'}`}>
+                                                    {c.ticket_status || 'open'}
                                                 </span>
+                                                {c.supervisor_name && (
+                                                    <span className="text-[9px] font-bold text-muted-foreground flex items-center gap-1">
+                                                        <Shield className="w-2.5 h-2.5" />
+                                                        {c.supervisor_name}
+                                                    </span>
+                                                )}
                                             </div>
-                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{role}</p>
-                                            {c.last_message_preview && (
-                                                <p className="text-[11px] text-gray-400 truncate mt-1 opacity-80">{c.last_message_preview}</p>
-                                            )}
                                         </div>
                                     </div>
                                 </button>
@@ -835,89 +826,80 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
+            <div className="flex-1 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
                 {!activeConv ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-300 gap-4">
-                        <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4">
+                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border border-border shadow-inner">
                             <Shield className="w-10 h-10 opacity-30" />
                         </div>
                         <p className="text-sm font-black tracking-widest uppercase">{isAr ? "اختر تذكرة للبدء" : "Select a ticket to start"}</p>
                     </div>
                 ) : (
                     <>
-                        {/* Header */}
-                        <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
+                        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/20">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-sm font-black shadow-sm border border-blue-100">
+                                <div className="w-10 h-10 rounded-xl bg-muted text-emerald-400 flex items-center justify-center text-sm font-black shadow-sm border border-border">
                                     {getOtherPartyAvatar(activeConv) ? (
                                         <img src={getOtherPartyAvatar(activeConv)!} alt="" className="w-full h-full rounded-xl object-cover" />
                                     ) : (getOtherPartyName(activeConv)[0])}
                                 </div>
                                 <div className="text-right">
+                                    <p className="font-black text-foreground text-sm leading-tight">{getOtherPartyName(activeConv)}</p>
                                     <div className="flex items-center gap-2">
-                                        <p className="font-black text-gray-900 text-sm leading-tight">{getOtherPartyName(activeConv)}</p>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">
-                                            تذكرة دعم ({activeConv.ticket_status === 'open' ? 'بانتظار الرد' : (activeConv.ticket_status === 'closed' ? 'مغلقة' : 'مفتوحة')})
-                                        </span>
+                                        <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter">{getOtherPartyRole(activeConv)}</p>
+                                        <span className="text-[10px] text-muted-foreground font-black">·</span>
+                                        <p className="text-[10px] font-black text-orange-400 uppercase tracking-tighter">{isAr ? "تذكرة رقم" : "Ticket #"}{activeConv.id.slice(-4)}</p>
                                     </div>
-                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter mt-1">{getOtherPartyRole(activeConv)}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-center gap-3">
                                 {currentUserRole === 'admin' && (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-bold text-gray-400">{isAr ? 'تحويل إلى:' : 'Delegate to:'}</span>
-                                        <select
-                                            value={activeConv.assigned_supervisor_id || ""}
-                                            onChange={(e) => delegateTicket(activeConv.id, e.target.value)}
-                                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20"
-                                        >
-                                            <option value="">{isAr ? 'غير محول' : 'Unassigned'}</option>
-                                            {supervisors.map(s => (
-                                                <option key={s.id} value={s.id}>{s.name} ({s.role === 'student_supervisor' ? (isAr ? 'طلاب' : 'Students') : (isAr ? 'مقرئين' : 'Reciters')})</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                )}
-                                {activeConv.ticket_status !== 'closed' && (
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => updateTicketStatus(activeConv.id, 'closed')}
-                                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-bold h-9 px-4 text-xs transition-colors shrink-0"
+                                    <select
+                                        className="bg-muted/50 border border-border rounded-xl px-3 py-1.5 text-xs font-black text-foreground outline-none"
+                                        value={activeConv.assigned_supervisor_id || ""}
+                                        onChange={(e) => delegateTicket(activeConv.id, e.target.value)}
                                     >
-                                        {isAr ? "إغلاق التذكرة" : "Close Ticket"}
-                                    </Button>
+                                        <option value="">{isAr ? "تعيين مشرف" : "Assign Supervisor"}</option>
+                                        {supervisors.map(s => (
+                                            <option key={s.id} value={s.id}>{s.full_name}</option>
+                                        ))}
+                                    </select>
                                 )}
+                                <select
+                                    className="bg-muted/50 border border-border rounded-xl px-3 py-1.5 text-xs font-black text-foreground outline-none"
+                                    value={activeConv.ticket_status || "open"}
+                                    onChange={(e) => updateTicketStatus(activeConv.id, e.target.value)}
+                                >
+                                    <option value="open">{isAr ? "مفتوحة" : "Open"}</option>
+                                    <option value="resolved">{isAr ? "تم الحل" : "Resolved"}</option>
+                                </select>
                             </div>
                         </div>
 
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/10">
                             {loadingMsgs ? (
                                 <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t.loading}</p>
+                                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t.loading}</p>
                                 </div>
                             ) : messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-300 py-10 gap-3">
-                                    <MessageSquare className="w-12 h-12 opacity-20" />
-                                    <p className="text-xs font-black uppercase tracking-widest">{isAr ? "لا توجد تفاصيل" : "No details"}</p>
+                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                    <p className="text-xs font-black uppercase tracking-widest">{isAr ? "لا توجد رسائل..." : "No messages yet..."}</p>
                                 </div>
                             ) : (
                                 messages.map(m => {
                                     const isMe = m.sender_id === currentUserId
                                     return (
                                         <div key={m.id} className={`flex ${isMe ? "justify-start" : "justify-end"}`}>
-                                            <div className={`max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm transition-all ${isMe
-                                                ? "bg-blue-600 text-white rounded-tl-none border-none"
-                                                : "bg-white border border-gray-100 text-gray-800 rounded-tr-none"
+                                            <div className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-md transition-all ${isMe
+                                                ? "bg-primary text-primary-foreground rounded-br-sm border-none"
+                                                : "bg-card border border-border text-foreground rounded-bl-sm shadow-emerald-500/5"
                                                 }`}>
-                                                {!isMe && <p className="text-[10px] font-black mb-1.5 text-blue-600 uppercase tracking-wider">{m.sender_name}</p>}
-                                                <p className="leading-relaxed font-medium text-sm">{m.message_text}</p>
-                                                <p className={`text-[10px] mt-2 font-bold ${isMe ? "text-blue-100/50" : "text-gray-300"}`}>
-                                                    {new Date(m.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
-                                                </p>
+                                                {!isMe && <p className="text-[10px] font-black mb-1.5 text-emerald-400 uppercase tracking-wider">{m.sender_name}</p>}
+                                                <p className="leading-relaxed text-[14px]">{m.message_text}</p>
+                                                <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-muted-foreground"}`}>
+                                                    <span>{new Date(m.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     )
@@ -926,31 +908,23 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
                             <div ref={bottomRef} />
                         </div>
 
-                        {/* Input */}
-                        <div className="border-t border-gray-50 px-6 py-4 flex flex-row-reverse gap-3 bg-white">
-                            {activeConv.ticket_status === 'closed' ? (
-                                <div className="w-full text-center p-3 bg-slate-50 text-slate-500 rounded-xl text-sm border border-slate-200 font-medium">
-                                    {isAr ? "تم إغلاق هذه التذكرة ولا يمكن الرد عليها." : "This ticket is closed and cannot be replied to."}
-                                </div>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={sendMessage}
-                                        disabled={!text.trim() || sending}
-                                        className="h-12 px-6 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center shrink-0"
-                                    >
-                                        {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                    </button>
-                                    <input
-                                        type="text"
-                                        value={text}
-                                        onChange={e => setText(e.target.value)}
-                                        onKeyDown={e => e.key === "Enter" && sendMessage()}
-                                        placeholder={isAr ? "أرسل رد..." : "Send a reply..."}
-                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-right text-sm font-bold text-gray-700 focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600/20 focus:bg-white outline-none placeholder:text-gray-300 transition-all"
-                                    />
-                                </>
-                            )}
+                        <div className="border-t border-border px-6 py-4 flex flex-row-reverse gap-3 bg-card">
+                            <button
+                                onClick={sendMessage}
+                                disabled={!text.trim() || sending || activeConv.ticket_status === 'resolved'}
+                                className="h-12 px-6 bg-primary text-primary-foreground rounded-2xl font-black text-sm hover:bg-primary/90 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center shrink-0"
+                            >
+                                {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                            </button>
+                            <input
+                                type="text"
+                                value={text}
+                                onChange={e => setText(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && sendMessage()}
+                                disabled={activeConv.ticket_status === 'resolved'}
+                                placeholder={activeConv.ticket_status === 'resolved' ? (isAr ? "التذكرة مغلقة" : "Ticket Resolved") : (isAr ? "اكتب ردك..." : "Type your reply...")}
+                                className="flex-1 bg-muted/30 border border-border rounded-2xl px-5 py-2.5 h-12 text-right text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary/20 focus:bg-card outline-none placeholder:text-muted-foreground transition-all"
+                            />
                         </div>
                     </>
                 )}
@@ -961,86 +935,47 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
 
 function AdminConversationsContent() {
     const { t, locale } = useI18n()
-    const isAr = locale === 'ar'
-    const searchParams = useSearchParams()
-    const router = useRouter()
-
-    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "chat")
-    const [user, setUser] = useState<any>(null)
-
-    useEffect(() => {
-        fetch("/api/auth/me").then(r => r.json()).then(d => setUser(d.user || null))
-    }, [])
-
-    useEffect(() => {
-        const tab = searchParams.get("tab")
-        if (tab && tab !== activeTab) {
-            setActiveTab(tab)
-        }
-    }, [searchParams, activeTab])
-
-    const handleTabChange = (val: string) => {
-        setActiveTab(val)
-        const params = new URLSearchParams(searchParams.toString())
-        params.set("tab", val)
-        router.push(`?${params.toString()}`)
-    }
+    const isAr = locale === "ar"
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+        <div className="max-w-7xl mx-auto p-6 space-y-8" dir={isAr ? "rtl" : "ltr"}>
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div className="text-right">
+                    <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
+                        <MessagesSquare className="w-8 h-8 text-primary" />
                         {t.admin.conversations}
                     </h1>
-                    <p className="text-gray-400 font-bold text-sm uppercase tracking-widest">
-                        {activeTab === "supervision"
-                            ? (isAr ? 'مركز الإشراف والرقابة' : 'Monitoring & Supervision Hub')
-                            : activeTab === "tickets"
-                                ? (isAr ? 'نظام تذاكر الدعم' : 'Support Tickets System')
-                                : (isAr ? 'التواصل المباشر مع المستخدمين' : 'Direct User Support')}
-                    </p>
+                    <p className="text-muted-foreground font-bold tracking-wide">{t.admin.conversationsSub}</p>
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="bg-white p-1.5 rounded-2xl mb-8 flex-wrap justify-start gap-2 border border-gray-100 shadow-sm inline-flex">
-                    <TabsTrigger value="chat" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-                        <MessageSquare className="w-4 h-4" />
-                        {t.admin.directChat}
-                    </TabsTrigger>
-                    <TabsTrigger value="tickets" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-                        <Shield className="w-4 h-4" />
-                        {isAr ? "التذاكر" : "Tickets"}
-                    </TabsTrigger>
-                    <TabsTrigger value="supervision" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-                        <Shield className="w-4 h-4" />
+            <Tabs defaultValue="supervision" className="w-full" onValueChange={() => { }}>
+                <TabsList className="bg-card border border-border p-1 rounded-2xl mb-8 flex w-fit gap-1">
+                    <TabsTrigger value="supervision" className="rounded-xl px-8 font-black text-xs uppercase transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         {t.admin.supervision}
                     </TabsTrigger>
-                    {user?.role === 'admin' && (
-                        <TabsTrigger value="contact" className="rounded-xl font-black gap-2 px-6 py-3 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all">
-                            <Mail className="w-4 h-4" />
-                            {t.admin.contactMessages}
-                        </TabsTrigger>
-                    )}
+                    <TabsTrigger value="direct-chat" className="rounded-xl px-8 font-black text-xs uppercase transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        {t.admin.directChat}
+                    </TabsTrigger>
+                    <TabsTrigger value="tickets" className="rounded-xl px-8 font-black text-xs uppercase transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        {isAr ? "التذاكر" : "Tickets"}
+                    </TabsTrigger>
+                    <TabsTrigger value="contact" className="rounded-xl px-8 font-black text-xs uppercase transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        {t.admin.contactMessages}
+                    </TabsTrigger>
                 </TabsList>
 
-                {user?.role === 'admin' && (
-                    <TabsContent value="contact" className="space-y-6">
-                        <ContactMessagesTab isAr={isAr} t={t} />
-                    </TabsContent>
-                )}
-
-                <TabsContent value="supervision" className="space-y-6">
+                <TabsContent value="supervision">
                     <SupervisionTab isAr={isAr} t={t} />
                 </TabsContent>
-
-                <TabsContent value="chat" className="space-y-6">
+                <TabsContent value="direct-chat">
                     <DirectChatTab isAr={isAr} t={t} />
                 </TabsContent>
-
-                <TabsContent value="tickets" className="space-y-6">
+                <TabsContent value="tickets">
                     <TicketsTab isAr={isAr} t={t} />
+                </TabsContent>
+                <TabsContent value="contact">
+                    <ContactMessagesTab isAr={isAr} t={t} />
                 </TabsContent>
             </Tabs>
         </div>
@@ -1049,7 +984,11 @@ function AdminConversationsContent() {
 
 export default function AdminConversationsPage() {
     return (
-        <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" /></div>}>
+        <Suspense fallback={
+            <div className="flex h-screen items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+        }>
             <AdminConversationsContent />
         </Suspense>
     )

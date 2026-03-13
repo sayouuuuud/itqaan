@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       masteryTrend,
       dailyRecitations,
       genderStats,
-      countryStats,
+      cityStats,
       userStats,
       wordMistakesSummary,
       topMistakeWords,
@@ -123,8 +123,7 @@ export async function GET(req: NextRequest) {
         LEFT JOIN reader_ratings rr ON rr.student_id = u.id ${timeFilter.replace('created_at', 'rr.created_at')}
         WHERE u.role = 'student'
         GROUP BY u.id, u.name, u.email, u.avatar_url
-        HAVING COUNT(DISTINCT rec.id) > 0 OR COUNT(DISTINCT b.id) > 0
-        ORDER BY recitations + bookings DESC
+        ORDER BY (COUNT(DISTINCT rec.id) + COUNT(DISTINCT b.id)) DESC
         LIMIT 10
       `),
       // Certificates issued
@@ -157,12 +156,12 @@ export async function GET(req: NextRequest) {
       `),
       // Gender distribution
       query(`SELECT gender, COUNT(*) AS count FROM users WHERE role = 'student' GROUP BY gender`),
-      // Country distribution (from page_views context or IP)
+      // City distribution from users table
       query(`
-        SELECT country, COUNT(*) AS count
-        FROM page_views
-        WHERE country IS NOT NULL ${timeFilter}
-        GROUP BY country
+        SELECT u.city, COUNT(*) AS count
+        FROM users u
+        WHERE u.role = 'student' AND u.city IS NOT NULL
+        GROUP BY u.city
         ORDER BY count DESC
         LIMIT 10
       `),
@@ -201,7 +200,7 @@ export async function GET(req: NextRequest) {
       users: {
         ...(userStats[0] as any),
         gender: genderStats,
-        byCountry: countryStats,
+        byCity: cityStats,
       },
       topReviewers,
       topSessionReaders,

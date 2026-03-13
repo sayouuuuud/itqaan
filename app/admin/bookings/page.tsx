@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useI18n } from "@/lib/i18n/context"
-import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -23,17 +22,17 @@ const STATUS_OPTIONS = [
 ]
 
 const STATUS_COLOR: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-700',
-    confirmed: 'bg-blue-100 text-blue-700',
-    completed: 'bg-emerald-100 text-emerald-700',
-    cancelled: 'bg-red-100 text-red-700',
-    no_show: 'bg-gray-100 text-gray-600',
-    rescheduled: 'bg-purple-100 text-purple-700',
+    pending: 'bg-amber-500/10 text-amber-500 border border-amber-500/20',
+    confirmed: 'bg-blue-500/10 text-blue-500 border border-blue-500/20',
+    completed: 'bg-primary/10 text-primary border border-primary/20',
+    cancelled: 'bg-destructive/10 text-destructive border border-destructive/20',
+    no_show: 'bg-muted text-muted-foreground border border-border',
+    rescheduled: 'bg-purple-500/10 text-purple-500 border border-purple-500/20',
 }
 
 export default function AdminBookingsPage() {
-    const { t } = useI18n()
-    const isAr = t.locale === "ar"
+    const { t, locale } = useI18n()
+    const isAr = locale === "ar"
 
     const [bookings, setBookings] = useState<any[]>([])
     const [stats, setStats] = useState<any>(null)
@@ -48,7 +47,8 @@ export default function AdminBookingsPage() {
     const [editLink, setEditLink] = useState('')
     const [editStatus, setEditStatus] = useState('')
     const [editReaderId, setEditReaderId] = useState('')
-    const [availableReaders, setAvailableReaders] = useState<{ id: string; name: string }[]>([])
+    const [readerSearchQuery, setReaderSearchQuery] = useState('')
+    const [availableReaders, setAvailableReaders] = useState<{ id: string; name: string; email: string }[]>([])
     const [saving, setSaving] = useState(false)
 
     const fetchBookings = useCallback(async () => {
@@ -76,7 +76,7 @@ export default function AdminBookingsPage() {
         setEditLink(b.meeting_link || '')
         setEditStatus(b.status)
         setEditReaderId('')
-        // Fetch available readers for dropdown
+        setReaderSearchQuery('')
         try {
             const res = await fetch('/api/admin/bookings', { method: 'PUT' })
             if (res.ok) {
@@ -110,33 +110,31 @@ export default function AdminBookingsPage() {
     const totalPages = Math.ceil(total / 20)
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8" dir={isAr ? "rtl" : "ltr"}>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{isAr ? 'الجلسات والحجوزات' : 'Sessions & Bookings'}</h1>
-                    <p className="text-sm text-gray-500 mt-1">{isAr ? 'إدارة ومتابعة جميع الجلسات المحجوزة' : 'Manage and track all booked sessions'}</p>
-                </div>
+            <div>
+                <h1 className="text-3xl font-black text-foreground">{isAr ? 'الجلسات والحجوزات' : 'Sessions & Bookings'}</h1>
+                <p className="text-muted-foreground font-bold mt-1 tracking-wide">{isAr ? 'إدارة ومتابعة جميع الجلسات المحجوزة' : 'Manage and track all booked sessions'}</p>
             </div>
 
             {/* Stats Cards */}
             {stats && (
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                     {[
-                        { label: isAr ? 'اليوم' : 'Today', value: stats.today, color: 'bg-blue-50 text-blue-600', icon: CalendarDays },
-                        { label: isAr ? 'بانتظار التأكيد' : 'Pending', value: stats.pending, color: 'bg-amber-50 text-amber-600', icon: Clock },
-                        { label: isAr ? 'مؤكدة' : 'Confirmed', value: stats.confirmed, color: 'bg-emerald-50 text-emerald-600', icon: CheckCircle },
-                        { label: isAr ? 'مكتملة' : 'Completed', value: stats.completed, color: 'bg-purple-50 text-purple-600', icon: Users },
-                        { label: isAr ? 'ملغية' : 'Cancelled', value: stats.cancelled, color: 'bg-red-50 text-red-600', icon: XCircle },
+                        { label: isAr ? 'اليوم' : 'Today', value: stats.today, color: 'bg-blue-500/10 text-blue-400', icon: CalendarDays },
+                        { label: isAr ? 'بانتظار التأكيد' : 'Pending', value: stats.pending, color: 'bg-orange-500/10 text-orange-400', icon: Clock },
+                        { label: isAr ? 'مؤكدة' : 'Confirmed', value: stats.confirmed, color: 'bg-emerald-500/10 text-emerald-400', icon: CheckCircle },
+                        { label: isAr ? 'مكتملة' : 'Completed', value: stats.completed, color: 'bg-purple-500/10 text-purple-400', icon: Users },
+                        { label: isAr ? 'ملغية' : 'Cancelled', value: stats.cancelled, color: 'bg-red-500/10 text-red-500', icon: XCircle },
                     ].map(s => (
-                        <div key={s.label} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                        <div key={s.label} className="bg-card border border-border rounded-3xl p-5 shadow-sm transition-all hover:border-primary/20">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-500">{s.label}</p>
-                                    <p className="text-2xl font-bold text-gray-900 mt-1">{s.value ?? 0}</p>
+                                    <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                                    <p className="text-3xl font-black text-foreground mt-1">{s.value ?? 0}</p>
                                 </div>
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${s.color}`}>
-                                    <s.icon className="w-4 h-4" />
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.color} border border-current/10 shadow-sm`}>
+                                    <s.icon className="w-5 h-5" />
                                 </div>
                             </div>
                         </div>
@@ -144,7 +142,6 @@ export default function AdminBookingsPage() {
                 </div>
             )}
 
-            {/* Filters */}
             {/* Filter Pills */}
             <div className="flex flex-wrap gap-2">
                 {[
@@ -159,9 +156,9 @@ export default function AdminBookingsPage() {
                             setFilterStatus(btn.key)
                             setPage(1)
                         }}
-                        className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all border ${filterStatus === btn.key
-                            ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
-                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                        className={`flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-black transition-all border ${filterStatus === btn.key
+                            ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                            : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:bg-muted"
                             }`}
                     >
                         {btn.label}
@@ -170,59 +167,60 @@ export default function AdminBookingsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-100 bg-gray-50">
-                    <h3 className="font-bold text-gray-900">
+            <div className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-border bg-muted/30 flex items-center justify-between">
+                    <h3 className="font-bold text-foreground">
                         {isAr ? 'قائمة الحجوزات' : 'Bookings List'}
-                        <span className="text-gray-400 font-normal text-sm mr-2">({total} {isAr ? 'إجمالي' : 'total'})</span>
+                        <span className="text-muted-foreground font-normal text-sm mr-2">({total} {isAr ? 'إجمالي' : 'total'})</span>
                     </h3>
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-[#1B5E3B]" /></div>
+                    <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
                 ) : bookings.length === 0 ? (
-                    <div className="p-12 text-center text-gray-400">{isAr ? 'لا توجد حجوزات تطابق الفلاتر' : 'No bookings match the filters'}</div>
+                    <div className="p-12 text-center text-muted-foreground font-medium">{isAr ? 'لا توجد حجوزات تطابق الفلاتر' : 'No bookings match the filters'}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 text-gray-500 bg-gray-50">
-                                    <th className="text-right py-3 px-4 font-medium">الطالب</th>
-                                    <th className="text-right py-3 px-4 font-medium">المقرئ</th>
-                                    <th className="text-right py-3 px-4 font-medium">التاريخ والوقت</th>
-                                    <th className="text-right py-3 px-4 font-medium">المدة</th>
-                                    <th className="text-right py-3 px-4 font-medium">الحالة</th>
-                                    <th className="text-right py-3 px-4 font-medium">رابط الجلسة</th>
-                                    <th className="text-right py-3 px-4 font-medium"></th>
+                                <tr className="border-b border-border text-muted-foreground bg-muted/50 text-[11px] font-black uppercase tracking-widest">
+                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'الطالب' : 'Student'}</th>
+                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'المقرئ' : 'Reader'}</th>
+                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'التاريخ والوقت' : 'Date & Time'}</th>
+                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'المدة' : 'Duration'}</th>
+                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'الحالة' : 'Status'}</th>
+                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'رابط الجلسة' : 'Session Link'}</th>
+                                    <th className="text-center py-4 px-6 font-black">{isAr ? 'إجراء' : 'Action'}</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-border">
                                 {bookings.map(b => (
-                                    <tr key={b.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                                        <td className="py-3 px-4 font-medium text-gray-900">{b.student_name}</td>
-                                        <td className="py-3 px-4 text-gray-500">{b.reader_name}</td>
-                                        <td className="py-3 px-4 text-gray-500 text-xs">
-                                            {new Date(b.scheduled_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}
+                                    <tr key={b.id} className="hover:bg-muted/30 transition-colors">
+                                        <td className="py-4 px-6 font-bold text-foreground">{b.student_name}</td>
+                                        <td className="py-4 px-6 text-muted-foreground font-medium">{b.reader_name}</td>
+                                        <td className="py-4 px-6 text-muted-foreground text-xs font-bold">
+                                            {new Date(b.scheduled_at).toLocaleString(isAr ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}
                                         </td>
-                                        <td className="py-3 px-4 text-muted-foreground">{b.duration_minutes} د</td>
-                                        <td className="py-3 px-4">
-                                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${STATUS_COLOR[b.status] || 'bg-gray-100 text-gray-700'}`}>
+                                        <td className="py-4 px-6 text-muted-foreground font-bold">{b.duration_minutes} {isAr ? 'د' : 'min'}</td>
+                                        <td className="py-4 px-6">
+                                            <span className={`text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider ${STATUS_COLOR[b.status] || 'bg-muted text-muted-foreground'}`}>
                                                 {STATUS_OPTIONS.find(s => s.value === b.status)?.label || b.status}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td className="py-4 px-6">
                                             {b.meeting_link ? (
                                                 <a href={b.meeting_link} target="_blank" rel="noreferrer"
-                                                    className="text-primary text-xs flex items-center gap-1 hover:underline">
-                                                    <ExternalLink className="w-3 h-3" /> رابط
+                                                    className="text-primary text-xs font-black flex items-center gap-1.5 hover:underline">
+                                                    <ExternalLink className="w-3.5 h-3.5" /> {isAr ? 'رابط' : 'Link'}
                                                 </a>
                                             ) : (
                                                 <span className="text-muted-foreground text-xs">—</span>
                                             )}
                                         </td>
-                                        <td className="py-3 px-4">
-                                            <Button variant="ghost" size="sm" onClick={() => openEdit(b)}>
-                                                <Edit className="w-3.5 h-3.5" />
+                                        <td className="py-4 px-6 text-center">
+                                            <Button variant="ghost" size="sm" onClick={() => openEdit(b)} className="rounded-xl border border-border hover:bg-muted font-bold text-xs h-9">
+                                                <Edit className="w-3.5 h-3.5 ml-1" />
+                                                {isAr ? 'تعديل' : 'Edit'}
                                             </Button>
                                         </td>
                                     </tr>
@@ -234,78 +232,108 @@ export default function AdminBookingsPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between p-4 border-t border-border/50">
-                        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>السابق</Button>
-                        <span className="text-sm text-muted-foreground">صفحة {page} من {totalPages}</span>
-                        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>التالي</Button>
+                    <div className="flex items-center justify-between p-5 border-t border-border bg-muted/10">
+                        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-xl font-bold">{t.previous}</Button>
+                        <span className="text-sm font-bold text-muted-foreground">{isAr ? `صفحة ${page} من ${totalPages}` : `Page ${page} of ${totalPages}`}</span>
+                        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="rounded-xl font-bold">{t.next}</Button>
                     </div>
                 )}
             </div>
 
             {/* Edit Dialog */}
             <Dialog open={!!editBooking} onOpenChange={() => setEditBooking(null)}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md rounded-3xl border-none shadow-2xl bg-card">
                     <DialogHeader>
-                        <DialogTitle>تعديل الحجز</DialogTitle>
+                        <DialogTitle className="text-xl font-black text-foreground">{isAr ? 'تعديل الحجز' : 'Edit Booking'}</DialogTitle>
                     </DialogHeader>
                     {editBooking && (
-                        <div className="space-y-4 py-2">
-                            <div className="text-sm text-muted-foreground space-y-1">
-                                <p><span className="font-medium text-foreground">الطالب:</span> {editBooking.student_name}</p>
-                                <p><span className="font-medium text-foreground">المقرئ:</span> {editBooking.reader_name}</p>
-                                <p><span className="font-medium text-foreground">الوقت:</span> {new Date(editBooking.scheduled_at).toLocaleString('ar-SA')}</p>
+                        <div className="space-y-4 py-4">
+                            <div className="p-4 rounded-2xl bg-muted/30 border border-border space-y-2">
+                                <p className="text-sm font-bold text-foreground flex items-center justify-between">
+                                    <span className="text-muted-foreground">{isAr ? 'الطالب:' : 'Student:'}</span>
+                                    {editBooking.student_name}
+                                </p>
+                                <p className="text-sm font-bold text-foreground flex items-center justify-between">
+                                    <span className="text-muted-foreground">{isAr ? 'المقرئ:' : 'Reader:'}</span>
+                                    {editBooking.reader_name}
+                                </p>
+                                <p className="text-sm font-bold text-foreground flex items-center justify-between">
+                                    <span className="text-muted-foreground">{isAr ? 'الوقت:' : 'Time:'}</span>
+                                    {new Date(editBooking.scheduled_at).toLocaleString(isAr ? 'ar-SA' : 'en-US')}
+                                </p>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">الحالة</label>
+                                <label className="text-xs font-black uppercase text-muted-foreground tracking-widest">{isAr ? 'الحالة' : 'Status'}</label>
                                 <select
-                                    className="w-full h-10 rounded-xl border border-border bg-background px-3 text-sm"
+                                    className="w-full h-11 rounded-2xl border border-border bg-muted/30 px-4 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 outline-none"
                                     value={editStatus}
                                     onChange={e => setEditStatus(e.target.value)}
                                 >
                                     {STATUS_OPTIONS.filter(s => s.value).map(o => (
-                                        <option key={o.value} value={o.value}>{o.label}</option>
+                                        <option key={o.value} value={o.value}>{isAr ? o.label : o.labelEn}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">تغيير المقرئ (اختياري)</label>
-                                <select
-                                    className="w-full h-10 rounded-xl border border-border bg-background px-3 text-sm"
-                                    value={editReaderId}
-                                    onChange={e => setEditReaderId(e.target.value)}
-                                >
-                                    <option value="">{isAr ? 'بدون تغيير (المقرئ الحالي)' : 'No change (keep current reader)'}</option>
-                                    {availableReaders.map(r => (
-                                        <option key={r.id} value={r.id}>{r.name}</option>
-                                    ))}
-                                </select>
+                                <label className="text-xs font-black uppercase text-muted-foreground tracking-widest">{isAr ? 'تغيير المقرئ (اختياري)' : 'Change Reader (Optional)'}</label>
+                                <div className="space-y-2">
+                                    <div className="relative">
+                                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+                                        <Input
+                                            className="h-9 rounded-xl bg-muted/20 border-border text-xs focus:bg-card pr-9"
+                                            placeholder={isAr ? "بحث باسم المقرئ أو إيميله..." : "Search reader name or email..."}
+                                            value={readerSearchQuery}
+                                            onChange={e => setReaderSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <select
+                                        className="w-full h-11 rounded-2xl border border-border bg-muted/30 px-4 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 outline-none"
+                                        value={editReaderId}
+                                        onChange={e => setEditReaderId(e.target.value)}
+                                    >
+                                        <option value="">{isAr ? 'بدون تغيير (المقرئ الحالي)' : 'No change (keep current reader)'}</option>
+                                        {availableReaders.filter(r => 
+                                            !readerSearchQuery || 
+                                            r.name.toLowerCase().includes(readerSearchQuery.toLowerCase()) || 
+                                            (r.email && r.email.toLowerCase().includes(readerSearchQuery.toLowerCase())) ||
+                                            r.id.toLowerCase().includes(readerSearchQuery.toLowerCase())
+                                        ).map(r => (
+                                            <option key={r.id} value={r.id}>{r.name} {r.email ? `(${r.email})` : ''}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 {editReaderId && (
-                                    <p className="text-xs text-amber-600">⚠️ سيتم إشعار الطالب والمقرئ الجديد عند الحفظ.</p>
+                                    <p className="text-[10px] font-bold text-orange-400 mt-1">⚠️ {isAr ? 'سيتم إشعار الطالب والمقرئ الجديد عند الحفظ.' : 'Student and new reader will be notified.'}</p>
                                 )}
                             </div>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={editLink}
-                                    onChange={e => setEditLink(e.target.value)}
-                                    placeholder="https://zoom.us/j/..."
-                                    dir="ltr"
-                                />
-                                {editLink && (
-                                    <a href={editLink} target="_blank" rel="noreferrer"
-                                        className="h-10 w-10 flex items-center justify-center rounded-xl border border-border hover:bg-muted">
-                                        <ExternalLink className="w-4 h-4" />
-                                    </a>
-                                )}
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase text-muted-foreground tracking-widest">{isAr ? 'رابط الجلسة' : 'Session Link'}</label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-medium"
+                                        value={editLink}
+                                        onChange={e => setEditLink(e.target.value)}
+                                        placeholder="https://zoom.us/j/..."
+                                        dir="ltr"
+                                    />
+                                    {editLink && (
+                                        <a href={editLink} target="_blank" rel="noreferrer"
+                                            className="h-11 w-11 flex items-center justify-center rounded-2xl border border-border bg-muted/30 text-primary hover:bg-muted transition-all shrink-0">
+                                            <ExternalLink className="w-5 h-5" />
+                                        </a>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditBooking(null)}>إلغاء</Button>
-                        <Button onClick={handleSave} className="bg-[#1B5E3B] text-white" disabled={saving}>
-                            {saving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
-                            حفظ التغييرات
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setEditBooking(null)} className="rounded-2xl font-black">{isAr ? 'إلغاء' : 'Cancel'}</Button>
+                        <Button onClick={handleSave} className="rounded-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90" disabled={saving}>
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+                            {isAr ? 'حفظ التغييرات' : 'Save Changes'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

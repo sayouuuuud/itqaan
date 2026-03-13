@@ -10,13 +10,13 @@
   --card-foreground: #1a1a1a;
   --popover: #FFFFFF;
   --popover-foreground: #1a1a1a;
-  --primary: #0B3D2E;
+  --primary: #1B5E3B;
   --primary-foreground: #FFFFFF;
   --secondary: #F0F5F2;
-  --secondary-foreground: #0B3D2E;
+  --secondary-foreground: #1B5E3B;
   --muted: #f5f5f5;
   --muted-foreground: #737373;
-  --accent: #D4A843;
+  --accent: #1B5E3B;
   --accent-foreground: #FFFFFF;
   --destructive: #DC2626;
   --destructive-foreground: #FFFFFF;
@@ -50,14 +50,14 @@
   --card-foreground: #fafafa;
   --popover: #171717;
   --popover-foreground: #fafafa;
-  --primary: #2DD4BF;
-  --primary-foreground: #042f2e;
-  --secondary: #042f2e;
-  --secondary-foreground: #CCFBF1;
+  --primary: #D4A328;
+  --primary-foreground: #0B0F0E;
+  --secondary: #121F19;
+  --secondary-foreground: #D4A328;
   --muted: #262626;
   --muted-foreground: #a3a3a3;
-  --accent: #115E59;
-  --accent-foreground: #CCFBF1;
+  --accent: #D4A328;
+  --accent-foreground: #0B0F0E;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
   --success: #22C55E;
@@ -66,20 +66,20 @@
   --warning-foreground: #1a1a1a;
   --border: #262626;
   --input: #262626;
-  --ring: #2DD4BF;
-  --chart-1: #2DD4BF;
-  --chart-2: #14B8A6;
+  --ring: #D4A328;
+  --chart-1: #D4A328;
+  --chart-2: #CBB17A;
   --chart-3: #22C55E;
   --chart-4: #60A5FA;
   --chart-5: #FBBF24;
   --sidebar: #171717;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #2DD4BF;
-  --sidebar-primary-foreground: #042f2e;
-  --sidebar-accent: #042f2e;
-  --sidebar-accent-foreground: #CCFBF1;
+  --sidebar-primary: #D4A328;
+  --sidebar-primary-foreground: #040706;
+  --sidebar-accent: #121F19;
+  --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #262626;
-  --sidebar-ring: #2DD4BF;
+  --sidebar-ring: #D4A328;
 }
 
 @theme inline {
@@ -138,7 +138,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border/40 outline-ring/50;
   }
 
   body {
@@ -218,151 +218,193 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.35);
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* === Islamic Royale Theme (For Admin, Student, Reader Dashboards) === */
 .theme-islamic {
-  /* Background: Clearer, warmer parchment/beige to make cards pop */
-  --background: #FDF5E1;
+  --background: #FFFFFF;
   --foreground: #081208;
-
-  /* Cards: Pure white with strong border definition */
   --card: #FFFFFF;
   --card-foreground: #081208;
-
   --popover: #FFFFFF;
   --popover-foreground: #081208;
-
-  /* Primary: Deep forest green */
   --primary: #1B5E3B;
-  --primary-foreground: #FDF5E1;
-  
-  /* Secondary: Neutral green tint */
-  --secondary: #E9F1E9;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0F5F2;
   --secondary-foreground: #1B5E3B;
-  
-  /* Muted: Soft grey-gold */
-  --muted: #F2ECDC;
-  --muted-foreground: #5C6E5C;
-
-  /* Accent: Rich, visible gold */
-  --accent: #D4A328;
-  --accent-foreground: #081208;
-
-  /* Status Colors */
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #1B5E3B;
+  --accent-foreground: #FFFFFF;
   --destructive: #B03020;
   --destructive-foreground: #FFFFFF;
   --success: #1E8449;
   --success-foreground: #FFFFFF;
   --warning: #CD7F32;
   --warning-foreground: #081208;
-
-  /* Borders: Strong & Refined (Crucial for separation) */
   --border: #CBB17A;
-  --input: #D9C9A1;
+  --input: #E2E8F0;
   --ring: #1B5E3B;
-
-  /* Powerful Shadows: Deep & Defined */
-  --shadow-sm: 0 1px 4px 0 rgba(13, 61, 34, 0.15);
-  --shadow: 0 4px 12px -2px rgba(13, 61, 34, 0.25), 0 2px 8px -2px rgba(13, 61, 34, 0.15);
-  --shadow-md: 0 12px 28px -4px rgba(13, 61, 34, 0.35), 0 6px 15px -4px rgba(13, 61, 34, 0.25);
-  --shadow-lg: 0 30px 45px -10px rgba(13, 61, 34, 0.4), 0 18px 22px -10px rgba(13, 61, 34, 0.3);
-  --shadow-xl: 0 40px 80px -20px rgba(13, 61, 34, 0.5);
-  --shadow-inner: inset 0 2px 8px 0 rgba(13, 61, 34, 0.25);
-
-  --chart-1: #1B5E3B;
-  --chart-2: #D4A328;
-  --chart-3: #2E7D52;
-  --chart-4: #8B6914;
-  --chart-5: #4A9B6F;
 
   --sidebar: #0B2418;
   --sidebar-foreground: #FDF5E1;
-  --sidebar-primary: #D4A328;
+  --sidebar-primary: #CBB17A;
   --sidebar-primary-foreground: #0B2418;
   --sidebar-accent: #1B5E3B;
   --sidebar-accent-foreground: #FDF5E1;
   --sidebar-border: #1B5E3B;
-  --sidebar-ring: #D4A328;
+  --sidebar-ring: #CBB17A;
 
-  background-image: radial-gradient(circle at 1.5px 1.5px, rgba(27, 94, 59, 0.06) 1px, transparent 0);
-  background-size: 24px 24px;
+  background-color: var(--background) !important;
+  background-image: none !important;
+  min-height: 100vh;
 }
 
-.theme-islamic.dark {
-  /* Dark Mode: Charcoal-emerald */
-  --background: #070D0C;
-  --foreground: #F0E6D0;
-
-  --card: #0E1614;
-  --card-foreground: #F0E6D0;
-
-  --popover: #0E1614;
-  --popover-foreground: #F0E6D0;
-
+.dark .theme-islamic,
+.theme-islamic.dark,
+.theme-islamic .dark {
+  --background: #060908;
+  --foreground: #fafafa;
+  --card: #0D1614;
+  --card-foreground: #fafafa;
+  --popover: #171717;
+  --popover-foreground: #fafafa;
   --primary: #D4A328;
-  --primary-foreground: #070D0C;
-
-  --secondary: #14281A;
+  --primary-foreground: #0B0F0E;
+  --secondary: #121F19;
   --secondary-foreground: #D4A328;
-
-  --muted: #18241D;
-  --muted-foreground: #7D8E7D;
-
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
   --accent: #D4A328;
-  --accent-foreground: #070D0C;
-
-  --destructive: #E05040;
-  --destructive-foreground: #FDF5E1;
-  --success: #1E8449;
-  --success-foreground: #070D0C;
-  --warning: #CD7F32;
-  --warning-foreground: #070D0C;
-
-  --border: #2A3D2F;
-  --input: #2A3D2F;
+  --accent-foreground: #0B0F0E;
+  --destructive: #EF4444;
+  --destructive-foreground: #F1F5F9;
+  --success: #22C55E;
+  --success-foreground: #0B0F0E;
+  --warning: #F59E0B;
+  --warning-foreground: #0B0F0E;
+  --border: #1E2D25;
+  --input: #1E2D25;
   --ring: #D4A328;
 
-  /* Stronger dark shadows */
-  --shadow-sm: 0 1px 4px 0 rgba(0, 0, 0, 0.6);
-  --shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.8);
-  --shadow-md: 0 12px 28px -4px rgba(0, 0, 0, 0.9);
-  --shadow-lg: 0 30px 45px -10px rgba(0, 0, 0, 1.0);
-
-  --sidebar: #040807;
-  --sidebar-foreground: #F0E6D0;
+  --sidebar: #040706;
+  --sidebar-foreground: #E2E8F0;
   --sidebar-primary: #D4A328;
-  --sidebar-primary-foreground: #040807;
-  --sidebar-accent: #0E1614;
-  --sidebar-accent-foreground: #F0E6D0;
-  --sidebar-border: #0E1614;
+  --sidebar-primary-foreground: #040706;
+  --sidebar-accent: #121F19;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: #121F19;
   --sidebar-ring: #D4A328;
 }
 
-.theme-islamic .card,
-.theme-islamic [class*="bg-white"],
-.theme-islamic [class*="bg-card"] {
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  transition: all 300ms;
+.dark .theme-islamic h1,
+.dark .theme-islamic h2,
+.dark .theme-islamic h3,
+.dark .theme-islamic h4,
+.dark .theme-islamic p,
+.dark .theme-islamic span:not([class*="text-"]),
+.dark .theme-islamic div:not([class*="text-"]),
+.theme-islamic.dark h1,
+.theme-islamic.dark h2,
+.theme-islamic.dark h3,
+.theme-islamic.dark h4,
+.theme-islamic.dark p,
+.theme-islamic.dark span:not([class*="text-"]),
+.theme-islamic.dark div:not([class*="text-"]) {
+  color: var(--foreground) !important;
+}
+
+.dark .theme-islamic [class*="text-gray-900"],
+.theme-islamic.dark [class*="text-gray-900"],
+.dark .theme-islamic [class*="text-gray-800"],
+.theme-islamic.dark [class*="text-gray-800"] {
+  color: var(--foreground) !important;
+}
+
+.dark .theme-islamic [class*="text-gray-400"],
+.theme-islamic.dark [class*="text-gray-400"],
+.dark .theme-islamic [class*="text-gray-500"],
+.theme-islamic.dark [class*="text-gray-500"] {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .theme-islamic [class*="bg-white"],
+.theme-islamic.dark [class*="bg-white"],
+.dark .theme-islamic [class*="bg-gray-50"],
+.theme-islamic.dark [class*="bg-gray-50"] {
+  background-color: var(--card) !important;
+}
+
+.theme-islamic [class*="bg-background"] {
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 .theme-islamic .card-premium {
   background-color: var(--card);
   border: 2px solid var(--border);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 1rem;
   padding: 1.5rem;
   transition: all 300ms;
 }
 
 .theme-islamic .card-premium:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* === Admin Theme (Gold Borders Only) === */
+.admin-theme .bg-card,
+.admin-theme .bg-white,
+.admin-theme table,
+.admin-theme tr,
+.admin-theme th,
+.admin-theme td,
+.admin-theme .border,
+.admin-theme .border-t,
+.admin-theme .border-b,
+.admin-theme .border-l,
+.admin-theme .border-r {
+  border-color: #CBB17A !important;
+}
+
+.admin-theme .bg-card,
+.admin-theme .bg-white {
+  border-width: 1px;
+}
+
+.admin-theme button.border,
+.admin-theme a.border,
+.admin-theme input,
+.admin-theme select,
+.admin-theme textarea {
+  border-color: #CBB17A !important;
+}
+
+
+/* === Override: Remove Gold Borders in Dark Mode === */
+.dark.admin-theme .bg-card,
+.dark.admin-theme .bg-white,
+.dark.admin-theme table,
+.dark.admin-theme tr,
+.dark.admin-theme th,
+.dark.admin-theme td,
+.dark.admin-theme .border,
+.dark.admin-theme .border-t,
+.dark.admin-theme .border-b,
+.dark.admin-theme .border-l,
+.dark.admin-theme .border-r,
+.dark.admin-theme button.border,
+.dark.admin-theme a.border,
+.dark.admin-theme input,
+.dark.admin-theme select,
+.dark.admin-theme textarea {
+  border-color: hsl(var(--border)) !important;
 }

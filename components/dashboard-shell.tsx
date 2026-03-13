@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { GlobalSearch } from '@/components/global-search'
 import { NotificationDropdown } from '@/components/notification-dropdown'
+import { ThemeToggle } from '@/components/theme-toggle'
 import {
   LayoutDashboard, Mic, FileText, Calendar, Bell, User, LogOut,
   Menu, X, Users, Settings, BarChart3, ClipboardList, Clock, MessageSquare,
@@ -47,7 +48,7 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
         items: [
           { href: '/reader', label: t.reader.dashboard, icon: LayoutDashboard },
           { href: '/reader/recitations', label: t.reader.reviewList, icon: ClipboardList },
-          { href: '/reader/sessions', label: t.reader.sessions, icon: Calendar },
+          { href: '/reader/sessions', label: t.reader.sessions || "الجلسات", icon: Calendar },
           { href: '/reader/schedule', label: t.reader.schedule, icon: Clock },
           { href: '/reader/chat', label: t.reader.chat, icon: MessageSquare },
           { href: '/reader/notifications', label: t.student.notifications, icon: Bell },
@@ -213,12 +214,16 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
   const config = { ...rawConfig, name: userName, sections: sectionsWithBadges }
   const isReader = role === 'reader'
 
-  const sidebarBase = 'bg-white border-l border-gray-200'
+  const sidebarBase = 'bg-card border-l border-border'
 
   const isActive = (href: string) => pathname === href || (href !== `/${role}` && pathname.startsWith(href + '/'))
 
   return (
-    <div className="theme-islamic h-screen flex overflow-hidden bg-slate-50 transition-colors duration-500">
+    <div className={cn(
+      "h-screen flex overflow-hidden bg-background transition-colors duration-500",
+      isReader && "theme-islamic",
+      (role === 'admin' || role === 'student' || role === 'reader' || role === 'student_supervisor' || role === 'reciter_supervisor') && "admin-theme"
+    )}>
       {/* Overlay */}
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
@@ -226,18 +231,19 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
       <aside className={cn(
         'fixed inset-y-0 right-0 z-50 w-72 flex flex-col transition-transform duration-200 lg:translate-x-0 lg:static shadow-sm',
         sidebarOpen ? 'translate-x-0' : 'translate-x-full',
-        sidebarBase
+        'bg-card border-l border-border'
       )}>
-        <div className="w-full flex items-center border-b border-gray-100">
-          <Link href="/" className="w-full">
+        <div className={cn('py-1 flex items-center justify-center border-b border-border relative overflow-hidden', isReader ? 'bg-primary/5' : 'bg-card')}>
+          <Link href="/" className="w-full block px-4">
             <img 
               src="/branding/dashboard-logo.png" 
-              alt="Itqan Dashboard Logo" 
-              className="w-full h-auto object-cover" 
+              alt={t.appName} 
+              className="w-full h-auto min-h-[40px] max-h-[100px] object-contain dark:brightness-150 dark:contrast-125 transition-all" 
             />
           </Link>
-          <button className="lg:hidden absolute left-4 p-1" onClick={() => setSidebarOpen(false)} aria-label="close">
-            <X className="w-5 h-5 text-slate-500" />
+          
+          <button className="lg:hidden p-1" onClick={() => setSidebarOpen(false)} aria-label="close">
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -246,7 +252,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
           {config.sections.map((section, si) => (
             <div key={si}>
               {section.title && (
-                <div className={cn('text-xs font-semibold uppercase tracking-wider mb-4 px-2', si > 0 && 'mt-8', 'text-gray-400')}>
+                <div className={cn('text-[10px] font-bold uppercase tracking-widest mb-4 px-3 text-muted-foreground/60', si > 0 && 'mt-8')}>
                   {section.title}
                 </div>
               )}
@@ -255,23 +261,24 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                 return (
                   <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm group',
+                      'flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm group relative',
                       active
-                        ? role === 'admin' ? 'bg-[#0B3D2E]/10 text-[#0B3D2E] font-bold shadow-sm' : 'bg-[#0B3D2E]/5 text-[#0B3D2E] font-bold border border-[#0B3D2E]/10'
-                        : role === 'admin' ? 'text-gray-600 hover:bg-[#0B3D2E]/5 hover:text-[#0B3D2E]' : 'text-slate-500 hover:text-[#0B3D2E] hover:bg-slate-50'
+                        ? 'bg-primary/10 text-primary font-bold shadow-sm'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
                   >
-                    <item.icon className="w-5 h-5 shrink-0" />
+                    <item.icon className={cn("w-5 h-5 shrink-0 transition-transform duration-200", active && "scale-110")} />
                     <span className="font-medium">{item.label}</span>
                     {item.badge ? (
-                      <span className="mr-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{item.badge}</span>
+                      <span className="mr-auto bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold">{item.badge}</span>
                     ) : (item.label === t.student.notifications || item.label === t.notifications.title || item.href.includes('notifications')) ? (
                       unreadCount > 0 && (
-                        <span className="mr-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        <span className="mr-auto bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold">
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                       )
                     ) : null}
+                    {active && <div className="absolute right-0 w-1 h-6 bg-primary rounded-l-full" />}
                   </Link>
                 )
               })}
@@ -280,9 +287,9 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         </nav>
 
         {/* Bottom section */}
-        <div className="p-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 bg-slate-50 border border-slate-100 transition-colors">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 text-[#0B3D2E] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm shrink-0">
+        <div className="p-4 border-t border-border mt-auto">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 bg-muted/30 border border-border transition-colors">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center font-bold text-sm ring-2 ring-background shadow-sm shrink-0">
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
               ) : (
@@ -290,14 +297,14 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-800 truncate">{config.name}</p>
-              <p className="text-xs text-slate-500 truncate">{config.sublabel}</p>
+              <p className="text-sm font-bold text-foreground truncate">{config.name}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">{config.sublabel}</p>
             </div>
           </div>
 
-          <Link href="/" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm text-slate-500 hover:text-[#0B3D2E]">
+          <Link href="/" className="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm text-muted-foreground hover:text-primary">
             <Globe className="w-4 h-4" />
-            <span>عرض الموقع</span>
+            <span className="font-medium">عرض الموقع</span>
           </Link>
         </div>
       </aside>
@@ -305,14 +312,14 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
       {/* Main */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         <header className={cn(
-          'border-b border-gray-200 flex items-center justify-between px-6 lg:px-8 bg-white/80 backdrop-blur-md z-10 sticky top-0',
+          'border-b border-border flex items-center justify-between px-6 lg:px-8 bg-background/95 backdrop-blur-md z-10 sticky top-0',
           role === 'student' ? 'h-20' : 'h-16'
         )}>
           <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-slate-500 hover:text-[#0B3D2E]" onClick={() => setSidebarOpen(true)} aria-label="open menu">
+            <button className="lg:hidden p-2 text-muted-foreground hover:text-primary" onClick={() => setSidebarOpen(true)} aria-label="open menu">
               <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-bold text-slate-700 hidden lg:block">{headerTitle || config.label}</h2>
+            <h2 className="text-xl font-bold text-foreground hidden lg:block">{headerTitle || config.label}</h2>
           </div>
           <div className="flex items-center gap-4">
             {role !== 'student' && (
@@ -320,6 +327,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                 <GlobalSearch role={role as 'admin' | 'reader'} />
               </div>
             )}
+            <ThemeToggle />
             <LanguageSwitcher variant="outline" />
 
             <NotificationDropdown
@@ -340,7 +348,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
                 router.push('/')
                 router.refresh()
               }}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all"
               title={t.logout}
             >
               <LogOut className="w-5 h-5" />

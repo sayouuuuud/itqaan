@@ -114,18 +114,18 @@ export function NotificationDropdown({ role, unreadCount, onRefresh }: { role: s
     return (
         <DropdownMenu onOpenChange={(open) => open && fetchLatest()}>
             <DropdownMenuTrigger asChild>
-                <button suppressHydrationWarning className="relative p-2.5 text-slate-500 hover:text-[#0B3D2E] transition-colors rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 outline-none">
+                <button suppressHydrationWarning className="relative p-2.5 text-muted-foreground hover:text-primary transition-colors rounded-xl hover:bg-muted border border-transparent hover:border-border outline-none">
                     <Bell className="w-5 h-5" />
                     {unreadCount > 0 && (
-                        <span className="absolute -top-0.5 -left-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 border-2 border-white shadow-sm">
+                        <span className="absolute -top-0.5 -left-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full px-1 border-2 border-background shadow-sm">
                             {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                     )}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-80 p-0 rounded-2xl border-gray-100 shadow-xl overflow-hidden mt-2">
-                <div className="p-4 bg-gray-50/50 flex items-center justify-between">
-                    <DropdownMenuLabel className="p-0 font-bold text-slate-800">
+            <DropdownMenuContent align="start" className="w-80 p-0 rounded-2xl border-border shadow-xl overflow-hidden mt-2">
+                <div className="p-4 bg-muted/50 flex items-center justify-between">
+                    <DropdownMenuLabel className="p-0 font-bold text-foreground">
                         {t.notifications.title}
                     </DropdownMenuLabel>
                     <div className="flex items-center gap-3">
@@ -133,7 +133,7 @@ export function NotificationDropdown({ role, unreadCount, onRefresh }: { role: s
                             <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); markAllRead(); }}
                                 disabled={markingAll || clearing}
-                                className="text-[11px] font-bold text-[#0B3D2E] hover:underline flex items-center gap-1 disabled:opacity-50"
+                                className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
                             >
                                 {markingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCheck className="w-3 h-3" />}
                                 {t.notifications.markAll}
@@ -155,36 +155,36 @@ export function NotificationDropdown({ role, unreadCount, onRefresh }: { role: s
                 <div className="max-h-[400px] overflow-y-auto">
                     {loading ? (
                         <div className="p-10 flex justify-center">
-                            <Loader2 className="w-6 h-6 animate-spin text-[#0B3D2E]" />
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         </div>
                     ) : notifications.length === 0 ? (
-                        <div className="p-10 text-center text-slate-400 text-sm">
+                        <div className="p-10 text-center text-muted-foreground text-sm">
                             <Bell className="w-10 h-10 mx-auto mb-2 opacity-20" />
                             {t.notifications.noNotifications}
                         </div>
                     ) : (
                         notifications.map((n) => {
                             const Icon = TYPE_ICON[n.type] || Bell
-                            const color = TYPE_COLOR[n.type] || "text-slate-500 bg-slate-50"
+                            const color = TYPE_COLOR[n.type] || "text-muted-foreground bg-muted"
                             return (
-                                <DropdownMenuItem key={n.id} asChild className="p-0 focus:bg-slate-50 transition-colors pointer-cursor border-b border-gray-50 last:border-0">
+                                <DropdownMenuItem key={n.id} asChild className="p-0 focus:bg-muted transition-colors pointer-cursor border-b border-border last:border-0">
                                     <Link href={n.link || `/${role}/notifications`} className="flex items-start gap-4 p-4 outline-none">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-current opacity-80 ${color}`}>
                                             <Icon className="w-4 h-4" />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-2">
-                                                <p className={`text-sm font-bold truncate ${n.is_read ? "text-slate-600" : "text-slate-900"}`}>
+                                                <p className={`text-sm font-bold truncate ${n.is_read ? "text-muted-foreground" : "text-foreground"}`}>
                                                     {n.title}
                                                 </p>
-                                                <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                                                     {timeAgo(n.created_at)}
                                                 </span>
                                             </div>
-                                            <p className={`text-xs mt-1 line-clamp-2 ${n.is_read ? "text-slate-400" : "text-slate-600"}`}>
+                                            <p className={`text-xs mt-1 line-clamp-2 ${n.is_read ? "text-muted-foreground/70" : "text-muted-foreground"}`}>
                                                 {n.message}
                                             </p>
-                                            {!n.is_read && <div className="w-1.5 h-1.5 bg-[#0B3D2E] rounded-full mt-2" />}
+                                            {!n.is_read && <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2" />}
                                         </div>
                                     </Link>
                                 </DropdownMenuItem>
@@ -194,7 +194,7 @@ export function NotificationDropdown({ role, unreadCount, onRefresh }: { role: s
                 </div>
                 <DropdownMenuSeparator className="m-0" />
                 <div className="p-2">
-                    <Button asChild variant="ghost" className="w-full justify-center text-xs font-bold text-[#0B3D2E] rounded-xl py-2 h-auto hover:bg-[#0B3D2E]/5">
+                    <Button asChild variant="ghost" className="w-full justify-center text-xs font-bold text-primary rounded-xl py-2 h-auto hover:bg-primary/5">
                         <Link href={`/${role}/notifications`}>
                             {t.notifications.viewAll}
                         </Link>

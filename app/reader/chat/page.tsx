@@ -6,9 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Send, Link2, MessageSquare, Loader2, Trash2, Edit2, Shield, MessagesSquare } from "lucide-react"
+import { Send, Link2, MessageSquare, Loader2, Trash2, Edit2 } from "lucide-react"
 
 type Conversation = {
   id: string
@@ -19,11 +17,6 @@ type Conversation = {
   unread_count_reader: number
   student_name: string
   student_avatar?: string | null
-  admin_id?: string | null
-  admin_name?: string | null
-  admin_avatar?: string | null
-  is_ticket?: boolean
-  ticket_status?: string
 }
 
 type Message = {
@@ -32,7 +25,6 @@ type Message = {
   message_text: string
   created_at: string
   updated_at?: string
-  sender_name?: string
 }
 
 export default function ReaderChatPage() {
@@ -53,11 +45,6 @@ export default function ReaderChatPage() {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [deletingConvId, setDeletingConvId] = useState<string | null>(null)
 
-  const [activeTab, setActiveTab] = useState("messages")
-  const [ticketDialogOpen, setTicketDialogOpen] = useState(false)
-  const [newTicketMessage, setNewTicketMessage] = useState("")
-  const [creatingTicket, setCreatingTicket] = useState(false)
-
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -67,14 +54,7 @@ export default function ReaderChatPage() {
         const res = await fetch("/api/conversations")
         if (res.ok) {
           const data = await res.json()
-          const convs = data.conversations || []
-          setConversations(convs)
-
-          // Prevent active chat from closing/resetting by stabilizing its state
-          if (selectedConvId) {
-            const stillExists = convs.find((c: Conversation) => c.id === selectedConvId)
-            // If it doesn't exist anymore (e.g. deleted), we reset, otherwise we leave it
-          }
+          setConversations(data.conversations || [])
         }
       } catch (err) {
         console.error(err)
@@ -218,53 +198,6 @@ export default function ReaderChatPage() {
     }
   }
 
-  const handleCreateTicket = async () => {
-    if (!newTicketMessage.trim()) return
-    setCreatingTicket(true)
-    try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isTicket: true }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        const convId = data.conversation.id
-        const msgRes = await fetch(`/api/conversations/${convId}/messages`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: newTicketMessage }),
-        })
-        
-        if (msgRes.ok) {
-          setTicketDialogOpen(false)
-          setNewTicketMessage("")
-          setActiveTab("tickets")
-          setSelectedConvId(convId)
-
-          const cRes = await fetch("/api/conversations")
-          if (cRes.ok) {
-            const cd = await cRes.json()
-            setConversations(cd.conversations || [])
-            // Show success message
-            alert(isAr ? "تم إرسال التذكرة بنجاح." : "Ticket sent successfully.")
-          }
-        } else {
-          const errorData = await msgRes.json()
-          alert(errorData.error || (isAr ? "حدث خطأ أثناء إرسال الرسالة" : "Error sending message"))
-        }
-      } else {
-        const errorData = await res.json()
-        alert(errorData.error || (isAr ? "حدث خطأ أثناء إنشاء التذكرة" : "Error creating ticket"))
-      }
-    } catch (error) {
-      console.error(error)
-      alert(isAr ? "حدث خطأ" : "An error occurred")
-    } finally {
-      setCreatingTicket(false)
-    }
-  }
-
   const avatarColors = [
     "bg-sky-100 text-sky-600",
     "bg-emerald-100 text-emerald-600",
@@ -273,336 +206,228 @@ export default function ReaderChatPage() {
   ]
 
   return (
-    <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col relative">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-            {t.reader.chat}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {t.reader.chatDesc}
-          </p>
-        </div>
-        {activeTab === 'tickets' && (
-          <Button
-            onClick={() => setTicketDialogOpen(true)}
-            className="bg-[#C9A227] hover:bg-[#A6841E] text-white rounded-xl shadow-sm gap-2 animate-in fade-in zoom-in duration-200"
-          >
-            <Shield className="w-4 h-4" />
-            {isAr ? "إنشاء تذكرة دعم فني" : "Create Support Ticket"}
-          </Button>
-        )}
+    <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          {isAr ? "المحادثات" : "Messages"}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {isAr ? "تواصل مع الطلاب حول ملاحظات التلاوة والمواعيد" : "Communicate with students"}
+        </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); setSelectedConvId(null) }} className="flex-1 min-h-0 flex flex-col space-y-4">
-        <div className="flex justify-end shrink-0">
-          <TabsList className="bg-white p-1 border border-slate-200 shadow-sm h-12 rounded-full overflow-hidden">
-            <TabsTrigger value="messages" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
-              <MessagesSquare className="w-4 h-4" />
-              {isAr ? "رسائل الطلاب" : "Student Messages"}
-            </TabsTrigger>
-            <TabsTrigger value="tickets" className="rounded-full font-bold gap-2 px-6 py-2 data-[state=active]:bg-[#1B5E3B] data-[state=active]:text-white transition-all text-sm h-full flex items-center">
-              <Shield className="w-4 h-4" />
-              {isAr ? "تذاكر الدعم" : "Support Tickets"}
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row-reverse gap-6">
-          {/* Conversations List */}
-          <Card className="border-slate-200 w-full lg:w-1/3 flex flex-col h-full overflow-hidden shadow-sm shrink-0">
-            <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50">
-              <CardTitle className="text-base font-bold text-slate-700">
-                {activeTab === 'messages' ? (isAr ? "قائمة المحادثات" : "Conversations") : (isAr ? "قائمة التذاكر" : "Tickets List")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-y-auto">
-              {loadingConvs ? (
-                <div className="p-8 flex justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#1B5E3B]" />
-                </div>
-              ) : conversations.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 flex flex-col items-center">
-                  <MessageSquare className="w-10 h-10 text-slate-300 mb-2" />
-                  <p>{t.reader.noMessagesInList}</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {conversations.filter(c => activeTab === 'messages' ? !c.is_ticket : c.is_ticket).map((conv, idx) => {
-                    const colorClass = avatarColors[idx % avatarColors.length]
-                    const isSelected = selectedConvId === conv.id
-                    const hasUnread = conv.unread_count_reader > 0
-
-                    const name = conv.is_ticket 
-                      ? (conv.admin_name || (isAr ? "فريق الدعم الفني" : "Technical Support")) 
-                      : (conv.student_name || (isAr ? "طالب" : "Student"))
-
-                    return (
-                      <button
-                        key={conv.id}
-                        onClick={() => setSelectedConvId(conv.id)}
-                        className={`w-full flex items-center gap-3 p-4 text-right transition-colors hover:bg-slate-50 relative ${isSelected ? "bg-[#1B5E3B]/5 border-l-2 border-l-[#1B5E3B]" : ""
-                          }`}
-                      >
-                        <div className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${conv.is_ticket ? 'bg-amber-100 text-amber-700' : colorClass}`}>
-                          {(!conv.is_ticket && conv.student_avatar) ? (
-                            <img src={conv.student_avatar} alt={name} className="w-full h-full rounded-full object-cover" />
-                          ) : (conv.admin_avatar) ? (
-                            <img src={conv.admin_avatar} alt={name} className="w-full h-full rounded-full object-cover" />
-                          ) : (name[0] || "ط")}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex justify-between items-baseline mb-1">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <p className={`text-sm truncate ${hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
-                                {name}
-                              </p>
-                              {conv.is_ticket && (
-                                <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
-                                  {isAr ? "تذكرة" : "Ticket"}
-                                </span>
-                              )}
-                            </div>
-                            {conv.last_message_at && (
-                              <span className="text-[10px] text-slate-400 shrink-0 whitespace-nowrap ml-2">
-                                {new Date(conv.last_message_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
-                              </span>
-                            )}
-                          </div>
-                          <p className={`text-xs truncate ${hasUnread ? "font-medium text-slate-700" : "text-slate-500"}`}>
-                            {conv.last_message_preview || "بدء محادثة جديدة"}
-                          </p>
-                        </div>
-                        {hasUnread && (
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#C9A227]" />
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Chat Area */}
-          <Card className="border-slate-200 w-full lg:w-2/3 flex flex-col h-full overflow-hidden shadow-sm shrink-0">
-            {currentConv ? (
-              <>
-                <CardHeader className="pb-4 flex flex-row items-center gap-3 space-y-0">
-                  <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-sm ${currentConv.is_ticket ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-600'}`}>
-                    {(!currentConv.is_ticket && currentConv.student_avatar) ? (
-                      <img src={currentConv.student_avatar} alt="avatar" className="w-full h-full rounded-full object-cover" />
-                    ) : (currentConv.admin_avatar) ? (
-                      <img src={currentConv.admin_avatar} alt="avatar" className="w-full h-full rounded-full object-cover" />
-                    ) : (currentConv.is_ticket ? (isAr ? 'ف' : 'S') : (currentConv.student_name || "ط").charAt(0))}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <CardTitle className="text-base text-slate-800 truncate max-w-full">
-                        {currentConv.is_ticket ? (currentConv.admin_name || (isAr ? "فريق الدعم الفني" : "Technical Support")) : (currentConv.student_name || (isAr ? "طالب" : "Student"))}
-                      </CardTitle>
-                      {currentConv.is_ticket && (
-                        <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">
-                          {isAr ? "تذكرة دعم" : "Support Ticket"}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      {currentConv.is_ticket ? (isAr ? "دعم المستفيدين والمساعدة" : "Help and Support") : (isAr ? "طالب" : "Student")}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    onClick={handleDeleteConversation}
-                    disabled={deletingConvId === currentConv.id}
-                    title={isAr ? "حذف المحادثة" : "Delete Conversation"}
-                  >
-                    {deletingConvId === currentConv.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                  </Button>
-                </CardHeader>
-
-                {/* Messages */}
-                <CardContent className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50 space-y-4 border-t border-b border-transparent">
-                  {loadingMsgs ? (
-                    <div className="h-full flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#1B5E3B]" />
-                    </div>
-                  ) : messages.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                      <MessageSquare className="w-12 h-12 text-slate-200 mb-3" />
-                      <p>{currentConv.is_ticket ? (isAr ? "أرسل تفاصيل المشكلة للدعم الفني" : "Send ticket details to support") : (isAr ? "أرسل رسالة للترحيب بالطالب" : "Send a message to welcome the student")}</p>
-                    </div>
-                  ) : (
-                    <>
-                      {messages.map((msg, idx) => {
-                        const isMe = msg.sender_id === currentConv.reader_id
-                        return (
-                          <div
-                            key={msg.id}
-                            className={`flex ${isMe ? "justify-start" : "justify-end"} group relative`}
-                          >
-                            {isMe && !currentConv.is_ticket && (
-                              <div className="absolute -top-3 rtl:right-0 ltr:left-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden py-1 px-1 z-10">
-                                <button
-                                  onClick={() => {
-                                    setEditingMessage(msg)
-                                    setMessageText(msg.message_text)
-                                    setLinkText("")
-                                  }}
-                                  className="p-1.5 text-slate-400 hover:text-[#1B5E3B] hover:bg-slate-50 rounded transition-colors"
-                                  title={isAr ? "تعديل" : "Edit"}
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteMessage(msg.id)}
-                                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded transition-colors"
-                                  title={isAr ? "حذف" : "Delete"}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            )}
-                            <div
-                               className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-4 py-3 text-sm shadow-md transition-all ${isMe
-                                 ? "bg-[#1B5E3B] text-white rounded-br-sm"
-                                 : "bg-white border border-slate-100 text-slate-800 rounded-bl-sm shadow-emerald-500/5"
-                                 }`}
-                             >
-                               {!isMe && currentConv.is_ticket && (
-                                 <p className="text-[10px] font-black mb-1.5 text-blue-600 uppercase tracking-wider">{msg.sender_name}</p>
-                               )}
-                               <p className="whitespace-pre-wrap leading-relaxed text-[14px]">{msg.message_text}</p>
-                               <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-emerald-100/70" : "text-slate-400"
-                                 }`}>
-                                 <div className="flex items-center gap-1.5">
-                                   <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-                                   {isMe && (
-                                     <span className="flex items-center">
-                                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                         <path d="M4 12.89L9.11 18L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                         <path d="M4 7.89L9.11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40" />
-                                       </svg>
-                                     </span>
-                                   )}
-                                 </div>
-                                 {msg.updated_at && <span className="opacity-70 italic font-medium">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
-                               </div>
-                             </div>
-                          </div>
-                        )
-                      })}
-                      <div ref={messagesEndRef} />
-                    </>
-                  )}
-                </CardContent>
-
-                {/* Input */}
-                <div className="p-4 space-y-3">
-                  {currentConv.is_ticket && currentConv.ticket_status === 'closed' ? (
-                    <div className="text-center p-3 bg-slate-50 text-slate-500 rounded-xl text-sm border border-slate-200">
-                      {isAr ? "تم إغلاق هذه التذكرة. يمكنك إنشاء تذكرة جديدة إذا كان لديك استفسار آخر." : "This ticket is closed. You can create a new ticket if you have another inquiry."}
-                    </div>
-                  ) : currentConv.is_ticket && currentConv.ticket_status !== 'closed' && messages.length > 0 && messages[messages.length - 1].sender_id === currentConv.reader_id ? (
-                    <div className="text-center p-3 bg-blue-50 text-blue-800 rounded-xl text-sm border border-blue-100">
-                      {isAr ? "جاري انتظار رد الإدارة على تذكرتك" : "Waiting for admin to respond to your ticket"}
-                    </div>
-                  ) : (
-                    <>
-                      {editingMessage && !currentConv.is_ticket && (
-                        <div className="flex items-center justify-between bg-amber-50 text-amber-800 p-2 rounded-lg text-xs mb-2 border border-amber-200/50">
-                          <div className="flex items-center gap-2">
-                            <Edit2 className="w-3.5 h-3.5" />
-                            <span>{isAr ? "تعديل الرسالة..." : "Editing message..."}</span>
-                          </div>
-                          <button onClick={() => { setEditingMessage(null); setMessageText(""); setLinkText("") }} className="hover:underline font-bold">
-                            {isAr ? "إلغاء" : "Cancel"}
-                          </button>
-                        </div>
-                      )}
-                      {!editingMessage && !currentConv.is_ticket && (
-                        <div className="flex items-center gap-2">
-                          <Link2 className="w-4 h-4 text-slate-400 shrink-0" />
-                          <Input
-                            placeholder={isAr ? "أضف رابطًا (ميت، زوم، إلخ) - اختياري" : "Add a link (optional)"}
-                            value={linkText}
-                            onChange={(e) => setLinkText(e.target.value)}
-                            className="h-9 text-xs bg-slate-50 border-slate-200"
-                            dir="ltr"
-                          />
-                        </div>
-                      )}
-                      <div className="flex items-end gap-3">
-                        <Textarea
-                          placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
-                          value={messageText}
-                          onChange={(e) => setMessageText(e.target.value)}
-                          rows={1}
-                          className="resize-none border-slate-200 bg-slate-50 focus-visible:ring-[#1B5E3B] min-h-[44px] py-2.5"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault()
-                              handleSend()
-                            }
-                          }}
-                        />
-                        <Button
-                          size="icon"
-                          className="h-11 w-11 shrink-0 bg-[#C9A227] hover:bg-[#A6841E] text-white rounded-xl shadow-sm"
-                          onClick={handleSend}
-                          disabled={(!messageText.trim() && !linkText.trim()) || sending}
-                          aria-label="إرسال"
-                        >
-                          {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:-scale-x-100" />}
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </>
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Conversations List */}
+        <Card className="border-border lg:col-span-1 flex flex-col h-full overflow-hidden shadow-sm">
+          <CardHeader className="pb-3 border-b border-border bg-muted">
+            <CardTitle className="text-base font-bold text-foreground">
+              {isAr ? "قائمة المحادثات" : "Conversations"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 overflow-y-auto">
+            {loadingConvs ? (
+              <div className="p-8 flex justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-[#0B3D2E]" />
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+                <MessageSquare className="w-10 h-10 text-muted-foreground mb-2" />
+                <p>{isAr ? "لا توجد محادثات سابقة" : "No conversations yet"}</p>
+              </div>
             ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/30">
-                <MessageSquare className="w-16 h-16 text-slate-200 mb-4" />
-                <p className="font-medium text-slate-500 max-w-[280px] text-center">{activeTab === 'tickets' ? (isAr ? "اختر تذكرة من القائمة لعرض الرسائل" : "Select a ticket from the list to view messages") : (t.reader.selectChatFromList)}</p>
+              <div className="divide-y divide-border">
+                {conversations.map((conv, idx) => {
+                  const colorClass = avatarColors[idx % avatarColors.length]
+                  const isSelected = selectedConvId === conv.id
+                  const hasUnread = conv.unread_count_reader > 0
+
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => setSelectedConvId(conv.id)}
+                      className={`w-full flex items-center gap-3 p-4 text-right transition-colors hover:bg-muted relative ${isSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
+                        }`}
+                    >
+                      <div className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${colorClass}`}>
+                        {conv.student_avatar ? (
+                          <img src={conv.student_avatar} alt={conv.student_name} className="w-full h-full rounded-full object-cover" />
+                        ) : (conv.student_name || "ط").charAt(0)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex justify-between items-baseline mb-1">
+                          <p className={`text-sm truncate ${hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
+                            {conv.student_name}
+                          </p>
+                          {conv.last_message_at && (
+                            <span className="text-[10px] text-slate-400 shrink-0 whitespace-nowrap ml-2">
+                              {new Date(conv.last_message_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-xs truncate ${hasUnread ? "font-medium text-slate-700" : "text-slate-500"}`}>
+                          {conv.last_message_preview || "بدء محادثة جديدة"}
+                        </p>
+                      </div>
+                      {hasUnread && (
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#D4A843]" />
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             )}
-          </Card>
-        </div>
-      </Tabs>
+          </CardContent>
+        </Card>
 
-      <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{isAr ? "إنشاء تذكرة دعم فني" : "Create Support Ticket"}</DialogTitle>
-            <DialogDescription>
-              {isAr ? "اكتب تفاصيل المشكلة أو الاستفسار وسيقوم فريق الدعم بالرد عليك في أقرب وقت." : "Write the details of your issue or inquiry and support will reply soon."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <Textarea
-              placeholder={isAr ? "تفاصيل التذكرة..." : "Ticket details..."}
-              value={newTicketMessage}
-              onChange={(e) => setNewTicketMessage(e.target.value)}
-              rows={5}
-              className="resize-none focus-visible:ring-[#1B5E3B]"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTicketDialogOpen(false)}>
-              {isAr ? "إلغاء" : "Cancel"}
-            </Button>
-            <Button
-              onClick={handleCreateTicket}
-              disabled={!newTicketMessage.trim() || creatingTicket}
-              className="bg-[#C9A227] hover:bg-[#A6841E] text-white"
-            >
-              {creatingTicket ? <Loader2 className="w-4 h-4 animate-spin" /> : (isAr ? "إرسال التذكرة" : "Send Ticket")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Chat Area */}
+        <Card className="border-border lg:col-span-2 flex flex-col h-full overflow-hidden shadow-sm">
+          {currentConv ? (
+            <>
+              <CardHeader className="border-b border-border pb-4 bg-card flex flex-row items-center gap-3 space-y-0">
+                <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-sm bg-emerald-100 text-emerald-600`}>
+                  {currentConv.student_avatar ? (
+                    <img src={currentConv.student_avatar} alt={currentConv.student_name} className="w-full h-full rounded-full object-cover" />
+                  ) : (currentConv.student_name || "ط").charAt(0)}
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-base text-slate-800">{currentConv.student_name}</CardTitle>
+                  <p className="text-xs text-slate-500">طالب</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleDeleteConversation}
+                  disabled={deletingConvId === currentConv.id}
+                  title={isAr ? "حذف المحادثة" : "Delete Conversation"}
+                >
+                  {deletingConvId === currentConv.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                </Button>
+              </CardHeader>
+
+              {/* Messages */}
+              <CardContent className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20 space-y-4">
+                {loadingMsgs ? (
+                  <div className="h-full flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#0B3D2E]" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                    <MessageSquare className="w-12 h-12 text-slate-200 mb-3" />
+                    <p>أرسل رسالة للترحيب بالطالب</p>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((msg, idx) => {
+                      const isReader = msg.sender_id === currentConv.reader_id
+                      const isLast = idx === messages.length - 1
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex ${isReader ? "justify-start" : "justify-end"} group relative`}
+                        >
+                          {isReader && (
+                            <div className="absolute -top-3 rtl:right-0 ltr:left-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center bg-card border border-border shadow-sm rounded-lg overflow-hidden py-1 px-1 z-10">
+                              <button
+                                onClick={() => {
+                                  setEditingMessage(msg)
+                                  setMessageText(msg.message_text)
+                                  setLinkText("")
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-[#0B3D2E] hover:bg-slate-50 rounded transition-colors"
+                                title={isAr ? "تعديل" : "Edit"}
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                className="p-1.5 text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                                title={isAr ? "حذف" : "Delete"}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                          <div
+                            className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm shadow-sm ${isReader
+                              ? "bg-[#0B3D2E] text-white rounded-br-sm"
+                              : "bg-card border border-border text-foreground rounded-bl-sm"
+                              }`}
+                          >
+                            <p className="whitespace-pre-wrap leading-relaxed">{msg.message_text}</p>
+                            <div className={`text-[10px] mt-2 flex items-center justify-between ${isReader ? "text-emerald-100/70" : "text-slate-400"
+                              }`}>
+                              <span>{new Date(msg.created_at).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                              {msg.updated_at && <span className="ml-2 rtl:mr-2 rtl:ml-0 opacity-70 italic">{isAr ? "(مُعدلة)" : "(edited)"}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <div ref={messagesEndRef} />
+                  </>
+                )}
+              </CardContent>
+
+              {/* Input */}
+              <div className="border-t border-border p-4 bg-card space-y-3">
+                {editingMessage && (
+                  <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-500 p-2 rounded-lg text-xs mb-2 border border-amber-200/50 dark:border-amber-500/20">
+                    <div className="flex items-center gap-2">
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>{isAr ? "تعديل الرسالة..." : "Editing message..."}</span>
+                    </div>
+                    <button onClick={() => { setEditingMessage(null); setMessageText(""); setLinkText("") }} className="hover:underline font-bold">
+                      {isAr ? "إلغاء" : "Cancel"}
+                    </button>
+                  </div>
+                )}
+                {!editingMessage && (
+                  <div className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-slate-400 shrink-0" />
+                    <Input
+                      placeholder={isAr ? "أضف رابطًا (ميت، زوم، إلخ) - اختياري" : "Add a link (optional)"}
+                      value={linkText}
+                      onChange={(e) => setLinkText(e.target.value)}
+                      className="h-9 text-xs bg-muted border-border"
+                      dir="ltr"
+                    />
+                  </div>
+                )}
+                <div className="flex items-end gap-3">
+                  <Textarea
+                    placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    rows={2}
+                    className="resize-none border-border bg-muted focus-visible:ring-[#0B3D2E]"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSend()
+                      }
+                    }}
+                  />
+                  <Button
+                    size="icon"
+                    className="h-11 w-11 shrink-0 bg-[#D4A843] hover:bg-[#C49A3A] text-white rounded-xl shadow-sm"
+                    onClick={handleSend}
+                    disabled={(!messageText.trim() && !linkText.trim()) || sending}
+                    aria-label="إرسال"
+                  >
+                    {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:-scale-x-100" />}
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
+              <MessageSquare className="w-16 h-16 text-muted-foreground/50 mb-4" />
+              <p className="font-medium">اختر محادثة للبدء في التواصل</p>
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

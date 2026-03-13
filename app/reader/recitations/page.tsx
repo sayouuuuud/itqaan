@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/context"
 import { StatusBadge } from "@/components/status-badge"
 import { Search, Clock, Timer, Calendar, ChevronLeft, ChevronRight, CheckCircle, Play, Loader2 } from "lucide-react"
 
-type TabFilter = "all" | "pending" | "reviewed" | "needs_session"
+type TabFilter = "new" | "in_review" | "reviewed"
 
 const avatarColors = [
   "bg-indigo-100 text-indigo-600",
@@ -30,10 +30,9 @@ interface Recitation {
 
 export default function ReaderRecitationsPage() {
   const { t } = useI18n()
-  const [activeTab, setActiveTab] = useState<TabFilter>("all")
+  const [activeTab, setActiveTab] = useState<TabFilter>("new")
   const [recitations, setRecitations] = useState<Recitation[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     async function load() {
@@ -52,42 +51,18 @@ export default function ReaderRecitationsPage() {
     load()
   }, [])
 
-  const refreshData = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch("/api/recitations?limit=100")
-      if (res.ok) {
-        const data = await res.json()
-        setRecitations(data.recitations || [])
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const tabStatusMap: Record<TabFilter, string[]> = {
-    all: ["pending", "in_review", "mastered", "needs_session", "session_booked"],
-    pending: ["pending", "in_review"],
-    reviewed: ["mastered"],
-    needs_session: ["needs_session", "session_booked"],
+    new: ["pending"],
+    in_review: ["in_review"],
+    reviewed: ["mastered", "needs_session", "session_booked"],
   }
 
-  const filtered = recitations.filter((rec) => {
-    const statusMatch = tabStatusMap[activeTab].includes(rec.status)
-    const searchMatch = !searchQuery || 
-      rec.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rec.surah_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    return statusMatch && searchMatch
-  })
+  const filtered = recitations.filter((rec) => tabStatusMap[activeTab].includes(rec.status))
 
   const tabs = [
-    { key: "all" as const, label: t.reader.all, count: recitations.length },
-    { key: "pending" as const, label: t.reader.pendingReview, count: recitations.filter((r) => ["pending", "in_review"].includes(r.status)).length },
-    { key: "reviewed" as const, label: t.reader.reviewed, count: recitations.filter((r) => r.status === "mastered").length },
-    { key: "needs_session" as const, label: t.reader.needsSession, count: recitations.filter((r) => ["needs_session", "session_booked"].includes(r.status)).length },
+    { key: "new" as const, label: t.reader.pendingReview, count: recitations.filter((r) => r.status === "pending").length },
+    { key: "in_review" as const, label: t.student.statusInReview, count: recitations.filter((r) => r.status === "in_review").length },
+    { key: "reviewed" as const, label: t.reader.reviewed, count: recitations.filter((r) => ["mastered", "needs_session", "session_booked"].includes(r.status)).length },
   ]
 
   const formatDuration = (seconds?: number) => {
@@ -102,37 +77,20 @@ export default function ReaderRecitationsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.reader.reviewList}</h1>
-          <p className="text-gray-500">
-            {t.reader.reviewListDesc}
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t.reader.reviewList}</h1>
+          <p className="text-muted-foreground">
+            {t.reader.reviewListDesc}<span className="font-bold text-[#0B3D2E] mx-1">{recitations.filter((r) => r.status === "pending").length}</span>
+            {t.reader.newRecitationsAwaitingReview}
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder={t.auth.searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-11 pr-10 pl-4 rounded-xl border border-gray-200 focus:border-[#1B5E3B] focus:ring-1 focus:ring-[#1B5E3B] outline-none transition-all text-sm"
-            />
-          </div>
-          <button
-            onClick={refreshData}
-            disabled={loading}
-            className="h-11 bg-white hover:bg-gray-50 text-gray-700 px-5 rounded-xl border border-gray-200 shadow-sm font-bold flex items-center gap-2 transition-all disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin text-[#1B5E3B]" /> : <Clock className="w-4 h-4 text-[#1B5E3B]" />}
-            {t.reader.refreshList}
-          </button>
-          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 min-w-[140px]">
+          <div className="bg-card p-3 rounded-xl shadow-sm border border-border flex items-center gap-3 min-w-[140px]">
             <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl border border-emerald-100">
               <CheckCircle className="w-5 h-5" />
             </div>
             <div>
-              <span className="block text-xs text-gray-500">{t.reader.reviewed}</span>
-              <span className="font-bold text-gray-800">
+              <span className="block text-xs text-muted-foreground">{t.reader.reviewed}</span>
+              <span className="font-bold text-foreground">
                 {recitations.filter(r => ["mastered", "needs_session", "session_booked"].includes(r.status)).length} {t.reader.recitationsCount}
               </span>
             </div>
@@ -141,19 +99,19 @@ export default function ReaderRecitationsPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-1">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-1">
         <div className="flex flex-wrap gap-1">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === tab.key
-                ? "bg-[#1B5E3B] text-white shadow-md font-bold"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                ? "bg-primary text-primary-foreground shadow-md font-bold"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-xs py-0.5 px-2 rounded-full ${activeTab === tab.key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+              <span className={`text-xs py-0.5 px-2 rounded-full ${activeTab === tab.key ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
                 }`}>{tab.count}</span>
             </button>
           ))}
@@ -161,29 +119,28 @@ export default function ReaderRecitationsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
         {loading ? (
-          <div className="p-12 flex justify-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+          <div className="p-12 flex justify-center text-muted-foreground">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
-              <thead className="bg-[#1B5E3B]/5 border-b border-gray-100 text-gray-500 text-xs uppercase font-semibold tracking-wider">
+              <thead className="bg-primary/5 border-b border-border text-muted-foreground text-xs uppercase font-semibold tracking-wider">
                 <tr>
                   <th className="px-6 py-4">{t.reader.student}</th>
                   <th className="px-6 py-4">{t.reader.surahPassage}</th>
                   <th className="px-6 py-4">{t.reader.submissionDate}</th>
                   <th className="px-6 py-4">{t.reader.recordingDuration}</th>
                   <th className="px-6 py-4">{t.reader.status}</th>
-                  <th className="px-6 py-4 text-center">{t.reader.playRecording}</th>
                   <th className="px-6 py-4 text-center">{t.reader.action}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                       {t.reader.noRecitationsInCategory}
                     </td>
                   </tr>
@@ -193,30 +150,30 @@ export default function ReaderRecitationsPage() {
                   const initial = (rec.student_name || "طالب").charAt(0)
                   const isReviewed = ["mastered", "needs_session", "session_booked"].includes(rec.status)
                   return (
-                    <tr key={rec.id} className={`hover:bg-gray-50/50 transition-colors group ${isReviewed ? "opacity-75" : ""}`}>
+                    <tr key={rec.id} className={`hover:bg-muted/50 transition-colors group ${isReviewed ? "opacity-75" : ""}`}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${colorClass}`}>
                             {initial}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-800">{rec.student_name || t.student.user}</p>
-                            <p className="text-xs text-gray-500">{t.reader.student}</p>
+                            <p className="font-bold text-foreground">{rec.student_name || t.student.user}</p>
+                            <p className="text-xs text-muted-foreground">{t.reader.student}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-medium text-gray-800">{t.reader.surah} {rec.surah_name}</p>
-                        <p className="text-xs text-gray-500">{t.reader.ayahs} {rec.ayah_from}-{rec.ayah_to}</p>
+                        <p className="font-medium text-foreground">{t.reader.surah} {rec.surah_name}</p>
+                        <p className="text-xs text-muted-foreground">{t.reader.ayahs} {rec.ayah_from}-{rec.ayah_to}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-gray-500">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="w-4 h-4" />
                           <span className="text-sm">{new Date(rec.created_at).toLocaleDateString(t.locale === 'ar' ? "ar-SA" : "en-US")}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-gray-500">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                           <Timer className="w-4 h-4" />
                           <span className="text-sm font-mono">{formatDuration(rec.audio_duration_seconds)}</span>
                         </div>
@@ -225,27 +182,14 @@ export default function ReaderRecitationsPage() {
                         <StatusBadge status={rec.status as any} />
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => {
-                            // Simple audio playback logic
-                            const audio = new Audio((rec as any).audio_url || '')
-                            audio.play().catch(e => console.error("Audio playback error:", e))
-                          }}
-                          className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors mx-auto"
-                          title={t.reader.playRecording}
-                        >
-                          <Play className="w-5 h-5 rtl:rotate-180" />
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-center">
                         {isReviewed ? (
-                          <Link href={`/reader/recitations/${rec.id}`} className="text-[#1B5E3B] hover:underline text-sm font-medium inline-flex items-center gap-1">
+                          <Link href={`/reader/recitations/${rec.id}`} className="text-[#0B3D2E] hover:underline text-sm font-medium inline-flex items-center gap-1">
                             {t.reader.viewDetails}
                           </Link>
                         ) : (
                           <Link
                             href={`/reader/recitations/${rec.id}`}
-                            className="bg-[#C9A227] hover:bg-[#A6841E] text-white text-sm font-bold py-2 px-5 rounded-lg transition-colors shadow-sm inline-flex items-center gap-2"
+                            className="bg-[#D4A843] hover:bg-[#C49A3A] text-white text-sm font-bold py-2 px-5 rounded-lg transition-colors shadow-sm inline-flex items-center gap-2"
                           >
                             <Play className="w-4 h-4 rtl:rotate-180" />
                             {t.reader.startReview}
@@ -263,3 +207,8 @@ export default function ReaderRecitationsPage() {
     </div>
   )
 }
+
+
+
+
+

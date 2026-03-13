@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ClipboardList, Calendar, CalendarCheck, CheckCircle, ArrowLeft, Loader2, ArrowRight, Power, Star, Users, BarChart3 } from "lucide-react"
+import { ClipboardList, Calendar, CalendarCheck, CheckCircle, ArrowLeft, Loader2, ArrowRight, Power, Star, Users, BarChart3, Clock } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 interface ReaderStats {
   pendingReviews: number
@@ -24,6 +25,7 @@ interface NewSlotRequest {
 
 export default function ReaderDashboard() {
   const { t, locale } = useI18n()
+  const isAr = locale === 'ar'
   const [stats, setStats] = useState<ReaderStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [isAccepting, setIsAccepting] = useState(true)
@@ -150,175 +152,232 @@ export default function ReaderDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="bg-card min-h-full -m-6 lg:-m-8 p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">{t.reader.readerOverview}</h2>
-        <p className="text-gray-500 mt-1">{t.reader.readerActivitySummary}</p>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-3xl font-black text-foreground tracking-tight">{t.reader.readerOverview}</h2>
+        <p className="text-muted-foreground font-medium">{t.reader.readerActivitySummary}</p>
       </div>
 
-      {/* Activity Toggle Card */}
-      <div className={`p-6 rounded-2xl border transition-all ${isAccepting ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-200"}`}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-xl ${isAccepting ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-600"}`}>
-              <Power className="w-6 h-6" />
+      {/* Activity Toggle Card - Premium Design */}
+      <div className={cn(
+        "p-1 rounded-[32px] border transition-all duration-500 shadow-2xl shadow-black/5 relative overflow-hidden group",
+        isAccepting 
+          ? "bg-primary/5 border-primary/20" 
+          : "bg-muted/30 border-border"
+      )}>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32 opacity-20 pointer-events-none" />
+        
+        <div className="bg-card/60 backdrop-blur-xl p-6 md:p-8 rounded-[30px] flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="flex items-start gap-6">
+            <div className={cn(
+              "w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner",
+              isAccepting 
+                ? "bg-primary text-primary-foreground shadow-primary/20 rotate-3" 
+                : "bg-muted text-muted-foreground"
+            )}>
+              <Power className={cn("w-8 h-8", isAccepting && "animate-pulse")} />
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-foreground flex items-center gap-3">
                 {t.reader.activityForEvaluation}
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isAccepting ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"}`}>
+                <div className={cn(
+                  "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                  isAccepting 
+                    ? "bg-primary/20 text-primary border border-primary/20" 
+                    : "bg-muted text-muted-foreground border border-border"
+                )}>
                   {isAccepting ? t.reader.active : t.reader.inactive}
-                </span>
+                </div>
               </h3>
-              <p className="text-gray-600 text-sm mt-1 max-w-xl">
+              <p className="text-muted-foreground text-sm font-medium max-w-xl leading-relaxed">
                 {t.reader.activityForEvaluationDesc}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`text-sm font-semibold ${isAccepting ? "text-emerald-700" : "text-gray-500"}`}>
-              {isAccepting ? t.reader.active : t.reader.inactive}
-            </span>
-            <Switch
-              checked={isAccepting}
-              onCheckedChange={handleToggleActivity}
-              disabled={updatingActivity}
-            />
+          
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <div className="flex items-center gap-4 bg-muted/20 p-2 rounded-2xl border border-border/50">
+              <span className={cn(
+                "text-xs font-black uppercase tracking-widest px-2",
+                isAccepting ? "text-primary" : "text-muted-foreground"
+              )}>
+                {isAccepting ? t.reader.active : t.reader.inactive}
+              </span>
+              <Switch
+                checked={isAccepting}
+                onCheckedChange={handleToggleActivity}
+                disabled={updatingActivity}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+            {updatingActivity && (
+              <div className="flex items-center gap-2 text-[10px] font-bold text-primary animate-pulse">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>{isAr ? "جاري التحديث..." : "Updating..."}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => {
+        {kpis.map((kpi, idx) => {
           const Icon = kpi.icon
           return (
             <div
               key={kpi.label}
-              className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group ${kpi.urgent ? "border-[#C9A227]/40" : "border-gray-100"
-                }`}
+              className={cn(
+                "p-1 rounded-[32px] border transition-all duration-500 shadow-2xl shadow-black/5 relative overflow-hidden group",
+                kpi.urgent ? "border-amber-500/30 ring-1 ring-amber-500/10" : "border-border/50"
+              )}
+              style={{ animationDelay: `${idx * 100}ms` }}
             >
-              <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:scale-110 transition-transform">
-                <Icon className={`w-20 h-20 ${kpi.iconBig}`} />
-              </div>
-              <div className="relative z-10">
-                <div className={`p-3 ${kpi.bg} ${kpi.color} rounded-xl w-fit mb-4`}>
-                  <Icon className="w-5 h-5" />
+              <div className="bg-card/60 backdrop-blur-xl p-6 rounded-[30px] relative z-10 h-full flex flex-col">
+                <div className={cn(
+                  "p-3 rounded-2xl w-fit mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
+                  kpi.bg, kpi.color, "border border-border/50"
+                )}>
+                  <Icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-1">{kpi.value}</h3>
-                <p className="text-gray-500 text-sm">{kpi.label}</p>
+                
+                <div className="mt-auto">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-4xl font-black text-foreground tracking-tight">{kpi.value}</h3>
+                  </div>
+                  <p className="text-muted-foreground text-xs font-black uppercase tracking-widest">{kpi.label}</p>
+                </div>
+
                 {kpi.urgent && (
-                  <span className="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-[#C9A227] animate-pulse" />
+                  <div className="absolute top-4 left-4 flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                    <span className="absolute w-2 h-2 rounded-full bg-amber-500" />
+                  </div>
                 )}
+                
+                {/* Decorative Icon Background */}
+                <Icon className={cn(
+                  "absolute -bottom-4 -left-4 w-24 h-24 opacity-5 transition-all duration-700 group-hover:scale-125 group-hover:rotate-12",
+                  kpi.color
+                )} />
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Performance Stats */}
+      {/* Performance Stats Overlay */}
       {performanceStats && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-[#1B5E3B]" />
-            <h3 className="text-lg font-bold text-gray-900">{t.admin.readerStats.title}</h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100/50">
-                <CheckCircle className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{t.admin.readerStats.completionRate}</p>
-                <p className="text-2xl font-black text-emerald-700">{performanceStats.completionRate}%</p>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 border border-blue-100/50">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{t.admin.readerStats.studentCount}</p>
-                <p className="text-2xl font-black text-blue-700">{performanceStats.studentCount}</p>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 border border-amber-100/50">
-                <Star className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{t.admin.readerStats.averageRating}</p>
-                <p className="text-2xl font-black text-amber-700">{performanceStats.averageRating}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* New Slot Requests Recovery Flow */}
-      {slotRequests.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-8 space-y-6">
+        <div className="space-y-6 pt-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
-              <CalendarCheck className="w-6 h-6" />
+            <div className="p-2 bg-primary/20 rounded-xl border border-primary/20">
+              <BarChart3 className="w-5 h-5 text-primary" />
             </div>
-            <div>
-              <h3 className="text-xl font-black text-amber-900">{(t.reader as any).newSlotRequests || (locale === 'ar' ? 'طلبات مواعد جديدة' : 'New Slot Requests')}</h3>
-              <p className="text-amber-700/70 text-sm font-bold">{(t.reader as any).requestsFromSuspendedDesc || (locale === 'ar' ? 'طلاب انتهت مهلتهم ويطلبون فرصة جديدة لحجز موعد.' : 'Students whose window expired and are asking for a new chance to book.')}</p>
-            </div>
+            <h3 className="text-xl font-black text-foreground tracking-tight uppercase tracking-widest text-sm">{t.admin.readerStats.title}</h3>
           </div>
-
-          <div className="grid gap-4">
-            {slotRequests.map((request) => (
-              <div key={request.id} className="bg-white border border-amber-100 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100 font-bold text-gray-400">
-                    {request.student_name.charAt(0)}
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { label: t.admin.readerStats.completionRate, value: `${performanceStats.completionRate}%`, icon: CheckCircle, color: "text-primary", bg: "bg-primary/10" },
+              { label: t.admin.readerStats.studentCount, value: performanceStats.studentCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+              { label: t.admin.readerStats.averageRating, value: performanceStats.averageRating, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" }
+            ].map((stat, idx) => (
+              <div key={idx} className="bg-card/40 backdrop-blur-md border border-border/50 p-6 rounded-[28px] shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 group">
+                <div className="flex items-center gap-5">
+                  <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 border border-border", stat.bg, stat.color)}>
+                    <stat.icon className="w-7 h-7" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900">{request.student_name}</h4>
-                    <p className="text-xs text-gray-400">
-                      {new Date(request.requested_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{stat.label}</p>
+                    <p className={cn("text-3xl font-black tracking-tight", stat.color)}>{stat.value}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleAcceptRequest(request.id)}
-                  className="w-full sm:w-auto bg-[#C9A227] hover:bg-[#A6841E] text-white px-6 py-2.5 rounded-xl text-sm font-black transition-all shadow-lg shadow-[#C9A227]/20 flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>{(t.reader as any).acceptRequest || (locale === 'ar' ? 'قبول الطلب وتجديد الفرصة' : 'Accept & Renew Opportunity')}</span>
-                </button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Empty State Message */}
+      {/* New Slot Requests Recovery Flow - Premium Redesign */}
+      {slotRequests.length > 0 && (
+        <div className="relative p-1 rounded-[40px] border border-border bg-primary/5 shadow-2xl shadow-primary/5 overflow-hidden group">
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl opacity-50" />
+          
+          <div className="bg-card/80 backdrop-blur-2xl p-8 rounded-[38px] space-y-8 relative z-10">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-[20px] flex items-center justify-center text-amber-500 shadow-inner">
+                <CalendarCheck className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-2xl font-black text-foreground tracking-tight">{(t.reader as any).newSlotRequests || (locale === 'ar' ? 'طلبات مواعد جديدة' : 'New Slot Requests')}</h3>
+                <p className="text-muted-foreground text-sm font-medium">{(t.reader as any).requestsFromSuspendedDesc || (locale === 'ar' ? 'طلاب انتهت مهلتهم ويطلبون فرصة جديدة لحجز موعد.' : 'Students whose window expired and are asking for a new chance to book.')}</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              {slotRequests.map((request, idx) => (
+                <div key={request.id} className="bg-card/40 border border-border/50 p-6 rounded-[24px] flex flex-col sm:flex-row items-center justify-between gap-6 hover:bg-muted/10 transition-all duration-300 group/item">
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 bg-gradient-to-br from-muted to-card rounded-full flex items-center justify-center border-2 border-border shadow-md group-hover/item:border-primary/50 transition-colors">
+                      <span className="text-xl font-black text-muted-foreground group-hover/item:text-primary">{request.student_name.charAt(0)}</span>
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-black text-foreground">{request.student_name}</h4>
+                      <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                        <Clock className="w-3 h-3 text-amber-500" />
+                        {new Date(request.requested_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleAcceptRequest(request.id)}
+                    className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white h-14 px-8 rounded-2xl text-sm font-black transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-3 active:scale-95 group-hover/item:translate-x-[-4px] rtl:group-hover/item:translate-x-[4px]"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    <span>{(t.reader as any).acceptRequest || (locale === 'ar' ? 'قبول الطلب وتجديد الفرصة' : 'Accept & Renew Opportunity')}</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State / Welcome Polish */}
       {stats?.pendingReviews === 0 && (
-        <div className="text-center py-4 bg-[#F8FAF9] rounded-2xl border border-dashed border-[#1B5E3B]/20">
-          <p className="text-[#1B5E3B]/70 font-medium">
+        <div className="text-center py-16 bg-card/40 border-[3px] border-dashed border-border/50 rounded-[40px] group hover:border-primary/30 transition-colors duration-500">
+          <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-border group-hover:rotate-12 transition-transform">
+            <ClipboardList className="w-10 h-10 text-muted-foreground/30" />
+          </div>
+          <p className="text-muted-foreground font-black text-xl uppercase tracking-widest max-w-md mx-auto leading-relaxed px-6">
             {(t.reader as any).noNewRecitationsForReview}
           </p>
         </div>
       )}
 
-      {/* Quick Action Button */}
-      <div className="flex justify-center">
+      {/* Quick Action Button - Premium Style */}
+      <div className="flex justify-center pt-8">
         <Link
           href="/reader/recitations"
-          className="group flex items-center gap-3 bg-[#1B5E3B] text-white px-8 py-4 rounded-2xl hover:bg-[#124028] transition-all shadow-sm hover:shadow-md font-bold text-lg"
+          className="group relative h-20 px-12 flex items-center gap-4 bg-primary text-primary-foreground rounded-[24px] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-2xl shadow-primary/25 overflow-hidden"
         >
-          <ClipboardList className="w-5 h-5" />
-          <span>{t.reader.goToNewRecitationsLabel}</span>
-          {(stats?.pendingReviews ?? 0) > 0 && (
-            <span className="bg-[#C9A227] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
-              {stats!.pendingReviews}
-            </span>
-          )}
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          
+          <div className="relative z-10 flex items-center gap-4">
+            <ClipboardList className="w-6 h-6" />
+            <span className="font-black text-xl tracking-tight">{t.reader.goToNewRecitationsLabel}</span>
+            
+            {(stats?.pendingReviews ?? 0) > 0 && (
+              <span className="bg-amber-500 text-white min-w-[28px] h-[28px] flex items-center justify-center text-[10px] font-black rounded-full shadow-lg border-2 border-primary ring-4 ring-primary/20">
+                {stats!.pendingReviews}
+              </span>
+            )}
+            
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-transform group-hover:translate-x-2 rtl:group-hover:-translate-x-2">
+              <ArrowRight className="w-5 h-5 rtl:rotate-180" />
+            </div>
+          </div>
         </Link>
       </div>
     </div>

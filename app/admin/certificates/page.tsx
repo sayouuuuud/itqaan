@@ -161,38 +161,38 @@ export default function CertificatesDashExtendedPage() {
     return (
         <div className="space-y-6 pb-12">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <Award className="w-7 h-7 text-[#1B5E3B]" />
+                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                        <Award className="w-7 h-7 text-primary" />
                         {t.admin.certificates.title}
                     </h1>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         {isAr ? "إدارة طلبات إصدار الشهادات والجهات المعتمدة والجامعات" : "Manage certificate requests, entities, and universities"}
                     </p>
                 </div>
-                <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                <div className="flex gap-2 bg-muted p-1 rounded-xl">
                     <button
                         onClick={() => setActiveTab("applications")}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "applications" ? "bg-white text-[#1B5E3B] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "applications" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         {isAr ? "الطلبات" : "Applications"}
                     </button>
                     <button
                         onClick={() => setActiveTab("entities")}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "entities" ? "bg-white text-[#1B5E3B] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "entities" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         {isAr ? "الجهات" : "Entities"}
                     </button>
                     <button
                         onClick={() => setActiveTab("universities")}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "universities" ? "bg-white text-[#1B5E3B] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "universities" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         {isAr ? "الجامعات" : "Universities"}
                     </button>
                     <button
                         onClick={() => setActiveTab("settings")}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "settings" ? "bg-white text-[#1B5E3B] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "settings" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         <Settings className="w-4 h-4" />
                     </button>
@@ -206,8 +206,8 @@ export default function CertificatesDashExtendedPage() {
                         <button
                             onClick={() => setFilter("pending")}
                             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "pending"
-                                ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                ? "border-primary bg-primary text-primary-foreground shadow-md"
+                                : "border-border bg-card text-muted-foreground hover:border-border hover:bg-muted"
                                 }`}
                         >
                             {t.admin.certificates.pendingIssue}
@@ -216,8 +216,8 @@ export default function CertificatesDashExtendedPage() {
                         <button
                             onClick={() => setFilter("issued")}
                             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "issued"
-                                ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                ? "border-primary bg-primary text-primary-foreground shadow-md"
+                                : "border-border bg-card text-muted-foreground hover:border-border hover:bg-muted"
                                 }`}
                         >
                             {t.admin.certificates.issued}
@@ -226,8 +226,8 @@ export default function CertificatesDashExtendedPage() {
                         <button
                             onClick={() => setFilter("all")}
                             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all border ${filter === "all"
-                                ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                ? "border-primary bg-primary text-primary-foreground shadow-md"
+                                : "border-border bg-card text-muted-foreground hover:border-border hover:bg-muted"
                                 }`}
                         >
                             {t.admin.certificates.all}
@@ -236,39 +236,39 @@ export default function CertificatesDashExtendedPage() {
 
                     <div className="space-y-4">
                         {loading ? (
-                            <div className="bg-white rounded-2xl border border-slate-200 p-12 flex justify-center shadow-sm">
-                                <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+                            <div className="bg-card rounded-2xl border border-border p-12 flex justify-center shadow-sm">
+                                <Loader2 className="w-8 h-8 animate-spin text-primary" />
                             </div>
                         ) : applications.length === 0 ? (
-                            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                                <Award className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                                <p className="text-slate-500 font-medium">{t.admin.certificates.noApplications}</p>
+                            <div className="bg-card rounded-2xl border border-border p-12 text-center shadow-sm">
+                                <Award className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
+                                <p className="text-muted-foreground font-medium">{t.admin.certificates.noApplications}</p>
                             </div>
                         ) : applications.map((app) => {
                             const isExpanded = expandedId === app.id
                             return (
-                                <div key={app.id} className={`bg-white rounded-2xl border transition-all shadow-sm overflow-hidden ${isExpanded ? "border-[#1B5E3B]/30 ring-1 ring-[#1B5E3B]/10" : "border-slate-200 hover:border-slate-300"}`}>
+                                <div key={app.id} className={`bg-card rounded-2xl border transition-all shadow-sm overflow-hidden ${isExpanded ? "border-primary/30 ring-1 ring-primary/10" : "border-border hover:border-border/60"}`}>
                                     <div className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 cursor-pointer select-none" onClick={() => setExpandedId(isExpanded ? null : app.id)}>
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${app.certificate_issued ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${app.certificate_issued ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
                                                 <Award className="w-6 h-6" />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-slate-800">{app.student_name}</h3>
-                                                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1 font-medium">
+                                                <h3 className="font-bold text-foreground">{app.student_name}</h3>
+                                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1 font-medium">
                                                     <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3" /> {app.university || "---"}</span>
-                                                    <span className="text-slate-300">|</span>
+                                                    <span className="text-muted-foreground/30">|</span>
                                                     <span className="flex items-center gap-1"><Building className="w-3 h-3" /> {app.entity_name || app.entity_other || (isAr ? "منصة إتقان" : "Itqaan")}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {app.certificate_issued ? (
-                                                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wider">
+                                                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 uppercase tracking-wider">
                                                     <CheckCircle className="w-3 h-3" /> {t.admin.certificates.issued}
                                                 </span>
                                             ) : (
-                                                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wider">
+                                                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 uppercase tracking-wider">
                                                     <Clock className="w-3 h-3" /> {t.admin.certificates.pendingIssue}
                                                 </span>
                                             )}
@@ -276,7 +276,7 @@ export default function CertificatesDashExtendedPage() {
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleIssue(app.id); }}
                                                     disabled={issuingId === app.id}
-                                                    className="bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-slate-300 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                                                    className="bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground px-5 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
                                                 >
                                                     {issuingId === app.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
                                                     {t.admin.certificates.issueCertificate}
@@ -286,27 +286,27 @@ export default function CertificatesDashExtendedPage() {
                                         </div>
                                     </div>
                                     {isExpanded && (
-                                        <div className="border-t border-slate-100 bg-slate-50/50 p-6 animate-in fade-in duration-200">
+                                        <div className="border-t border-border bg-muted/10 p-6 animate-in fade-in duration-200">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                                 <div>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t.admin.certificates.email}</p>
-                                                    <p className="text-sm font-bold text-slate-800 break-all">{app.student_email}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t.admin.certificates.email}</p>
+                                                    <p className="text-sm font-bold text-foreground break-all">{app.student_email}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t.admin.certificates.city}</p>
-                                                    <p className="text-sm font-bold text-slate-800">{app.city || "---"}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t.admin.certificates.city}</p>
+                                                    <p className="text-sm font-bold text-foreground">{app.city || "---"}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t.admin.certificates.college}</p>
-                                                    <p className="text-sm font-bold text-slate-800">{app.college || "---"}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t.admin.certificates.college}</p>
+                                                    <p className="text-sm font-bold text-foreground">{app.college || "---"}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{isAr ? "رقم الجوال" : "Phone"}</p>
-                                                    <p className="text-sm font-bold text-slate-800" dir="ltr">{app.phone || "---"}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{isAr ? "رقم الجوال" : "Phone"}</p>
+                                                    <p className="text-sm font-bold text-foreground" dir="ltr">{app.phone || "---"}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{isAr ? "العمر" : "Age"}</p>
-                                                    <p className="text-sm font-bold text-slate-800">{app.age || "---"}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{isAr ? "العمر" : "Age"}</p>
+                                                    <p className="text-sm font-bold text-foreground">{app.age || "---"}</p>
                                                 </div>
                                                 <div className="flex flex-col gap-2">
                                                     {app.certificate_issued && (
@@ -409,7 +409,7 @@ export default function CertificatesDashExtendedPage() {
                                 </div>
                                 <button
                                     onClick={() => handleDeleteEntity(entity.id)}
-                                    className="p-2 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -453,7 +453,7 @@ export default function CertificatesDashExtendedPage() {
                                     <span className="text-sm font-bold text-slate-700">{uni.name}</span>
                                     <button
                                         onClick={() => handleDeleteUniversity(uni.id)}
-                                        className="p-1 px-2 text-[10px] bg-red-50 text-red-500 rounded-md font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+                                        className="p-1 px-2 text-[10px] bg-red-50 text-red-500 rounded-md font-bold transition-opacity flex items-center gap-1"
                                     >
                                         <Trash2 className="w-3 h-3" /> {isAr ? "حذف" : "Del"}
                                     </button>

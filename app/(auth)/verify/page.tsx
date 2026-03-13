@@ -145,13 +145,13 @@ function VerifyContent() {
     return (
         <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#0B3D2E] relative overflow-hidden">
             {/* Decorative background elements */}
-            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-[#D4A843]/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-[#D4A843]/5 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
                 <div className="flex justify-center mb-8">
-                    <div className="w-16 h-16 bg-[#D4A843]/20 rounded-2xl flex items-center justify-center border border-[#D4A843]/30 backdrop-blur-sm">
-                        <svg className="w-8 h-8 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center border border-primary/30 backdrop-blur-sm">
+                        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002 2H5a2 2 0 00-2-2V7a2 2 0 002-2h14a2 2 0 002 2v10a2 2 0 00-2 2H5a2 2 0 00-2-2z" />
                         </svg>
                     </div>
@@ -166,7 +166,7 @@ function VerifyContent() {
             </div>
 
             <div className="mt-2 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-                <div className="bg-white/95 backdrop-blur-md py-10 px-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl sm:px-10 border border-white/20">
+                <div className="bg-card/95 backdrop-blur-md py-10 px-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl sm:px-10 border border-border">
                     <form className="space-y-8" onSubmit={handleSubmit}>
                         {error && (
                             <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-xs border border-red-100 font-bold text-center animate-shake">
@@ -191,7 +191,7 @@ function VerifyContent() {
                                     onChange={(e) => handleChange(index, e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                     onPaste={handlePaste}
-                                    className="w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black text-[#0B3D2E] bg-slate-50 border-2 border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#D4A843]/20 focus:border-[#D4A843] transition-all transform focus:scale-105"
+                                    className="w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black text-foreground bg-secondary/20 dark:bg-secondary/10 border-2 border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all transform focus:scale-105"
                                     autoComplete="off"
                                 />
                             ))}
@@ -200,7 +200,7 @@ function VerifyContent() {
                         <button
                             type="submit"
                             disabled={loading || code.join("").length < 6}
-                            className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-[#D4A843]/20 text-base font-black text-[#0B3D2E] bg-[#D4A843] hover:bg-[#E5B954] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4A843] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
+                            className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-primary/20 text-base font-black text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
                         >
                             {loading ? (
                                 <div className="flex items-center gap-2">

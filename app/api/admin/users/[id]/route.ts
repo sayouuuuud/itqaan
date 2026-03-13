@@ -212,10 +212,26 @@ export async function DELETE(
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
         }
 
-        // Permanent deletion - cascade handles related records in reader_profiles, student_stats, etc.
+        // Permanent deletion - Thorough cleanup of related records that don't cascade
+        // 1. Delete bookings (student or reader)
+        await db.query('DELETE FROM bookings WHERE student_id = $1 OR reader_id = $1', [userId])
+        
+        // 2. Delete recitations (student)
+        await db.query('DELETE FROM recitations WHERE student_id = $1', [userId])
+        
+        // 3. Delete conversations (student or reader) - messages will cascade
+        await db.query('DELETE FROM conversations WHERE student_id = $1 OR reader_id = $1', [userId])
+        
+        // 4. Delete notifications
+        await db.query('DELETE FROM notifications WHERE user_id = $1 OR related_user_id = $1', [userId])
+        
+        // 5. Delete activity logs of this user (but keep logs where they are the entity)
+        await db.query('DELETE FROM activity_logs WHERE user_id = $1', [userId])
+
+        // 6. Finally delete the user - profiles, stats, sessions, etc. will cascade from ON DELETE CASCADE in schema
         await db.query('DELETE FROM users WHERE id = $1', [userId])
 
-        // Log admin action
+        // Log admin action (performed by the admin, not the deleted user)
         await db.query(
             `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
              VALUES ($1, $2, $3, $4, $5)`,

@@ -40,7 +40,9 @@ export async function GET(req: NextRequest) {
       rp.availability_mode, rp.max_total_slots, rp.current_reserved_slots,
       rsta.total_reviews_completed, rsta.total_sessions_completed AS sessions_done,
       rsta.total_sessions_booked,
-      rsta.average_session_rating, rsta.last_review_at
+      rsta.average_session_rating, rsta.last_review_at,
+      (SELECT COUNT(*) FROM recitations r WHERE r.assigned_reader_id = u.id AND r.status = 'needs_session') as waiting_sessions_count,
+      (SELECT COUNT(*) FROM recitations r WHERE r.assigned_reader_id = u.id AND r.status IN ('pending', 'in_review')) as pending_reviews_count
     FROM users u
     LEFT JOIN reader_profiles rp ON u.id = rp.user_id
     LEFT JOIN reader_stats rsta ON u.id = rsta.reader_id

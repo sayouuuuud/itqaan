@@ -11,20 +11,21 @@ import {
 } from "@/components/ui/dialog"
 import {
     Megaphone, Plus, Edit, Trash2, CheckCircle, Clock,
-    Users, GraduationCap, BookOpen, Loader2, Globe
+    Users, GraduationCap, BookOpen, Loader2, Globe, ShieldCheck
 } from "lucide-react"
 
 const getAudienceOptions = (t: any) => [
     { value: 'all', label: t.admin.all, icon: Globe },
     { value: 'students', label: t.auth.student, icon: GraduationCap },
     { value: 'readers', label: t.auth.reader, icon: BookOpen },
+    { value: 'supervisors', label: t.admin.supervisors, icon: ShieldCheck },
 ]
 
 const getPriorityOptions = (t: any) => [
-    { value: 'low', label: t.admin.low, color: 'bg-gray-100 text-gray-600' },
-    { value: 'normal', label: t.admin.normal, color: 'bg-blue-100 text-blue-600' },
-    { value: 'high', label: t.admin.high, color: 'bg-orange-100 text-orange-600' },
-    { value: 'urgent', label: t.admin.urgent, color: 'bg-red-100 text-red-600' },
+    { value: 'low', label: t.admin.low, color: 'bg-muted text-muted-foreground border border-border' },
+    { value: 'normal', label: t.admin.normal, color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
+    { value: 'high', label: t.admin.high, color: 'bg-orange-500/10 text-orange-400 border border-orange-500/20' },
+    { value: 'urgent', label: t.admin.urgent, color: 'bg-red-500/10 text-red-400 border border-red-500/20' },
 ]
 
 const EMPTY_FORM = {
@@ -127,7 +128,7 @@ export default function AdminAnnouncementsPage() {
                     <h1 className="text-2xl font-bold text-foreground">{t.admin.announcements}</h1>
                     <p className="text-sm text-muted-foreground mt-1">{t.admin.announcementsDesc}</p>
                 </div>
-                <Button onClick={openCreate} className="bg-[#1B5E3B] text-white hover:bg-[#124028]">
+                <Button onClick={openCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Plus className="w-4 h-4 ml-2" /> {t.admin.newAnnouncement}
                 </Button>
             </div>
@@ -140,7 +141,7 @@ export default function AdminAnnouncementsPage() {
                     onChange={e => setFilterAudience(e.target.value)}
                 >
                     <option value="">{t.admin.allAudiences}</option>
-                    {AUDIENCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {AUDIENCE_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-card text-foreground">{o.label}</option>)}
                 </select>
                 <select
                     className="h-10 rounded-xl border border-border bg-card px-3 text-sm"
@@ -165,7 +166,6 @@ export default function AdminAnnouncementsPage() {
                 <div className="space-y-4">
                     {announcements.map(a => {
                         const priority = PRIORITY_OPTIONS.find(p => p.value === a.priority)
-                        const audience = AUDIENCE_OPTIONS.find(o => o.value === a.target_audience)
                         return (
                             <div key={a.id} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex items-start justify-between gap-4">
@@ -175,17 +175,25 @@ export default function AdminAnnouncementsPage() {
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priority?.color}`}>
                                                 {priority?.label}
                                             </span>
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${a.is_published ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${a.is_published ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
                                                 {a.is_published ? t.admin.published : t.admin.draft}
                                             </span>
                                         </div>
                                         <p className="text-sm text-muted-foreground line-clamp-2">{isAr ? a.content_ar : (a.content_en || a.content_ar)}</p>
                                         <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                                            {audience && (
-                                                <span className="flex items-center gap-1">
-                                                    <audience.icon className="w-3.5 h-3.5" />
-                                                    {audience.label}
-                                                </span>
+                                            {a.target_audience && (
+                                                <div className="flex items-center gap-3">
+                                                    {a.target_audience.split(',').map((val: string) => {
+                                                        const audOpt = AUDIENCE_OPTIONS.find(o => o.value === val)
+                                                        if (!audOpt) return null
+                                                        return (
+                                                            <span key={val} className="flex items-center gap-1">
+                                                                <audOpt.icon className="w-3.5 h-3.5" />
+                                                                {audOpt.label}
+                                                            </span>
+                                                        )
+                                                    })}
+                                                </div>
                                             )}
                                             {a.expires_at && (
                                                 <span className="flex items-center gap-1">
@@ -231,16 +239,16 @@ export default function AdminAnnouncementsPage() {
                         <div className="space-y-2">
                             <Label>{t.admin.contentAr}</Label>
                             <textarea
-                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm min-h-[100px] resize-none"
                                 value={form.content_ar}
                                 onChange={e => setForm(f => ({ ...f, content_ar: e.target.value }))}
                                 placeholder={t.admin.contentAr.replace('*', '').trim()}
+                                className="w-full rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm min-h-[100px] resize-none text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
                             />
                         </div>
                         <div className="space-y-2">
                             <Label>{t.admin.contentEn}</Label>
                             <textarea
-                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm min-h-[80px] resize-none"
+                                className="w-full rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm min-h-[80px] resize-none text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
                                 dir="ltr"
                                 value={form.content_en}
                                 onChange={e => setForm(f => ({ ...f, content_en: e.target.value }))}
@@ -250,13 +258,37 @@ export default function AdminAnnouncementsPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label>{t.admin.targetAudience}</Label>
-                                <select
-                                    className="w-full h-10 rounded-xl border border-border bg-background px-3 text-sm"
-                                    value={form.target_audience}
-                                    onChange={e => setForm(f => ({ ...f, target_audience: e.target.value }))}
-                                >
-                                    {AUDIENCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                </select>
+                                <div className="flex flex-col gap-2 border border-border p-3 rounded-xl bg-background">
+                                    {AUDIENCE_OPTIONS.map(o => {
+                                        const isChecked = o.value === 'all' 
+                                            ? form.target_audience === 'all' 
+                                            : form.target_audience.split(',').includes(o.value);
+                                        return (
+                                            <label key={o.value} className="flex items-center gap-2 cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                                                    checked={isChecked}
+                                                    onChange={(e) => {
+                                                        let current = form.target_audience.split(',').filter(Boolean)
+                                                        if (o.value === 'all') {
+                                                            current = e.target.checked ? ['all'] : []
+                                                        } else {
+                                                            current = current.filter(c => c !== 'all')
+                                                            if (e.target.checked) current.push(o.value)
+                                                            else current = current.filter(c => c !== o.value)
+                                                        }
+                                                        setForm(f => ({ ...f, target_audience: current.join(',') || 'all' }))
+                                                    }}
+                                                />
+                                                <span className="text-sm flex items-center gap-1">
+                                                    <o.icon className="w-4 h-4 text-muted-foreground" />
+                                                    {o.label}
+                                                </span>
+                                            </label>
+                                        )
+                                    })}
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>{t.admin.priority}</Label>
@@ -287,7 +319,7 @@ export default function AdminAnnouncementsPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
-                        <Button onClick={handleSave} className="bg-[#1B5E3B] text-white" disabled={saving || !form.title_ar || !form.content_ar}>
+                        <Button onClick={handleSave} className="bg-primary text-primary-foreground" disabled={saving || !form.title_ar || !form.content_ar}>
                             {saving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
                             {editingId ? t.save : t.admin.newAnnouncement}
                         </Button>

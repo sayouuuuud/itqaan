@@ -42,16 +42,6 @@ export default function ScheduleManagementPage() {
   const [newSlotDay, setNewSlotDay] = useState(0)
   const [newSlotStart, setNewSlotStart] = useState("09:00")
   const [newSlotEnd, setNewSlotEnd] = useState("09:30")
-
-  // Function to handle start time change and update end time automatically to +30m
-  const handleStartChange = (val: string) => {
-    setNewSlotStart(val)
-    const [h, m] = val.split(':').map(Number)
-    const totalMinutes = h * 60 + m + 30
-    const newH = Math.floor(totalMinutes / 60).toString().padStart(2, '0')
-    const newM = (totalMinutes % 60).toString().padStart(2, '0')
-    setNewSlotEnd(`${newH}:${newM}`)
-  }
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false)
@@ -61,9 +51,6 @@ export default function ScheduleManagementPage() {
 
   // Pagination for Specific Dates Tab
   const [visibleDatesCount, setVisibleDatesCount] = useState(6)
-
-  // Manage Active Tab
-  const [activeTab, setActiveTab] = useState("recurring")
 
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -100,7 +87,7 @@ export default function ScheduleManagementPage() {
 
       if (res.ok) {
         const data = await res.json()
-        setSlots([...slots, ...(data.slots || [data.slot])].filter(Boolean).sort((a, b) => {
+        setSlots([...slots, data.slot].sort((a, b) => {
           if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week
           return a.start_time.localeCompare(b.start_time)
         }))
@@ -158,8 +145,6 @@ export default function ScheduleManagementPage() {
 
         setBulkDialogOpen(false)
         setShowSuccess(true)
-        setActiveTab("specific") // Switch to specific dates tab since bulk add uses specific dates
-
         if (result.message) {
           alert(result.message); // Inform user if some slots were skipped due to overlaps
         }
@@ -190,26 +175,6 @@ export default function ScheduleManagementPage() {
     }
   }
 
-  const handleDeleteAllByDay = async (type: 'recurring' | 'specific', value: string | number) => {
-    if (!confirm("هل أنت متأكد من حذف جميع مواعيد هذا اليوم؟")) return
-
-    try {
-      const queryParams = type === 'recurring' ? `dayOfWeek=${value}` : `date=${value}`
-      const res = await fetch(`/api/reader/schedule?${queryParams}`, { method: "DELETE" })
-      if (res.ok) {
-        if (type === 'recurring') {
-          setSlots(slots.filter(s => !(s.is_recurring && s.day_of_week === value)))
-        } else {
-          setSlots(slots.filter(s => !(s.specific_date === value && !s.is_recurring)))
-        }
-      } else {
-        alert(t.student.serverError)
-      }
-    } catch {
-      alert(t.student.serverError)
-    }
-  }
-
   const toggleDay = (day: number) => {
     setSelectedDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
@@ -227,19 +192,7 @@ export default function ScheduleManagementPage() {
   }
 
   const updateBulkTime = (id: number, field: 'start' | 'end', val: string) => {
-    setBulkTimes(bulkTimes.map(t => {
-      if (t.id === id) {
-        if (field === 'start') {
-          const [h, m] = val.split(':').map(Number)
-          const totalMinutes = h * 60 + m + 30
-          const newH = Math.floor(totalMinutes / 60).toString().padStart(2, '0')
-          const newM = (totalMinutes % 60).toString().padStart(2, '0')
-          return { ...t, start: val, end: `${newH}:${newM}` }
-        }
-        return { ...t, [field]: val }
-      }
-      return t
-    }))
+    setBulkTimes(bulkTimes.map(t => t.id === id ? { ...t, [field]: val } : t))
   }
 
   const recurringSlots = slots.filter(s => s.is_recurring || !s.specific_date)
@@ -264,18 +217,14 @@ export default function ScheduleManagementPage() {
     <div className="space-y-6 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.reader.manageScheduleTitle}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t.reader.manageScheduleDesc}</p>
-          <div className="flex items-center gap-2 mt-2 bg-[#1B5E3B]/10 text-[#1B5E3B] px-3 py-1.5 rounded-lg w-fit">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm font-bold">{t.reader.sessionDurationNote}</span>
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">{t.reader.manageScheduleTitle}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t.reader.manageScheduleDesc}</p>
         </div>
         <div className="flex gap-2">
           {/* Bulk Add Button */}
           <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227]/10">
+              <Button variant="outline" className="border-[#D4A843] text-[#D4A843] hover:bg-[#D4A843]/10">
                 <CalendarRange className="w-4 h-4 ml-2 rtl:mr-2 rtl:ml-0" />
                 {t.reader.addBulkScheduleBtn}
               </Button>
@@ -292,7 +241,7 @@ export default function ScheduleManagementPage() {
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start text-right font-normal h-12 rounded-xl">
-                        <CalendarIcon className="ml-2 h-4 w-4 text-[#1B5E3B]" />
+                        <CalendarIcon className="ml-2 h-4 w-4 text-primary dark:text-emerald-400" />
                         {dateRange?.from ? (
                           dateRange.to ? (
                             <>
@@ -326,7 +275,7 @@ export default function ScheduleManagementPage() {
                       <div
                         key={i}
                         onClick={() => toggleDay(i)}
-                        className={`px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${selectedDays.includes(i) ? "bg-[#1B5E3B] text-white border-[#1B5E3B]" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}
+                        className={`px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${selectedDays.includes(i) ? "bg-[#0B3D2E] text-white border-[#0B3D2E]" : "bg-background text-foreground border-border hover:border-gray-300"}`}
                       >
                         {day}
                       </div>
@@ -338,13 +287,13 @@ export default function ScheduleManagementPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label>{t.reader.timeSlotsHeader}</Label>
-                    <Button variant="ghost" size="sm" onClick={addTimeSlot} className="text-[#1B5E3B] font-bold h-7">
+                    <Button variant="ghost" size="sm" onClick={addTimeSlot} className="text-[#0B3D2E] font-bold h-7">
                       {t.reader.addPeriodBtn}
                     </Button>
                   </div>
                   <div className="space-y-3 max-h-40 overflow-y-auto pr-2">
                     {bulkTimes.map((t) => (
-                      <div key={t.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div key={t.id} className="flex items-center gap-3 bg-background p-3 rounded-xl border border-border">
                         <div className="flex-1 grid grid-cols-2 gap-3 font-mono">
                           <Input type="time" value={t.start} onChange={e => updateBulkTime(t.id, 'start', e.target.value)} className="h-9" />
                           <Input type="time" value={t.end} onChange={e => updateBulkTime(t.id, 'end', e.target.value)} className="h-9" />
@@ -358,7 +307,7 @@ export default function ScheduleManagementPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleBulkAdd} disabled={submitting} className="w-full bg-[#1B5E3B] h-12 font-bold text-white rounded-xl">
+                <Button onClick={handleBulkAdd} disabled={submitting} className="w-full bg-[#0B3D2E] h-12 font-bold text-white rounded-xl">
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <CalendarRange className="w-4 h-4 ml-2 rtl:mr-2 rtl:ml-0" />}
                   {t.reader.saveAndInsertSchedule}
                 </Button>
@@ -369,7 +318,7 @@ export default function ScheduleManagementPage() {
           {/* Single Add Button */}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#1B5E3B] hover:bg-[#124028] text-white">
+              <Button className="bg-[#0B3D2E] hover:bg-[#0A3528] text-white">
                 <Plus className="w-4 h-4 ml-2 rtl:mr-2 rtl:ml-0" />
                 {t.reader.addRecurringScheduleBtn}
               </Button>
@@ -386,7 +335,7 @@ export default function ScheduleManagementPage() {
                     id="day"
                     value={newSlotDay}
                     onChange={(e) => setNewSlotDay(Number(e.target.value))}
-                    className="w-full h-10 rounded-xl border border-gray-100 bg-white px-3 text-sm text-gray-800 focus:ring-2 focus:ring-[#1B5E3B]/20"
+                    className="w-full h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20"
                   >
                     {daysOfWeek.map((day: string, i: number) => (
                       <option key={i} value={i}>{day}</option>
@@ -396,7 +345,7 @@ export default function ScheduleManagementPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="start-time">{t.reader.fromLabel}</Label>
-                    <Input id="start-time" type="time" value={newSlotStart} onChange={(e) => handleStartChange(e.target.value)} />
+                    <Input id="start-time" type="time" value={newSlotStart} onChange={(e) => setNewSlotStart(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="end-time">{t.reader.toLabel}</Label>
@@ -405,7 +354,7 @@ export default function ScheduleManagementPage() {
                 </div>
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
-                <Button onClick={handleAddSlot} disabled={submitting} className="w-full bg-[#C9A227] hover:bg-[#A6841E] text-white rounded-xl h-11">
+                <Button onClick={handleAddSlot} disabled={submitting} className="w-full bg-[#D4A843] hover:bg-[#C49A3A] text-white rounded-xl h-11">
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t.reader.addSlotBtn}
                 </Button>
               </DialogFooter>
@@ -425,70 +374,43 @@ export default function ScheduleManagementPage() {
         <div className="space-y-4">
           <Card className="border-slate-200 rounded-2xl">
             <CardContent className="py-20 flex justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
             </CardContent>
           </Card>
         </div>
       ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <TabsList className="bg-gray-50 p-1 border border-gray-100 h-auto rounded-xl">
-              <TabsTrigger value="recurring" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm font-medium">
-                {t.reader.weeklyRecurringTitle}
-              </TabsTrigger>
-              <TabsTrigger value="specific" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-white data-[state=active]:text-[#1B5E3B] data-[state=active]:shadow-sm font-medium">
-                {t.reader.specificDatesTitle}
-              </TabsTrigger>
-            </TabsList>
-            
-            <div className="text-sm text-gray-500 italic bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              {activeTab === "recurring" ? (
-                <span className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-[#1B5E3B]" />
-                  {t.reader.weeklyRecurringTitle}: {t.reader.weeklyRecurringExplanation}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-[#1B5E3B]" />
-                  {t.reader.specificDatesTitle}: {t.reader.specificDatesExplanation}
-                </span>
-              )}
-            </div>
-          </div>
+        <Tabs defaultValue="recurring" className="space-y-6">
+          <TabsList className="bg-background p-1 border border-border h-auto rounded-xl">
+            <TabsTrigger value="recurring" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-background data-[state=active]:text-primary dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm font-medium">
+              {t.reader.weeklyRecurringTitle}
+            </TabsTrigger>
+            <TabsTrigger value="specific" className="rounded-lg h-9 px-4 lg:px-8 data-[state=active]:bg-background data-[state=active]:text-primary dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm font-medium">
+              {t.reader.specificDatesTitle}
+            </TabsTrigger>
+          </TabsList>
 
           <TabsContent value="recurring" className="space-y-4">
             {Object.entries(groupedRecurringSlots).length === 0 ? (
-              <Card className="border-gray-100 rounded-2xl shadow-sm">
+              <Card className="border-border rounded-2xl shadow-sm">
                 <CardContent className="py-20 text-center">
-                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CalendarIcon className="w-10 h-10 text-gray-200" />
+                  <div className="w-20 h-20 bg-background rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CalendarIcon className="w-10 h-10 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-500 font-bold text-lg">{t.reader.noWeeklySlots}</p>
-                  <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto">{t.reader.noWeeklySlotsDesc}</p>
+                  <p className="text-muted-foreground font-bold text-lg">{t.reader.noWeeklySlots}</p>
+                  <p className="text-sm text-muted-foreground/70 mt-2 max-w-xs mx-auto">{t.reader.noWeeklySlotsDesc}</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {(Object.entries(groupedRecurringSlots) as [string, Slot[]][]).map(([day, daySlots]) => (
-                  <Card key={day} className="border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col">
-                    <CardHeader className="pb-3 bg-gray-50/30 border-b border-gray-100">
-                      <CardTitle className="text-base flex items-center justify-between text-gray-800 font-bold">
+                  <Card key={day} className="border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                    <CardHeader className="pb-3 bg-muted/30 border-b border-border">
+                      <CardTitle className="text-base flex items-center justify-between text-foreground font-bold">
                         <span className="flex items-center gap-2">
-                          <CalendarIcon className="w-4 h-4 text-[#1B5E3B]" />
+                          <CalendarIcon className="w-4 h-4 text-primary dark:text-emerald-400" />
                           {day}
                         </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs bg-[#1B5E3B]/10 text-[#1B5E3B] px-2 py-1 rounded-full">{daySlots.length} {t.reader.periodsCount}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-red-500 hover:bg-red-50"
-                            onClick={() => handleDeleteAllByDay('recurring', daysOfWeek.indexOf(day))}
-                            title="حذف جميع مواعيد هذا اليوم"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
+                        <span className="text-xs bg-primary/10 text-primary dark:text-emerald-400 px-2 py-1 rounded-full">{daySlots.length} {t.reader.periodsCount}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4 flex-1">
@@ -497,20 +419,20 @@ export default function ScheduleManagementPage() {
                           const startShort = slot.start_time.substring(0, 5)
                           const endShort = slot.end_time.substring(0, 5)
                           return (
-                            <div key={slot.id} className="group flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-white hover:border-[#1B5E3B]/20 hover:bg-[#1B5E3B]/[0.02] transition-all">
+                            <div key={slot.id} className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
-                                  <Clock className="w-4 h-4 text-gray-400 group-hover:text-[#1B5E3B]" />
+                                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-card transition-colors">
+                                  <Clock className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                                 </div>
                                 <div className="flex flex-col">
-                                  <span className="text-sm font-bold text-gray-700 font-mono tabular-nums leading-none mt-1.5">
+                                  <span className="text-sm font-bold text-foreground font-mono tabular-nums leading-none mt-1.5">
                                     {startShort} - {endShort}
                                   </span>
                                 </div>
                               </div>
                               <Button
                                 variant="ghost" size="icon"
-                                className="h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 transition-opacity"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg group-hover:opacity-100 opacity-0 transition-opacity"
                                 onClick={() => handleDeleteSlot(slot.id)}
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -528,13 +450,13 @@ export default function ScheduleManagementPage() {
 
           <TabsContent value="specific" className="space-y-4">
             {sortedDateKeys.length === 0 ? (
-              <Card className="border-gray-100 rounded-2xl shadow-sm">
+              <Card className="border-border rounded-2xl shadow-sm">
                 <CardContent className="py-20 text-center">
-                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CalendarRange className="w-10 h-10 text-gray-200" />
+                  <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CalendarRange className="w-10 h-10 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-500 font-bold text-lg">{t.reader.noSpecificDates}</p>
-                  <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto">{t.reader.noSpecificDatesDesc}</p>
+                  <p className="text-muted-foreground font-bold text-lg">{t.reader.noSpecificDates}</p>
+                  <p className="text-sm text-muted-foreground/70 mt-2 max-w-xs mx-auto">{t.reader.noSpecificDatesDesc}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -545,25 +467,14 @@ export default function ScheduleManagementPage() {
                     const dateObj = new Date(dateStr)
                     const dayName = daysOfWeek[dateObj.getDay()]
                     return (
-                      <Card key={dateStr} className="border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col">
-                        <CardHeader className="pb-3 bg-gray-50/30 border-b border-gray-100">
-                          <CardTitle className="text-base flex items-center justify-between text-gray-800 font-bold">
+                      <Card key={dateStr} className="border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                        <CardHeader className="pb-3 bg-muted/30 border-b border-border">
+                          <CardTitle className="text-base flex items-center justify-between text-foreground font-bold">
                             <span className="flex items-center gap-2">
-                              <CalendarIcon className="w-4 h-4 text-[#1B5E3B]" />
+                              <CalendarIcon className="w-4 h-4 text-primary dark:text-emerald-400" />
                               {dayName}، {format(dateObj, locale === 'ar' ? "d MMMM yyyy" : "d MMMM yyyy", { locale: dateLocale })}
                             </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs bg-[#1B5E3B]/10 text-[#1B5E3B] px-2 py-1 rounded-full">{daySlots.length} {t.reader.periodsCount}</span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-red-500 hover:bg-red-50"
-                                onClick={() => handleDeleteAllByDay('specific', dateStr)}
-                                title="حذف جميع مواعيد هذا اليوم"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
+                            <span className="text-xs bg-primary/10 text-primary dark:text-emerald-400 px-2 py-1 rounded-full">{daySlots.length} {t.reader.periodsCount}</span>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-4 flex-1">
@@ -572,20 +483,20 @@ export default function ScheduleManagementPage() {
                               const startShort = slot.start_time.substring(0, 5)
                               const endShort = slot.end_time.substring(0, 5)
                               return (
-                                <div key={slot.id} className="group flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-white hover:border-[#1B5E3B]/20 hover:bg-[#1B5E3B]/[0.02] transition-all">
+                                <div key={slot.id} className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
-                                      <Clock className="w-4 h-4 text-gray-400 group-hover:text-[#1B5E3B]" />
+                                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-card transition-colors">
+                                      <Clock className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                                     </div>
                                     <div className="flex flex-col">
-                                      <span className="text-sm font-bold text-gray-700 font-mono tabular-nums leading-none mt-1.5">
+                                      <span className="text-sm font-bold text-foreground font-mono tabular-nums leading-none mt-1.5">
                                         {startShort} - {endShort}
                                       </span>
                                     </div>
                                   </div>
                                   <Button
                                     variant="ghost" size="icon"
-                                    className="h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 transition-opacity"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg group-hover:opacity-100 opacity-0 transition-opacity"
                                     onClick={() => handleDeleteSlot(slot.id)}
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -604,7 +515,7 @@ export default function ScheduleManagementPage() {
                     <Button
                       variant="outline"
                       onClick={() => setVisibleDatesCount(prev => prev + 6)}
-                      className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl px-8 font-medium"
+                      className="border-border text-muted-foreground hover:bg-muted rounded-xl px-8 font-medium"
                     >
                       {t.reader.showMoreDates.replace('{count}', (sortedDateKeys.length - visibleDatesCount).toString())}
                     </Button>

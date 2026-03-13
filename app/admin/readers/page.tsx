@@ -9,9 +9,11 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import {
     BookOpen, Search, Edit, CheckCircle, XCircle,
-    TrendingUp, Star, Users, Loader2, Phone, MapPin
+    TrendingUp, Star, Users, Loader2, Phone, MapPin, ChevronRight, User, Mail, Shield, ShieldAlert,
+    Clock, AlertCircle
 } from "lucide-react"
 
 export default function AdminReadersPage() {
@@ -38,8 +40,8 @@ export default function AdminReadersPage() {
             const res = await fetch(`/api/admin/readers?${params}`)
             if (res.ok) {
                 const data = await res.json()
-                setReaders(data.readers)
-                setTotal(data.total)
+                setReaders(data.readers || [])
+                setTotal(data.total || 0)
             }
         } finally {
             setLoading(false)
@@ -95,112 +97,173 @@ export default function AdminReadersPage() {
 
     const totalPages = Math.ceil(total / 20)
 
+    const avatarColors = [
+        "from-blue-500/20 to-blue-500/10 text-blue-500 border-blue-500/20",
+        "from-emerald-500/20 to-emerald-500/10 text-emerald-500 border-emerald-500/20",
+        "from-purple-500/20 to-purple-500/10 text-purple-500 border-purple-500/20",
+        "from-orange-500/20 to-orange-500/10 text-orange-500 border-orange-500/20",
+        "from-rose-500/20 to-rose-500/10 text-rose-500 border-rose-500/20",
+    ]
+
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">{t.admin.adminReaders.title}</h1>
-                <p className="text-sm text-gray-500 mt-1">{t.admin.adminReaders.description}</p>
+        <div className="bg-card min-h-full -m-6 lg:-m-8 p-6 lg:p-8 space-y-8" dir={isAr ? 'rtl' : 'ltr'}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div>
+                   <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
+                       <Shield className="w-8 h-8 text-primary" />
+                       {t.admin.adminReaders.title}
+                   </h1>
+                   <p className="text-muted-foreground font-bold tracking-wide">{t.admin.adminReaders.description}</p>
+                </div>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-                <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input className="pr-10 border-gray-200" placeholder={t.admin.adminReaders.searchPlaceholder} value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} />
+            <div className="bg-card rounded-3xl shadow-sm border border-border p-2 flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                        className="h-12 pr-11 pl-4 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold" 
+                        placeholder={t.admin.adminReaders.searchPlaceholder} 
+                        value={search} 
+                        onChange={e => { setSearch(e.target.value); setPage(1) }} 
+                    />
                 </div>
-                <select
-                    className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
-                    value={filterGender}
-                    onChange={e => { setFilterGender(e.target.value); setPage(1) }}
-                >
-                    <option value="">{t.admin.adminReaders.allGenders}</option>
-                    <option value="male">{t.auth.male}</option>
-                    <option value="female">{t.auth.female}</option>
-                </select>
+                <div className="w-full md:w-64 relative">
+                    <Users className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <select
+                        className="w-full h-12 pr-11 pl-4 rounded-2xl border border-border bg-muted/30 text-sm font-bold text-foreground outline-none focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer appearance-none"
+                        value={filterGender}
+                        onChange={e => { setFilterGender(e.target.value); setPage(1) }}
+                    >
+                        <option value="">{t.admin.adminReaders.allGenders}</option>
+                        <option value="male">{t.auth.male}</option>
+                        <option value="female">{t.auth.female}</option>
+                    </select>
+                    <ChevronRight className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none rotate-90" />
+                </div>
             </div>
 
-            {/* Cards */}
+            {/* Grid */}
             {loading ? (
-                <div className="flex justify-center p-16"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
+                <div className="flex flex-col items-center justify-center p-24 gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground animate-pulse">
+                        {isAr ? "جاري تحميل قائمة المحفظين..." : "Loading Readers..."}
+                    </p>
+                </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {readers.map(r => (
-                        <div key={r.id} className={`bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow ${!r.is_active ? 'opacity-60 border-red-200' : 'border-gray-100'}`}>
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1B5E3B] to-[#16503A] flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
-                                        {r.name?.[0] || 'م'}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {readers.map((r, idx) => (
+                        <div key={r.id} className={`bg-card border rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group relative overflow-hidden ${!r.is_active ? 'border-rose-500/20 bg-rose-500/[0.02]' : 'border-border'}`}>
+                            <div className="flex items-start justify-between gap-4 relative z-10">
+                                <div className="flex items-start gap-4">
+                                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center font-black text-xl shrink-0 shadow-lg group-hover:scale-110 transition-transform border ${avatarColors[idx % avatarColors.length]}`}>
+                                        {r.name?.[0] || 'S'}
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <Link href={`/admin/users/${r.id}`} className="hover:text-[#1B5E3B] transition-colors">
-                                                <h3 className="font-bold text-gray-900">{r.name}</h3>
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                                            <Link href={`/admin/users/${r.id}`} className="hover:text-primary transition-colors">
+                                                <h3 className="font-black text-lg text-foreground truncate max-w-[180px]">{r.name}</h3>
                                             </Link>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                            <Badge className={`text-[9px] font-black uppercase tracking-widest border pointer-events-none ${r.is_active ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm shadow-emerald-500/5' : 'bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-sm shadow-rose-500/5'}`}>
                                                 {r.is_active ? t.admin.adminReaders.active : t.admin.adminReaders.inactive}
-                                            </span>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_accepting_recitations ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-                                                {r.is_accepting_recitations ? t.reader.active : t.reader.inactive}
-                                            </span>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_accepting_students ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
-                                                {r.is_accepting_students ? t.admin.adminReaders.sessionsActive : t.reader.inactive}
-                                            </span>
-                                            <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
-                                                {r.gender === 'male' ? t.auth.male : r.gender === 'female' ? t.auth.female : ''}
-                                            </span>
+                                            </Badge>
                                         </div>
-                                        <p className="text-xs text-gray-500">{r.email}</p>
-                                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                            {r.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{r.phone}</span>}
-                                            {r.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{r.city}</span>}
+                                        <p className="text-xs font-bold text-muted-foreground opacity-60 flex items-center gap-1.5 mb-3">
+                                            <Mail className="w-3.5 h-3.5" />
+                                            {r.email}
+                                        </p>
+                                        
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            <Badge variant="outline" className={`text-[9px] font-bold h-6 rounded-lg border-border ${r.is_accepting_recitations ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-muted text-muted-foreground'}`}>
+                                                {r.is_accepting_recitations ? t.reader.active : t.reader.inactive} {isAr ? "للتقييم" : "Evaluation"}
+                                            </Badge>
+                                            <Badge variant="outline" className={`text-[9px] font-bold h-6 rounded-lg border-border ${r.is_accepting_students ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : 'bg-muted text-muted-foreground'}`}>
+                                                {r.is_accepting_students ? t.admin.adminReaders.sessionsActive : t.reader.inactive} {isAr ? "للجلسات" : "Sessions"}
+                                            </Badge>
+                                            <Badge variant="secondary" className="text-[9px] font-bold h-6 rounded-lg px-2 bg-muted/50 text-muted-foreground border-border uppercase">
+                                                {r.gender === 'male' ? t.auth.male : r.gender === 'female' ? t.auth.female : '---'}
+                                            </Badge>
                                         </div>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${r.availability_mode === 'manual' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                                                {r.availability_mode === 'manual' ? t.reader.manualAvailability : t.reader.autoAvailability}
-                                            </span>
-                                            <span className="text-[10px] text-gray-500 font-medium">
-                                                {t.reader.maxTotalSlots}: <span className="text-gray-900 font-bold">{r.current_reserved_slots || 0}/{r.max_total_slots || 0}</span>
-                                            </span>
+
+                                        <div className="flex items-center gap-4 text-[10px] font-black text-muted-foreground/60 uppercase tracking-tight">
+                                            {r.phone && <span className="flex items-center gap-1.5 bg-muted/30 px-2 py-1 rounded-lg border border-border/50"><Phone className="w-3 h-3 text-primary/60" />{r.phone}</span>}
+                                            {r.city && <span className="flex items-center gap-1.5 bg-muted/30 px-2 py-1 rounded-lg border border-border/50"><MapPin className="w-3 h-3 text-primary/60" />{r.city}</span>}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    <Button variant="ghost" size="sm" onClick={() => openEdit(r)}>
+                                <div className="flex flex-col gap-2 shrink-0">
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="rounded-xl border-border hover:bg-primary hover:text-white hover:border-primary transition-all w-9 h-9" 
+                                        onClick={() => openEdit(r)}
+                                    >
                                         <Edit className="w-4 h-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => toggleActive(r.id, r.is_active)}>
-                                        {r.is_active ? <XCircle className="w-4 h-4 text-red-500" /> : <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className={`rounded-xl border-border transition-all w-9 h-9 ${r.is_active ? 'hover:bg-rose-500 hover:border-rose-500 hover:text-white' : 'hover:bg-emerald-500 hover:border-emerald-500 hover:text-white'}`} 
+                                        onClick={() => toggleActive(r.id, r.is_active)}
+                                    >
+                                        {r.is_active ? <ShieldAlert className="w-4 h-4 text-rose-500 group-hover:text-white" /> : <Shield className="w-4 h-4 text-emerald-500 group-hover:text-white" />}
                                     </Button>
                                 </div>
                             </div>
 
-                            {/* Stats */}
-                            <div className="mt-4 grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-gray-900">{r.total_reviews_completed || 0}</p>
-                                    <p className="text-[10px] text-gray-500">{t.admin.adminReaders.reviewsLabel}</p>
+                            <div className="mt-6 grid grid-cols-3 gap-4 pt-6 border-t border-border group-hover:border-primary/20 transition-colors">
+                                <div className="text-center group-hover:scale-105 transition-transform">
+                                    <p className="text-2xl font-black text-foreground tracking-tighter">{r.total_reviews_completed || 0}</p>
+                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">{t.admin.adminReaders.reviewsLabel}</p>
                                 </div>
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-gray-900">{r.sessions_done || 0}</p>
-                                    <p className="text-[10px] text-gray-500">{t.admin.adminReaders.sessionsLabel}</p>
+                                <div className="text-center group-hover:scale-105 transition-transform">
+                                    <p className="text-2xl font-black text-foreground tracking-tighter">{r.sessions_done || 0}</p>
+                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">{t.admin.adminReaders.sessionsLabel}</p>
                                 </div>
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-gray-900">
+                                <div className="text-center group-hover:scale-105 transition-transform">
+                                    <p className="text-2xl font-black text-primary tracking-tighter">
                                         {r.total_sessions_booked > 0 
                                             ? `${Math.round((r.sessions_done / r.total_sessions_booked) * 100)}%` 
                                             : '—'}
                                     </p>
-                                    <p className="text-[10px] text-gray-500">{t.admin.adminReaders.completionRateLabel}</p>
+                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">{t.admin.adminReaders.completionRateLabel}</p>
                                 </div>
                             </div>
 
-                            {/* Qualification */}
+                            {/* Waiting Metrics */}
+                            {(r.waiting_sessions_count > 0 || r.pending_reviews_count > 0) && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {r.waiting_sessions_count > 0 && (
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400">
+                                            <Clock className="w-3 h-3" />
+                                            <span className="text-[10px] font-black">
+                                                {r.waiting_sessions_count} {isAr ? "بانتظار جلسة" : "Waiting for session"}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {r.pending_reviews_count > 0 && (
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
+                                            <AlertCircle className="w-3 h-3" />
+                                            <span className="text-[10px] font-black">
+                                                {r.pending_reviews_count} {isAr ? "تقييم معلق" : "Pending review"}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {r.qualification && (
-                                <div className="mt-3 pt-3 border-t border-border/50">
-                                    <p className="text-xs text-muted-foreground">
-                                        <span className="font-medium text-foreground">المؤهل:</span> {r.qualification}
-                                        {r.memorized_parts && ` · حافظ ${r.memorized_parts} جزء`}
-                                        {r.years_of_experience > 0 && ` · خبرة ${r.years_of_experience} سنوات`}
+                                <div className="mt-4 pt-4 border-t border-dashed border-border flex items-center gap-2 group-hover:bg-primary/5 -mx-6 px-6 py-3 transition-colors">
+                                    <BookOpen className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+                                    <p className="text-[10px] font-bold text-muted-foreground line-clamp-1 leading-relaxed">
+                                        <span className="text-foreground/80">{isAr ? "المؤهل العلمي:" : "Qualification:"}</span> {r.qualification}
+                                        {r.memorized_parts && (
+                                          <>
+                                            <span className="mx-2 opacity-30">·</span>
+                                            <span className="text-primary truncate">{isAr ? `حافظ لـ ${r.memorized_parts} جزء` : `Memorized ${r.memorized_parts} Juza'`}</span>
+                                          </>
+                                        )}
                                     </p>
                                 </div>
                             )}
@@ -210,79 +273,151 @@ export default function AdminReadersPage() {
             )}
 
             {readers.length === 0 && !loading && (
-                <div className="text-center py-16 text-muted-foreground">
-                    <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p>{t.admin.adminReaders.noReadersYet}</p>
+                <div className="flex flex-col items-center justify-center py-32 text-center bg-card rounded-3xl border border-dashed border-border">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-6">
+                        <BookOpen className="w-8 h-8 text-muted-foreground opacity-30" />
+                    </div>
+                    <p className="font-black uppercase tracking-widest text-xs text-muted-foreground">{t.admin.adminReaders.noReadersYet}</p>
                 </div>
             )}
 
             {totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{t.admin.adminReaders.previous}</Button>
-                    <span className="text-sm text-muted-foreground">{t.admin.adminReaders.page} {page} {t.admin.adminReaders.of} {totalPages}</span>
-                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>{t.admin.adminReaders.next}</Button>
+                <div className="flex items-center justify-center gap-6 mt-8 bg-card border border-border p-4 rounded-3xl shadow-sm w-fit mx-auto">
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        disabled={page <= 1} 
+                        onClick={() => setPage(p => p - 1)} 
+                        className="rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-all px-4"
+                    >
+                        {isAr ? "السابق" : "Prev"}
+                    </Button>
+                    <div className="flex flex-col items-center">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">{t.admin.adminReaders.page}</span>
+                        <span className="text-sm font-black text-foreground">{page} <span className="text-muted-foreground opacity-40 mx-1">/</span> {totalPages}</span>
+                    </div>
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        disabled={page >= totalPages} 
+                        onClick={() => setPage(p => p + 1)} 
+                        className="rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-all px-4"
+                    >
+                        {isAr ? "التالي" : "Next"}
+                    </Button>
                 </div>
             )}
 
             {/* Edit Dialog */}
             <Dialog open={!!editReader} onOpenChange={() => setEditReader(null)}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="rounded-3xl border-none shadow-2xl bg-card max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>{t.admin.adminReaders.editReader}</DialogTitle>
+                        <DialogTitle className="text-2xl font-black text-foreground">{t.admin.adminReaders.editReader}</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-6 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label>{t.admin.adminReaders.name}</Label>
-                                <Input value={editForm.name || ''} onChange={e => setEditForm((f: any) => ({ ...f, name: e.target.value }))} />
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.admin.adminReaders.name}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.name || ''} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, name: e.target.value }))} 
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t.admin.adminReaders.phone}</Label>
-                                <Input value={editForm.phone || ''} onChange={e => setEditForm((f: any) => ({ ...f, phone: e.target.value }))} dir="ltr" />
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.admin.adminReaders.phone}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.phone || ''} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, phone: e.target.value }))} 
+                                    dir="ltr" 
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t.admin.adminReaders.city}</Label>
-                                <Input value={editForm.city || ''} onChange={e => setEditForm((f: any) => ({ ...f, city: e.target.value }))} />
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.admin.adminReaders.city}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.city || ''} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, city: e.target.value }))} 
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t.admin.adminReaders.qualification}</Label>
-                                <Input value={editForm.qualification || ''} onChange={e => setEditForm((f: any) => ({ ...f, qualification: e.target.value }))} />
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.admin.adminReaders.qualification}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.qualification || ''} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, qualification: e.target.value }))} 
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t.admin.adminReaders.memorizedParts}</Label>
-                                <Input value={editForm.memorized_parts || ''} onChange={e => setEditForm((f: any) => ({ ...f, memorized_parts: e.target.value }))} type="number" min={0} max={30} />
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.admin.adminReaders.memorizedParts}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.memorized_parts || ''} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, memorized_parts: e.target.value }))} 
+                                    type="number" min={0} max={30} 
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t.admin.adminReaders.yearsExperience}</Label>
-                                <Input value={editForm.years_of_experience || 0} onChange={e => setEditForm((f: any) => ({ ...f, years_of_experience: Number(e.target.value) }))} type="number" min={0} />
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.admin.adminReaders.yearsExperience}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.years_of_experience || 0} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, years_of_experience: Number(e.target.value) }))} 
+                                    type="number" min={0} 
+                                />
                             </div>
-                            <div className="space-y-2">
-                                <Label>{t.reader.maxTotalSlots}</Label>
-                                <Input value={editForm.max_total_slots || 0} onChange={e => setEditForm((f: any) => ({ ...f, max_total_slots: Number(e.target.value) }))} type="number" min={0} />
+                            <div className="sm:col-span-2 space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.reader.maxTotalSlots}</Label>
+                                <Input 
+                                    className="h-12 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    value={editForm.max_total_slots || 0} 
+                                    onChange={e => setEditForm((f: any) => ({ ...f, max_total_slots: Number(e.target.value) }))} 
+                                    type="number" min={0} 
+                                />
                             </div>
                         </div>
-                        <div className="border-t pt-4 mt-2">
-                            <Label className="text-xs font-semibold text-gray-500 mb-3 block uppercase tracking-wider">التحكم وبطاقة الحالة</Label>
+
+                        <div className="border-t border-border pt-8 mt-4">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-primary mb-5 block border-b border-primary/10 pb-2 w-fit">
+                              {isAr ? "التحكم وتصاريح الحساب" : "Account Permissions & Controls"}
+                            </Label>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <input type="checkbox" id="is_active" checked={!!editForm.is_active} onChange={e => setEditForm((f: any) => ({ ...f, is_active: e.target.checked }))} className="w-4 h-4 accent-[#1B5E3B]" />
-                                    <Label htmlFor="is_active" className="cursor-pointer">{t.admin.adminReaders.accountActive}</Label>
+                                <div className={`flex items-center gap-3 p-4 border rounded-2xl transition-all cursor-pointer group/opt ${editForm.is_active ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-muted border-border'}`} onClick={() => setEditForm((f: any) => ({ ...f, is_active: !f.is_active }))}>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editForm.is_active ? 'border-emerald-500 bg-emerald-500' : 'border-muted-foreground/30'}`}>
+                                      {editForm.is_active && <CheckCircle className="w-4 h-4 text-white" />}
+                                    </div>
+                                    <Label className="cursor-pointer font-black text-xs uppercase tracking-tight group-hover/opt:text-primary transition-colors">{t.admin.adminReaders.accountActive}</Label>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <input type="checkbox" id="is_accepting_recitations" checked={!!editForm.is_accepting_recitations} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_recitations: e.target.checked }))} className="w-4 h-4 accent-[#1B5E3B]" />
-                                    <Label htmlFor="is_accepting_recitations" className="cursor-pointer">{t.admin.adminReaders.evaluationActive}</Label>
+                                <div className={`flex items-center gap-3 p-4 border rounded-2xl transition-all cursor-pointer group/opt ${editForm.is_accepting_recitations ? 'bg-primary/5 border-primary/20' : 'bg-muted border-border'}`} onClick={() => setEditForm((f: any) => ({ ...f, is_accepting_recitations: !f.is_accepting_recitations }))}>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editForm.is_accepting_recitations ? 'border-primary bg-primary' : 'border-muted-foreground/30'}`}>
+                                      {editForm.is_accepting_recitations && <CheckCircle className="w-4 h-4 text-white" />}
+                                    </div>
+                                    <Label className="cursor-pointer font-black text-xs uppercase tracking-tight group-hover/opt:text-primary transition-colors">{t.admin.adminReaders.evaluationActive}</Label>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                                    <input type="checkbox" id="is_accepting_students" checked={!!editForm.is_accepting_students} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_students: e.target.checked }))} className="w-4 h-4 accent-[#1B5E3B]" />
-                                    <Label htmlFor="is_accepting_students" className="cursor-pointer">{t.admin.adminReaders.sessionsActive}</Label>
+                                <div className={`flex items-center gap-3 p-4 border rounded-2xl transition-all cursor-pointer group/opt ${editForm.is_accepting_students ? 'bg-purple-500/5 border-purple-500/20' : 'bg-muted border-border'}`} onClick={() => setEditForm((f: any) => ({ ...f, is_accepting_students: !f.is_accepting_students }))}>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editForm.is_accepting_students ? 'border-purple-500 bg-purple-500' : 'border-muted-foreground/30'}`}>
+                                      {editForm.is_accepting_students && <CheckCircle className="w-4 h-4 text-white" />}
+                                    </div>
+                                    <Label className="cursor-pointer font-black text-xs uppercase tracking-tight group-hover/opt:text-primary transition-colors">{t.admin.adminReaders.sessionsActive}</Label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditReader(null)}>{t.admin.adminReaders.cancel}</Button>
-                        <Button onClick={handleSave} className="bg-[#1B5E3B] text-white" disabled={saving}>
-                            {saving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
+                    <DialogFooter className="gap-3 sm:gap-0">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setEditReader(null)} 
+                            className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-12 border-border"
+                        >
+                          {t.admin.adminReaders.cancel}
+                        </Button>
+                        <Button 
+                            onClick={handleSave} 
+                            className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" 
+                            disabled={saving}
+                        >
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
                             {t.admin.adminReaders.saveChanges}
                         </Button>
                     </DialogFooter>

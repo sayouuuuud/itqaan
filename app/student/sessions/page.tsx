@@ -70,11 +70,11 @@ export default function StudentSessionsPage() {
   }, [])
 
   const STATUS = useMemo(() => ({
-    confirmed: { label: t.student.statusBooked, color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
-    completed: { label: t.student.statusCompleted, color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
-    cancelled: { label: t.student.statusCancelled, color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
-    pending: { label: t.student.statusPending, color: "bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30 ring-[#C9A227]/10" },
-    rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
+    confirmed: { label: t.student.statusBooked, color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 ring-emerald-500/10" },
+    completed: { label: t.student.statusCompleted, color: "bg-muted text-muted-foreground border-border ring-muted/50" },
+    cancelled: { label: t.student.statusCancelled, color: "bg-destructive/10 text-destructive border-destructive/20 ring-destructive/10" },
+    pending: { label: t.student.statusPending, color: "bg-accent/10 text-accent border-accent/20 ring-accent/10" },
+    rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 ring-blue-500/10" },
   }), [t, isAr])
 
   const handleCancel = async (id: string) => {
@@ -150,22 +150,22 @@ export default function StudentSessionsPage() {
   return (
     <div className="max-w-4xl max-auto space-y-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold text-slate-800">{t.student.mySessions}</h1>
-        <p className="text-slate-500">{t.student.mySessionsDesc}</p>
+        <h1 className="text-3xl font-bold text-foreground">{t.student.mySessions}</h1>
+        <p className="text-muted-foreground">{t.student.mySessionsDesc}</p>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-[#1B5E3B]" /></div>
+        <div className="flex justify-center items-center py-32"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
       ) : bookings.length === 0 ? (
-        <div className="bg-white border border-slate-100 rounded-[2rem] py-24 text-center shadow-sm">
-          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Video className="w-10 h-10 text-slate-300" />
+        <div className="bg-card border border-border rounded-[2rem] py-24 text-center shadow-sm">
+          <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+            <Video className="w-10 h-10 text-muted-foreground/40" />
           </div>
-          <h3 className="text-xl font-bold text-slate-700 mb-2">{t.student.noSessionsYet}</h3>
-          <p className="text-slate-500 mb-8 max-w-sm mx-auto">
+          <h3 className="text-xl font-bold text-foreground mb-2">{t.student.noSessionsYet}</h3>
+          <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
             {isAr ? "لم تقم بحجز أي جلسات تصحيح بعد. ابدأ بحجز جلستك الأولى الآن لتصحيح تلاوتك." : "You haven't booked any correction sessions yet. Book your first session now to perfect your recitation."}
           </p>
-          <Link href="/student/booking" className="inline-flex items-center gap-2 px-8 py-4 bg-[#1B5E3B] text-white rounded-2xl font-bold hover:bg-[#124028] transition-colors shadow-lg shadow-emerald-900/10">
+          <Link href="/student/booking" className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-black/10">
             <CalendarClock className="w-5 h-5" />
             {isAr ? "احجز جلسة جديدة" : "Book New Session"}
           </Link>
@@ -181,12 +181,12 @@ export default function StudentSessionsPage() {
             const pendingReqs = pendingRequests[b.id] || []
 
             return (
-              <div key={b.id} className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300
-                ${isExpanded ? 'border-[#1B5E3B]/20 shadow-xl shadow-emerald-900/5' : 'border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md'}`}>
+              <div key={b.id} className={`bg-card border rounded-3xl overflow-hidden transition-all duration-300
+                ${isExpanded ? 'border-primary/20 shadow-xl shadow-black/5' : 'border-border shadow-sm hover:border-primary/20 hover:shadow-md'}`}>
 
                 {/* Card Header (Clickable) */}
                 <div
-                  className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer bg-white relative overflow-hidden"
+                  className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer bg-card relative overflow-hidden"
                   onClick={() => setExpandedId(isExpanded ? null : b.id)}
                 >
                   {/* Status indicator line */}
@@ -194,26 +194,26 @@ export default function StudentSessionsPage() {
 
                   <div className="flex items-center gap-5 z-10">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border 
-                      ${isActive ? 'bg-[#1B5E3B]/5 border-[#1B5E3B]/10' : 'bg-slate-50 border-slate-100'}`}>
-                      {isActive ? <Video className="w-6 h-6 text-[#1B5E3B]" /> : <CalendarClock className="w-6 h-6 text-slate-400" />}
+                      ${isActive ? 'bg-primary/5 border-primary/10' : 'bg-muted border-border'}`}>
+                      {isActive ? <Video className="w-6 h-6 text-primary" /> : <CalendarClock className="w-6 h-6 text-muted-foreground/40" />}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-bold text-slate-800">{b.reader_name || t.student.certifiedReaderFallback}</h3>
+                        <h3 className="text-lg font-bold text-foreground">{b.reader_name || t.student.certifiedReaderFallback}</h3>
                         {!b.reader_name && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#C9A227]/10 text-[#C9A227]">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-accent/10 text-accent">
                             <ShieldCheck className="w-3 h-3" />
                             {isAr ? "معتمد" : "Certified"}
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-500 font-medium">
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <CalendarDays className="w-4 h-4 text-[#C9A227]" />
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-muted-foreground font-medium">
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-muted/50 rounded-lg">
+                          <CalendarDays className="w-4 h-4 text-accent" />
                           {new Date(b.slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </span>
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <Clock className="w-4 h-4 text-[#1B5E3B]/60" />
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-muted/50 rounded-lg">
+                          <Clock className="w-4 h-4 text-primary/60" />
                           {new Date(b.slot_start).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                           {" - "}
                           {new Date(b.slot_end).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
@@ -228,14 +228,14 @@ export default function StudentSessionsPage() {
 
                 {/* Pending Reschedule Request from Reader */}
                 {pendingReqs.length > 0 && (
-                  <div className="mx-6 md:mx-8 mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl p-5 shadow-inner">
+                  <div className="mx-6 md:mx-8 mb-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-5 shadow-inner">
                     <div className="flex items-center gap-2 mb-3">
-                      <CalendarClock className="w-5 h-5 text-amber-600" />
-                      <p className="text-sm font-bold text-amber-900">{isAr ? "طلب تعديل موعد من المقرئ:" : "Reschedule request from reader:"}</p>
+                      <CalendarClock className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+                      <p className="text-sm font-bold text-amber-900 dark:text-amber-100">{isAr ? "طلب تعديل موعد من المقرئ:" : "Reschedule request from reader:"}</p>
                     </div>
                     {pendingReqs.map(req => (
-                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 p-4 rounded-xl border border-amber-100">
-                        <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/60 p-4 rounded-xl border border-amber-500/20">
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200 flex items-center gap-2">
                           <CalendarDays className="w-4 h-4 opacity-70" />
                           {new Date(req.proposed_slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", month: "long", day: "numeric" })}
                           <span className="mx-1 opacity-50">•</span>
@@ -244,13 +244,13 @@ export default function StudentSessionsPage() {
                         <div className="flex gap-2 w-full sm:w-auto">
                           <button
                             onClick={() => handleRespondToReaderRequest(b.id, req.id, "accept")}
-                            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#1B5E3B] text-white rounded-xl text-xs font-bold hover:bg-[#124028] transition-colors shadow-sm"
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm"
                           >
                             {isAr ? "قبول وتأكيد" : "Accept"}
                           </button>
                           <button
                             onClick={() => handleRespondToReaderRequest(b.id, req.id, "reject")}
-                            className="flex-1 sm:flex-none px-6 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors"
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-card text-muted-foreground border border-border rounded-xl text-xs font-bold hover:bg-muted transition-colors"
                           >
                             {isAr ? "رفض الطلب" : "Reject"}
                           </button>
@@ -262,14 +262,14 @@ export default function StudentSessionsPage() {
 
                 {/* Expanded Content Details */}
                 {isExpanded && (
-                  <div className="border-t border-slate-100 bg-slate-50/50 p-6 md:p-8 space-y-8 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <div className="border-t border-border bg-muted/30 p-6 md:p-8 space-y-8 animate-in slide-in-from-top-2 fade-in duration-200">
 
                     {/* Actions and Meeting Link Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                       {/* Meeting Section */}
-                      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.student.sessionLinkLabel}</h4>
+                      <div className="bg-card p-5 rounded-2xl border border-border shadow-sm space-y-3">
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t.student.sessionLinkLabel}</h4>
                         {b.meeting_link ? (
                           <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-600">
@@ -279,7 +279,7 @@ export default function StudentSessionsPage() {
                               href={b.meeting_link.startsWith('http') ? b.meeting_link : `https://${b.meeting_link}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full flex items-center justify-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-[#1B5E3B]/10"
+                              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-black/10"
                             >
                               <Video className="w-5 h-5" />
                               {t.student.joinSessionBtn}
@@ -287,9 +287,9 @@ export default function StudentSessionsPage() {
                             </a>
                           </div>
                         ) : (
-                          <div className="flex gap-3 items-start bg-amber-50 rounded-xl p-4 border border-amber-100">
-                            <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                            <p className="text-sm font-medium text-amber-800 leading-relaxed">
+                          <div className="flex gap-3 items-start bg-accent/10 rounded-xl p-4 border border-accent/20">
+                            <Info className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+                            <p className="text-sm font-medium text-accent leading-relaxed">
                               {isActive ? t.student.linkPendingMsg : (isAr ? 'الجلسة غير نشطة ولن يتم إنشاء رابط لها.' : 'Session is inactive. No link will be generated.')}
                             </p>
                           </div>
@@ -298,21 +298,21 @@ export default function StudentSessionsPage() {
 
                       {/* Controls Section */}
                       {isActive && (
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3 flex flex-col justify-center">
-                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{isAr ? "التحكم في الجلسة" : "Session Controls"}</h4>
+                        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm space-y-3 flex flex-col justify-center">
+                          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isAr ? "التحكم في الجلسة" : "Session Controls"}</h4>
                           <div className="flex flex-col gap-3">
                             <Link
                               href={`/student/chat?with=${b.reader_id}`}
-                              className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-[#C9A227]/20 bg-white text-slate-700 px-6 py-3 text-sm font-bold hover:border-[#C9A227] hover:bg-[#FBF5E8] transition-all"
+                              className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-accent/20 bg-card text-foreground px-6 py-3 text-sm font-bold hover:border-accent hover:bg-accent/10 transition-all"
                             >
-                              <MessageSquare className="w-5 h-5 text-[#C9A227]" />
+                              <MessageSquare className="w-5 h-5 text-accent" />
                               {isAr ? "تواصل مع المقرئ في شات خاص" : "Chat privately with Reader"}
                             </Link>
 
                             <div className="flex gap-3">
                               <button
                                 onClick={() => setRescheduleBooking(b)}
-                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-slate-600 px-4 py-3 text-sm font-bold hover:bg-slate-50 transition-all font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-border bg-card text-muted-foreground px-4 py-3 text-sm font-bold hover:bg-muted transition-all font-medium"
                               >
                                 <CalendarClock className="w-4 h-4 opacity-70" />
                                 {isAr ? "تعديل الموعد" : "Reschedule"}
@@ -320,7 +320,7 @@ export default function StudentSessionsPage() {
                               <button
                                 onClick={() => handleCancel(b.id)}
                                 disabled={cancellingId === b.id}
-                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 text-red-600 px-4 py-3 text-sm font-bold hover:bg-red-100 hover:border-red-200 transition-all disabled:opacity-50"
+                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-destructive/10 bg-destructive/5 text-destructive px-4 py-3 text-sm font-bold hover:bg-destructive/10 hover:border-destructive/20 transition-all disabled:opacity-50"
                               >
                                 {cancellingId === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
                                 {isAr ? "إلغاء الجلسة" : "Cancel"}
@@ -332,12 +332,12 @@ export default function StudentSessionsPage() {
                     </div>
 
                     {/* Integrated Comment Box */}
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-[#1B5E3B]/5 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-[#1B5E3B]" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                          <MessageSquare className="w-4 h-4 text-primary" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800">{t.student.commentLabel || t.student.chat}</h4>
+                        <h4 className="text-sm font-bold text-foreground">{t.student.commentLabel || t.student.chat}</h4>
                       </div>
                       <CommentBox bookingId={b.id} />
                     </div>
@@ -354,11 +354,11 @@ export default function StudentSessionsPage() {
       <Dialog open={!!rescheduleBooking} onOpenChange={() => setRescheduleBooking(null)}>
         <DialogContent className="max-w-md p-6 rounded-[2rem]">
           <DialogHeader className="mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
-              <CalendarClock className="w-6 h-6 text-amber-600" />
+            <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+              <CalendarClock className="w-6 h-6 text-accent" />
             </div>
             <DialogTitle className="text-xl font-bold">{isAr ? "اقتراح تعديل الموعد" : "Request Reschedule"}</DialogTitle>
-            <DialogDescription className="text-slate-500 mt-2">
+            <DialogDescription className="text-muted-foreground mt-2">
               {isAr
                 ? `سيتم إرسال اقتراحك للمقرئ (${rescheduleBooking?.reader_name}) للموافقة عليه.`
                 : `Your proposal will be sent to the reader (${rescheduleBooking?.reader_name}) for approval.`}
@@ -368,27 +368,27 @@ export default function StudentSessionsPage() {
           {rescheduleBooking && (
             <div className="space-y-5 py-4">
               <div className="space-y-2.5">
-                <label className="text-sm font-bold text-slate-700 block">{isAr ? "التاريخ الجديد" : "New Date"}</label>
+                <label className="text-sm font-bold text-foreground block">{isAr ? "التاريخ الجديد" : "New Date"}</label>
                 <input
                   type="date"
                   value={proposedDate}
                   onChange={e => setProposedDate(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
-                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B] transition-all font-medium"
+                  className="w-full h-14 border border-border rounded-2xl px-4 text-foreground bg-muted/30 focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                 />
               </div>
               <div className="space-y-2.5">
-                <label className="text-sm font-bold text-slate-700 block">{isAr ? "الوقت الجديد" : "New Time"}</label>
+                <label className="text-sm font-bold text-foreground block">{isAr ? "الوقت الجديد" : "New Time"}</label>
                 <input
                   type="time"
                   value={proposedTime}
                   onChange={e => setProposedTime(e.target.value)}
-                  className="w-full h-14 border border-slate-200 rounded-2xl px-4 text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1B5E3B]/20 focus:border-[#1B5E3B] transition-all font-medium"
+                  className="w-full h-14 border border-border rounded-2xl px-4 text-foreground bg-muted/30 focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                 />
               </div>
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-3">
                 <Info className="w-5 h-5 text-blue-500 shrink-0" />
-                <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed font-medium">
                   {isAr
                     ? "لن يتم تأكيد الموعد الجديد إلا بعد موافقة المقرئ عليه. في حال الرفض، سيبقى الموعد القديم فعالاً."
                     : "The new time won't be confirmed until the reader approves it. If rejected, the old time remains active."}
@@ -397,11 +397,11 @@ export default function StudentSessionsPage() {
             </div>
           )}
           <DialogFooter className="gap-3 sm:gap-0">
-            <Button variant="outline" className="h-12 rounded-xl font-bold border-slate-200" onClick={() => setRescheduleBooking(null)}>{isAr ? "إلغاء التعديل" : "Cancel"}</Button>
+            <Button variant="outline" className="h-12 rounded-xl font-bold border-border" onClick={() => setRescheduleBooking(null)}>{isAr ? "إلغاء التعديل" : "Cancel"}</Button>
             <Button
               onClick={handleRescheduleSubmit}
               disabled={!proposedDate || !proposedTime || submittingReschedule}
-              className="h-12 rounded-xl bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold"
+              className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
             >
               {submittingReschedule ? <Loader2 className="w-5 h-5 animate-spin mx-2" /> : (isAr ? "إرسال الاقتراح للمقرئ" : "Send Proposal")}
             </Button>
@@ -447,15 +447,15 @@ function CommentBox({ bookingId }: { bookingId: string }) {
       {comments.length > 0 && (
         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
           {comments.map((c, i) => (
-            <div key={c.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 50}ms` }}>
+            <div key={c.id} className="bg-muted/30 border border-border rounded-2xl p-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">{c.author_name}</span>
-                <span className="text-[10px] font-medium text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-bold text-foreground bg-card px-2.5 py-1 rounded-lg border border-border shadow-sm">{c.author_name}</span>
+                <span className="text-[10px] font-medium text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md">
                   <Clock className="w-3 h-3 inline-block mr-1 rtl:ml-1 rtl:mr-0 opacity-50" />
                   {new Date(c.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
                 </span>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed font-medium mt-1">{c.comment_text}</p>
+              <p className="text-sm text-foreground/80 leading-relaxed font-medium mt-1">{c.comment_text}</p>
             </div>
           ))}
         </div>
@@ -468,12 +468,12 @@ function CommentBox({ bookingId }: { bookingId: string }) {
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={t.student.writeCommentPlaceholder}
-          className="w-full border-2 border-slate-100 bg-slate-50 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-slate-700 focus:bg-white focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] placeholder:text-slate-400 transition-all font-medium"
+          className="w-full border-2 border-border bg-muted/30 rounded-2xl pl-16 pr-6 rtl:pr-16 rtl:pl-6 py-4 text-sm text-foreground focus:bg-card focus:ring-4 focus:ring-primary/5 focus:border-primary placeholder:text-muted-foreground transition-all font-medium"
         />
         <button
           onClick={send}
           disabled={!text.trim() || sending}
-          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-[#1B5E3B] text-white rounded-xl text-sm font-bold hover:bg-[#124028] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 transition-all group-focus-within:shadow-lg shadow-emerald-900/20"
+          className="absolute left-3 top-3 bottom-3 rtl:right-3 rtl:left-auto px-4 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground transition-all group-focus-within:shadow-lg shadow-black/10"
         >
           {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:rotate-180" />}
         </button>

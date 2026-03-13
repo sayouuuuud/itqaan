@@ -1,88 +1,72 @@
 "use client"
 
-import { useState, use, useEffect, useRef } from "react"
-import Link from "next/link"
+import { useState, useEffect, useRef } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
-import {
-  Mic, Pause, Play, SkipBack, SkipForward,
-  SendHorizontal, Loader2, CheckCircle2,
-  CalendarClock, Award, ChevronLeft, ChevronRight,
-  Info
+import { 
+  Play, Pause, RotateCcw, CheckCircle, XCircle, 
+  ChevronLeft, ChevronRight, MessageSquare, Award,
+  Clock, AlertCircle, Loader2, Info, ArrowLeft, Mic, Calendar, X
 } from "lucide-react"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
-export default function RecitationReviewDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: recitationId } = use(params)
+interface Recitation {
+  id: string
+  student_name: string
+  surah_name: string
+  ayah_from: number
+  ayah_to: number
+  audio_url: string
+  status: string
+  created_at: string
+}
+
+export default function RecitationReviewPage() {
+  const { id } = useParams()
+  const router = useRouter()
   const { t, locale } = useI18n()
   const isAr = locale === 'ar'
-
-  const [recitation, setRecitation] = useState<any>(null)
+  
+  const [recitation, setRecitation] = useState<Recitation | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  const [notes, setNotes] = useState("")
-  const [verdict, setVerdict] = useState<"mastered" | "needs_session" | null>(null)
+  const [verdict, setVerdict] = useState<'mastered' | 'needs_session' | null>(null)
+  const [feedback, setFeedback] = useState("")
+  const [submitting, setSubmitting] = useState(false)
   const [mistakeWords, setMistakeWords] = useState<string[]>([])
-  const [currentMistakeWord, setCurrentMistakeWord] = useState("")
-
+  const [newMistake, setNewMistake] = useState("")
+  
+  // Audio state
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [playbackSpeed, setPlaybackSpeed] = useState("1.0")
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [submitError, setSubmitError] = useState("")
-
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  const serverErrorMsg = t.student?.serverError ?? (isAr ? "تعذّر الاتصال بالخادم" : "Server connection error")
+  const [playbackRate, setPlaybackRate] = useState(1)
 
   useEffect(() => {
-    async function fetchRecitation() {
+    async function load() {
       try {
-        const res = await fetch(`/api/recitations/${recitationId}`)
-        if (!res.ok) throw new Error("Failed to fetch recitation")
-        const data = await res.json()
-        setRecitation(data.recitation)
-        setDuration(data.recitation.audio_duration_seconds || 0)
-
-        if (data.recitation.review?.detailed_feedback) {
-          setNotes(data.recitation.review.detailed_feedback)
-        }
-        if (data.recitation.review?.verdict) {
-          setVerdict(data.recitation.review.verdict)
+        const res = await fetch(`/api/recitations/${id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setRecitation(data.recitation)
+        } else {
+          toast.error("Recitation not found")
+          router.push("/reader/recitations")
         }
       } catch (err) {
-        setError(serverErrorMsg)
-        console.error(err)
+        toast.error("Error loading recitation")
       } finally {
         setLoading(false)
       }
     }
-    fetchRecitation()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recitationId])
-
-  useEffect(() => {
-    if (audioRef.current && recitation?.audio_url) {
-      audioRef.current.playbackRate = parseFloat(playbackSpeed)
-    }
-  }, [playbackSpeed, recitation])
-
-  const formatTime = (time: number) => {
-    if (!time || isNaN(time)) return "00:00"
-    const m = Math.floor(time / 60)
-    const s = Math.floor(time % 60)
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
-  }
+    load()
+  }, [id, router])
 
   const togglePlay = () => {
     if (!audioRef.current) return
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play()
-    }
+    if (isPlaying) audioRef.current.pause()
+    else audioRef.current.play()
     setIsPlaying(!isPlaying)
   }
 
@@ -92,41 +76,52 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
     }
   }
 
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const percentage = x / rect.width
-    const newTime = percentage * duration
-    audioRef.current.currentTime = newTime
-    setCurrentTime(newTime)
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration)
+    }
+  }
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value)
+    if (audioRef.current) {
+      audioRef.current.currentTime = time
+      setCurrentTime(time)
+    }
+  }
+
+  const formatTime = (time: number) => {
+    const mins = Math.floor(time / 60)
+    const secs = Math.floor(time % 60)
+    return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
   const handleSubmit = async () => {
     if (!verdict) {
-      setSubmitError(isAr ? "يجب اختيار القرار أولاً" : "Please select a verdict first")
+      toast.error(isAr ? "يرجى اختيار النتيجة أولاً" : "Please select a verdict first")
       return
     }
-    setSubmitError("")
+
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/recitations/${recitationId}/review`, {
+      const res = await fetch(`/api/recitations/${id}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           verdict,
-          feedback: notes,
-          mistakeWords,
-        }),
+          feedback,
+          mistakeWords
+        })
       })
+
       if (res.ok) {
-        setSubmitted(true)
+        toast.success(t.reader.reviewSubmitted)
+        router.push("/reader/recitations")
       } else {
-        const data = await res.json()
-        setSubmitError(data.error || (isAr ? "حدث خطأ أثناء الحفظ" : "Error saving review"))
+        toast.error("Failed to submit review")
       }
-    } catch {
-      setSubmitError(isAr ? "حدث خطأ أثناء الحفظ" : "Error saving review")
+    } catch (err) {
+      toast.error("Error submitting review")
     } finally {
       setSubmitting(false)
     }
@@ -134,365 +129,283 @@ export default function RecitationReviewDetailPage({ params }: { params: Promise
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <Loader2 className="w-10 h-10 text-[#1B5E3B] animate-spin" />
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     )
   }
 
-  if (error || !recitation) {
-    return (
-      <div className="max-w-2xl mx-auto mt-12 p-8 bg-red-50 border border-red-100 rounded-3xl text-center shadow-sm">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Info className="w-8 h-8 text-red-600" />
-        </div>
-        <p className="text-red-700 font-bold mb-2">{error || t.reader.recitationNotFound}</p>
-        <Link href="/reader/recitations" className="text-sm text-red-600 underline">
-          {t.reader.backToRecitations}
-        </Link>
-      </div>
-    )
-  }
-
-  if (submitted) {
-    return (
-      <div className="max-w-xl mx-auto text-center py-20 px-6">
-        <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-100
-          ${verdict === 'mastered' ? 'bg-emerald-500 text-white' : 'bg-[#C9A227] text-white'}`}>
-          <CheckCircle2 className="w-10 h-10" />
-        </div>
-        <h2 className="text-2xl font-bold text-slate-800 mb-3">{t.reader.reviewSubmittedSuccessfully}</h2>
-        <p className="text-slate-500 mb-8 leading-relaxed">{t.reader.studentWillBeNotified}</p>
-        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-700 mb-10">
-          {verdict === 'mastered' ? (
-            <>
-              <Award className="w-5 h-5 text-emerald-600" />
-              <span>{isAr ? 'تم تقييم التلاوة: متقن' : 'Verdict: Mastered'}</span>
-            </>
-          ) : (
-            <>
-              <CalendarClock className="w-5 h-5 text-[#C9A227]" />
-              <span>{isAr ? 'تم تقييم التلاوة: يحتاج جلسة' : 'Verdict: Needs Session'}</span>
-            </>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/reader/recitations" className="w-full sm:w-auto px-8 py-3.5 bg-[#1B5E3B] text-white rounded-2xl font-bold shadow-lg shadow-emerald-900/10 hover:bg-[#124028] transition-all">
-            {t.reader.backToRecitations}
-          </Link>
-          <Link href="/reader" className="w-full sm:w-auto px-8 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all">
-            {t.reader.dashboard}
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const isPending = recitation.status === 'pending' || recitation.status === 'in_review' || recitation.status === 'session_booked'
-  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
+  if (!recitation) return null
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      <audio
-        ref={audioRef}
-        src={recitation.audio_url}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
-        onLoadedMetadata={(e) => {
-          if (!duration) setDuration(e.currentTarget.duration)
-        }}
-      />
+    <div className="bg-card min-h-full -m-6 lg:-m-8 p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header with Back Button */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => router.back()}
+            className="w-14 h-14 rounded-2xl bg-card/60 backdrop-blur-xl border border-border flex items-center justify-center hover:bg-muted transition-all active:scale-95 shadow-lg shadow-black/5"
+          >
+            <ArrowLeft className="w-6 h-6 rtl:rotate-180 text-foreground" />
+          </button>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-foreground tracking-tight">{isAr ? "تقييم التلاوة" : "Recitation Review"}</h1>
+            <p className="text-muted-foreground font-medium flex items-center gap-2">
+              <span className="text-primary font-black uppercase tracking-widest text-[10px] bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                {recitation.surah_name}
+              </span>
+              • {t.reader.student}: <span className="text-foreground font-bold">{recitation.student_name}</span>
+            </p>
+          </div>
+        </div>
 
-      {/* Breadcrumb & Navigation */}
-      <div className="flex items-center gap-2 mb-2">
-        <Link href="/reader/recitations" className="text-xs font-bold text-slate-400 hover:text-[#1B5E3B] transition-colors flex items-center gap-1">
-          {isAr ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-          {t.reader.backToRecitations}
-        </Link>
+        <div className="flex items-center gap-3 bg-card/40 backdrop-blur-md border border-border p-4 rounded-2xl shadow-sm">
+          <Clock className="w-5 h-5 text-primary" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{isAr ? "تاريخ التقديم" : "Submitted On"}</span>
+            <span className="text-sm font-black text-foreground">
+              {new Date(recitation.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Compact Header */}
-      <header className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
-        <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-[#1B5E3B]/5 flex items-center justify-center shrink-0 border border-[#1B5E3B]/10">
-            <Mic className="w-8 h-8 text-[#1B5E3B]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-xl md:text-2xl font-bold text-slate-800">{recitation.student_name}</h1>
-              <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider
-                ${isPending ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                  recitation.status === 'mastered' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                    'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                {isPending ? t.reader.newRecitationBadge : recitation.status === 'mastered' ? (isAr ? 'متقن' : 'Mastered') : (isAr ? 'يحتاج جلسة' : 'Needs Session')}
-              </span>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-[#C9A227]" /> {t.reader.surah} {recitation.surah_name}</span>
-              <span className="w-1 h-1 bg-slate-200 rounded-full" />
-              <span>{new Date(recitation.created_at).toLocaleDateString(isAr ? "ar-SA" : "en-US", { day: "numeric", month: "long" })}</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 gap-6">
-        {/* Modern Compact Audio Player */}
-        <div className="bg-[#1B5E3B] rounded-2xl p-5 shadow-sm text-white relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 to-transparent opacity-50 pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col gap-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 animate-pulse">
-                  <div className="w-4 h-1 bg-white/40 rounded-full mx-0.5" />
-                  <div className="w-4 h-3 bg-emerald-400 rounded-full mx-0.5" />
-                  <div className="w-4 h-2 bg-white/40 rounded-full mx-0.5" />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Left Column: Player and Assessment */}
+        <div className="xl:col-span-2 space-y-8">
+          {/* Audio Player Card - Glassmorphism */}
+          <div className="p-1 rounded-[40px] border border-border bg-muted/20 shadow-2xl shadow-black/5 relative overflow-hidden group">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-50" />
+            
+            <div className="bg-card/80 backdrop-blur-2xl p-8 rounded-[38px] relative z-10 space-y-8">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-[22px] flex items-center justify-center text-primary shadow-inner">
+                  <Mic className="w-8 h-8" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none mb-1">{isAr ? 'تلاوة الطالب' : 'Student Recitation'}</span>
-                  <span className="text-sm font-bold truncate max-w-[150px]">{recitation.surah_name}</span>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-foreground tracking-tight">{isAr ? "الاستماع للتلاوة" : "Audio Recording"}</h3>
+                  <p className="text-muted-foreground text-sm font-medium">{isAr ? "من الآية" : "From Ayah"} {recitation.ayah_from} {isAr ? "إلى" : "to"} {recitation.ayah_to}</p>
                 </div>
               </div>
 
-              {/* Refined Speed Selection */}
-              <div className="flex items-center gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
-                {["0.8", "1.0", "1.2", "1.5"].map(speed => (
-                  <button
-                    key={speed}
-                    onClick={() => setPlaybackSpeed(speed)}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-xl font-bold transition-all
-                      ${playbackSpeed === speed ? 'bg-white text-[#1B5E3B] shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+              {/* Enhanced Audio Controls */}
+              <div className="space-y-6">
+                <div className="relative group/seeker">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || 100}
+                    value={currentTime}
+                    onChange={handleSeek}
+                    className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary group-hover/seeker:h-3 transition-all"
+                  />
+                  <div className="flex justify-between mt-3 px-1">
+                    <span className="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">{formatTime(currentTime)}</span>
+                    <span className="text-xs font-black text-muted-foreground">{formatTime(duration)}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-8">
+                  <button 
+                    onClick={() => { if(audioRef.current) audioRef.current.currentTime -= 5 }}
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-90"
                   >
-                    {speed}x
+                    <RotateCcw className="w-6 h-6" />
                   </button>
-                ))}
-              </div>
-            </div>
 
-            <div className="flex items-center gap-6 md:gap-8 px-4">
-              <button
-                onClick={() => { if (audioRef.current) audioRef.current.currentTime -= 10 }}
-                className="p-2 text-white/50 hover:text-white transition-colors"
-              >
-                <SkipBack className="w-6 h-6 rtl:rotate-180" />
-              </button>
+                  <button
+                    onClick={togglePlay}
+                    className="w-24 h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
+                  >
+                    {isPlaying ? <Pause className="w-10 h-10 fill-current" /> : <Play className="w-10 h-10 fill-current ml-2" />}
+                  </button>
 
-              <button
-                onClick={togglePlay}
-                className="w-12 h-12 bg-white text-[#1B5E3B] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 active:scale-95 transition-all"
-              >
-                {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 ml-0.5 rtl:mr-0.5 rtl:ml-0 fill-current" />}
-              </button>
-
-              <button
-                onClick={() => { if (audioRef.current) audioRef.current.currentTime += 10 }}
-                className="p-2 text-white/50 hover:text-white transition-colors"
-              >
-                <SkipForward className="w-6 h-6 rtl:rotate-180" />
-              </button>
-
-              <div className="flex-1 space-y-2 mt-1">
-                <div className="relative w-full h-2.5 bg-white/10 rounded-full cursor-pointer overflow-hidden backdrop-blur-md" onClick={handleSeek}>
-                  <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-300 transition-all duration-200" style={{ width: `${progressPercentage}%` }} />
-                </div>
-                <div className="flex justify-between text-[10px] font-bold text-white/40 tracking-widest font-mono">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
+                  <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-2xl border border-border">
+                    {[0.5, 1, 1.5, 2].map(speed => (
+                      <button
+                        key={speed}
+                        onClick={() => {
+                          setPlaybackRate(speed)
+                          if (audioRef.current) audioRef.current.playbackRate = speed
+                        }}
+                        className={cn(
+                          "px-4 py-2 rounded-xl text-xs font-black transition-all",
+                          playbackRate === speed ? "bg-card text-primary shadow-md border border-primary/20 scale-105" : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Assessment & Feedback Section */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100">
-              <Award className="w-4 h-4 text-[#C9A227]" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-800">{isAr ? "التقييم والقرار النهائي" : "Review & Final Decision"}</h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">{isAr ? "قم بتقييم تلاوة الطالب بعناية" : "Provide careful assessment of the student recitation"}</p>
+              <audio
+                ref={audioRef}
+                src={recitation.audio_url}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={() => setIsPlaying(false)}
+                className="hidden"
+              />
             </div>
           </div>
 
-          {/* Verdict Selection */}
-          {isPending ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Assessment Section */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/20 rounded-xl border border-accent/20">
+                <Award className="w-5 h-5 text-accent" />
+              </div>
+              <h3 className="text-xl font-black text-foreground tracking-tight uppercase tracking-widest text-sm">{isAr ? "تقييم المستوى" : "Skill Assessment"}</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button
                 onClick={() => setVerdict('mastered')}
-                className={`flex items-start gap-4 p-4 rounded-2xl border transition-all group/v
-                  ${verdict === 'mastered'
-                    ? 'border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-50'
-                    : 'border-slate-100 bg-slate-50/30 hover:border-emerald-200 hover:bg-emerald-50/20'}`}
+                className={cn(
+                  "p-8 rounded-[32px] border-2 transition-all duration-500 flex flex-col items-center gap-4 text-center group",
+                  verdict === 'mastered' 
+                    ? "bg-primary/10 border-primary ring-4 ring-primary/5" 
+                    : "bg-card/40 border-border hover:border-primary/30 hover:bg-muted/30"
+                )}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all
-                  ${verdict === 'mastered' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-white border border-slate-100 text-slate-400 group-hover/v:border-emerald-200 group-hover/v:text-emerald-500'}`}>
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className={cn(
+                  "w-20 h-20 rounded-[24px] flex items-center justify-center transition-all duration-500",
+                  verdict === 'mastered' ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-110" : "bg-muted text-muted-foreground group-hover:scale-105"
+                )}>
+                  <CheckCircle className="w-10 h-10" />
                 </div>
-                <div className={`text-${isAr ? 'right' : 'left'}`}>
-                  <h4 className={`font-bold text-sm mb-0.5 ${verdict === 'mastered' ? 'text-emerald-900' : 'text-slate-700 font-bold'}`}>
-                    {isAr ? "متقن" : "Mastered"}
-                  </h4>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    {isAr ? "الطالب أتقن التلاوة والأحكام بشكل سليم" : "Student mastered the recitation and tajweed"}
+                <div className="space-y-2">
+                  <h4 className="text-xl font-black text-foreground">{isAr ? "متقن" : "Mastered"}</h4>
+                  <p className="text-muted-foreground text-xs font-semibold leading-relaxed">
+                    {isAr ? "التلاوة صحيحة وبإمكان الطالب الانتقال للمرحلة التالية." : "Recitation is correct and student can proceed to the next stage."}
                   </p>
                 </div>
               </button>
 
               <button
                 onClick={() => setVerdict('needs_session')}
-                className={`flex items-start gap-4 p-4 rounded-2xl border transition-all group/v
-                  ${verdict === 'needs_session'
-                    ? 'border-[#C9A227] bg-amber-50/50 shadow-sm ring-2 ring-amber-50'
-                    : 'border-slate-100 bg-slate-50/30 hover:border-[#C9A227]/30 hover:bg-amber-50/20'}`}
+                className={cn(
+                  "p-8 rounded-[32px] border-2 transition-all duration-500 flex flex-col items-center gap-4 text-center group",
+                  verdict === 'needs_session' 
+                    ? "bg-amber-500/10 border-amber-500 ring-4 ring-amber-500/5" 
+                    : "bg-card/40 border-border hover:border-amber-500/30 hover:bg-muted/30"
+                )}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all
-                  ${verdict === 'needs_session' ? 'bg-[#C9A227] text-white shadow-sm' : 'bg-white border border-slate-100 text-slate-400 group-hover/v:border-amber-200 group-hover/v:text-[#C9A227]'}`}>
-                  <CalendarClock className="w-5 h-5" />
+                <div className={cn(
+                  "w-20 h-20 rounded-[24px] flex items-center justify-center transition-all duration-500",
+                  verdict === 'needs_session' ? "bg-amber-500 text-white shadow-xl shadow-amber-500/20 scale-110" : "bg-muted text-muted-foreground group-hover:scale-105"
+                )}>
+                  <Calendar className="w-10 h-10" />
                 </div>
-                <div className={`text-${isAr ? 'right' : 'left'}`}>
-                  <h4 className={`font-bold text-base mb-1 ${verdict === 'needs_session' ? 'text-amber-900' : 'text-slate-700 font-bold'}`}>
-                    {isAr ? "يحتاج جلسة" : "Needs Session"}
-                  </h4>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {isAr ? "توجد أخطاء تتطلب جلسة تصحيح مباشرة" : "Errors found that require a live correction session"}
+                <div className="space-y-2">
+                  <h4 className="text-xl font-black text-foreground">{isAr ? "يحتاج جلسة مصححة" : "Needs Session"}</h4>
+                  <p className="text-muted-foreground text-xs font-semibold leading-relaxed">
+                    {isAr ? "هناك ملاحظات تتطلب جلسة تصحيحية مباشرة مع المعلم." : "Notes require a live correction session with the teacher."}
                   </p>
                 </div>
               </button>
             </div>
-          ) : (
-            <div className={`p-5 rounded-3xl border flex items-center gap-4 
-              ${recitation.status === 'mastered' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-amber-50 border-amber-100 text-amber-800'}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 
-                ${recitation.status === 'mastered' ? 'bg-emerald-500 text-white' : 'bg-[#C9A227] text-white'}`}>
-                {recitation.status === 'mastered' ? <CheckCircle2 className="w-5 h-5" /> : <CalendarClock className="w-5 h-5" />}
-              </div>
-              <div>
-                <p className="text-sm font-bold">
-                  {isAr ? 'تم تقييم هذه التلاوة مسبقاً' : 'This recitation was already reviewed'}
-                </p>
-                <p className="text-xs opacity-80">
-                  {isAr ? `الحالة: ${recitation.status === 'mastered' ? 'متقن' : 'يحتاج جلسة'}` : `Status: ${recitation.status}`}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Feedback Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-bold text-slate-700">{t.reader.readerNotesLabel}</label>
-              <div className="h-px flex-1 bg-slate-100 mx-4" />
-              <Info className="w-4 h-4 text-slate-300" />
-            </div>
-            <textarea
-              className="w-full min-h-[120px] p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/10 resize-none text-sm text-slate-700 leading-relaxed placeholder:text-slate-300"
-              placeholder={t.reader.notesPlaceholder}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              readOnly={!isPending}
-            />
-            {isPending && (
-              <p className="text-[11px] text-[#1B5E3B]/70 font-medium px-2">
-                {t.reader.readerNotesHint}
-              </p>
-            )}
           </div>
+        </div>
 
-          {/* Word Mistakes Section */}
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-bold text-slate-700">{t.reader.mistakeWordsLabel}</label>
-              <div className="h-px flex-1 bg-slate-100 mx-4" />
-            </div>
+        {/* Right Column: Feedback and Submit */}
+        <div className="space-y-8">
+          <div className="p-1 rounded-[40px] border border-border bg-muted/20 shadow-2xl shadow-black/5 relative overflow-hidden h-full">
+            <div className="bg-card/80 backdrop-blur-2xl p-8 rounded-[38px] space-y-8 h-full flex flex-col">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-[20px] flex items-center justify-center text-blue-500 shadow-inner">
+                  <MessageSquare className="w-8 h-8" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-foreground tracking-tight">{isAr ? "الملاحظات" : "Feedback"}</h3>
+                  <p className="text-muted-foreground text-sm font-medium">{isAr ? "كيف كان أداء الطالب؟" : "How was the student's performance?"}</p>
+                </div>
+              </div>
 
-            {isPending && (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={currentMistakeWord}
-                  onChange={(e) => setCurrentMistakeWord(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      if (currentMistakeWord.trim() !== '' && !mistakeWords.includes(currentMistakeWord.trim())) {
-                        setMistakeWords([...mistakeWords, currentMistakeWord.trim()])
-                        setCurrentMistakeWord("")
-                      }
-                    }
-                  }}
-                  className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/20"
-                  placeholder={t.reader.mistakeWordsPlaceholder}
+              <div className="relative flex-grow min-h-[150px]">
+                <textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder={isAr ? "اكتب ملاحظاتك للطالب هنا... (اختياري)" : "Write your feedback for the student here... (optional)"}
+                  className="w-full h-full p-6 rounded-[28px] bg-card border border-border focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none font-medium text-foreground leading-relaxed shadow-inner"
                 />
+              </div>
+
+              {/* Mistake Words Restoration */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-destructive" />
+                  {isAr ? "الكلمات الخاطئة" : "Mistake Words"}
+                </h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMistake}
+                    onChange={(e) => setNewMistake(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newMistake.trim()) {
+                        setMistakeWords([...mistakeWords, newMistake.trim()])
+                        setNewMistake("")
+                      }
+                    }}
+                    placeholder={isAr ? "أضف كلمة وأطغط Enter..." : "Add word & press Enter..."}
+                    className="flex-grow h-12 px-4 rounded-xl bg-muted/50 border border-border focus:bg-card focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-sm"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newMistake.trim()) {
+                        setMistakeWords([...mistakeWords, newMistake.trim()])
+                        setNewMistake("")
+                      }
+                    }}
+                    className="h-12 px-4 bg-primary text-primary-foreground rounded-xl font-black text-sm hover:scale-105 active:scale-95 transition-all"
+                  >
+                    {isAr ? "إضافة" : "Add"}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {mistakeWords.map((word, i) => (
+                    <span key={i} className="flex items-center gap-2 bg-destructive/10 text-destructive border border-destructive/20 px-3 py-1.5 rounded-xl text-xs font-black animate-in zoom-in-50 duration-300">
+                      {word}
+                      <button onClick={() => setMistakeWords(mistakeWords.filter((_, idx) => idx !== i))}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4">
+                <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                  <Info className="w-5 h-5 text-primary shrink-0" />
+                  <p className="text-[10px] font-bold text-muted-foreground leading-relaxed uppercase tracking-wider">
+                    {isAr ? "سيصل الطالب إشعار فور اعتماد النتيجة والملاحظات." : "The student will be notified once the result is approved."}
+                  </p>
+                </div>
+
                 <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (currentMistakeWord.trim() !== '' && !mistakeWords.includes(currentMistakeWord.trim())) {
-                      setMistakeWords([...mistakeWords, currentMistakeWord.trim()])
-                      setCurrentMistakeWord("")
-                    }
-                  }}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-sm font-bold transition-colors"
-                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting || !verdict}
+                  className={cn(
+                    "w-full h-20 rounded-[28px] font-black text-lg flex items-center justify-center gap-4 transition-all active:scale-[0.98] shadow-2xl relative overflow-hidden group",
+                    verdict ? "bg-primary text-primary-foreground shadow-primary/30" : "bg-muted text-muted-foreground cursor-not-allowed opacity-70"
+                  )}
                 >
-                  {isAr ? "إضافة" : "Add"}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  {submitting ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="w-6 h-6" />
+                      <span>{isAr ? "اعتماد وإرسال التقييم" : "Approve & Send Feedback"}</span>
+                    </>
+                  )}
                 </button>
               </div>
-            )}
-            
-            {isPending && (
-              <p className="text-[11px] text-amber-600 font-medium px-2">
-                {t.reader.mistakeWordsHint}
-              </p>
-            )}
-
-            {mistakeWords.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {mistakeWords.map((word, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-100 px-3 py-1.5 rounded-lg text-sm font-medium">
-                    <span>{word}</span>
-                    {isPending && (
-                      <button
-                        type="button"
-                        onClick={() => setMistakeWords(mistakeWords.filter((_, i) => i !== idx))}
-                        className="text-red-400 hover:text-red-700 rounded-full w-5 h-5 flex items-center justify-center -mr-1 rtl:-mr-0 rtl:-ml-1"
-                      >
-                        &times;
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {mistakeWords.length === 0 && !isPending && (
-              <p className="text-sm text-slate-400">{isAr ? "لم يتم تسجيل كلمات خاطئة." : "No mispronounced words recorded."}</p>
-            )}
+            </div>
           </div>
-
-          {submitError && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-xs font-bold flex items-center gap-2 border border-red-100 animate-in fade-in slide-in-from-top-2">
-              <Info className="w-4 h-4" />
-              {submitError}
-            </div>
-          )}
-
-          {/* Refined Submit Button */}
-          {isPending && (
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={handleSubmit}
-                disabled={submitting || !verdict}
-                className="w-full md:w-auto px-8 h-12 bg-[#1B5E3B] text-white rounded-xl font-bold text-sm hover:bg-[#124028] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-sm disabled:opacity-40 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <SendHorizontal className="w-5 h-5 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />}
-                {submitting ? t.reader.savingNow : (isAr ? "تأكيد وإرسال التقييم" : "Confirm & Send Review")}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -191,17 +191,17 @@ export default function SubmitRecitationPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center py-10 px-4">
         <div className="w-full max-w-md mx-auto text-center space-y-6">
-          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
-            <Send className="w-10 h-10 text-emerald-600" />
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+            <Send className="w-10 h-10 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800">{t.student.recitationReceived}</h2>
-          <p className="text-slate-500 text-sm leading-relaxed">
+          <h2 className="text-2xl font-bold text-foreground">{t.student.recitationReceived}</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             {t.student.recitationReceivedDesc}
           </p>
-          <p className="text-slate-400 text-xs leading-relaxed">
+          <p className="text-muted-foreground/60 text-xs leading-relaxed">
             {t.student.reviewTakesTime}
           </p>
-          <button onClick={() => router.push('/student')} className="bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3 px-8 rounded-xl transition-colors">
+          <button onClick={() => router.push('/student')} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-xl transition-colors">
             {t.student.backToDashboard}
           </button>
         </div>
@@ -212,18 +212,18 @@ export default function SubmitRecitationPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar h-full min-h-[85vh]">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{t.student.submitTitleFatiha}</h1>
-        <p className="text-gray-500 dark:text-gray-400">{t.student.submitDescFatiha}</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">{t.student.submitTitleFatiha}</h1>
+        <p className="text-muted-foreground">{t.student.submitDescFatiha}</p>
       </div>
 
       <div className="max-w-3xl mx-auto flex flex-col gap-8">
         {/* Recording Controls */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center relative min-h-[500px]">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-8 flex flex-col items-center justify-center relative min-h-[500px]">
           <div className="mb-10 text-center">
-            <div className="text-7xl font-mono font-light tracking-widest text-gray-800 dark:text-white mb-3">
+            <div className="text-7xl font-mono font-light tracking-widest text-foreground mb-3">
               {formatTime(timer)}
             </div>
-            <span className="text-base text-gray-400 dark:text-gray-500 font-medium">
+            <span className="text-base text-muted-foreground font-medium">
               {recordingState === "idle" && t.student.readyToRecord}
               {recordingState === "recording" && t.student.recordingStatus}
               {recordingState === "saved" && t.student.recordingSavedStatus}
@@ -234,7 +234,7 @@ export default function SubmitRecitationPage() {
             {waveformBars.map((h, i) => (
               <div
                 key={i}
-                className={`w-1.5 rounded-full bg-slate-400 transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"}`}
+                className={`w-1.5 rounded-full bg-muted-foreground transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"}`}
                 style={{
                   height: recordingState === "recording" ? `${h * 6}px` : `${h * 4}px`,
                   animationDelay: `${i * 40}ms`,
@@ -248,11 +248,11 @@ export default function SubmitRecitationPage() {
               <button
                 disabled={recordingState === "idle"}
                 onClick={resetAll}
-                className={`w-14 h-14 rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-slate-50 hover:text-slate-600 cursor-pointer"}`}
+                className={`w-14 h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
               >
                 <RotateCcw className="w-7 h-7" />
               </button>
-              <span className="text-sm text-gray-400 dark:text-gray-500 font-bold">{t.student.resetBtn}</span>
+              <span className="text-sm text-muted-foreground font-bold">{t.student.resetBtn}</span>
             </div>
 
             <div className="flex flex-col items-center gap-4 relative -top-6">
@@ -261,7 +261,7 @@ export default function SubmitRecitationPage() {
                   onPointerDown={handlePointerDown}
                   onPointerUp={handlePointerUp}
                   onPointerLeave={handlePointerUp}
-                  className="w-28 h-28 rounded-full bg-[#C9A227] text-white shadow-lg hover:shadow-xl hover:bg-yellow-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-[#C9A227]/20 select-none touch-none"
+                  className="w-28 h-28 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl hover:bg-accent/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-accent/20 select-none touch-none"
                 >
                   <Mic className="w-14 h-14" />
                 </button>
@@ -269,7 +269,7 @@ export default function SubmitRecitationPage() {
               {recordingState === "recording" && (
                 <button
                   onPointerUp={handlePointerUp}
-                  className="w-28 h-28 rounded-full bg-red-500 text-white shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-red-500/20 select-none touch-none"
+                  className="w-28 h-28 rounded-full bg-destructive text-destructive-foreground shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-destructive/20 select-none touch-none"
                 >
                   <Square className="w-12 h-12" />
                 </button>
@@ -277,12 +277,12 @@ export default function SubmitRecitationPage() {
               {recordingState === "saved" && (
                 <button
                   disabled
-                  className="w-28 h-28 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center select-none touch-none"
+                  className="w-28 h-28 rounded-full bg-muted text-muted-foreground/30 flex items-center justify-center select-none touch-none"
                 >
                   <Mic className="w-14 h-14" />
                 </button>
               )}
-              <span className="text-base font-bold text-[#1B5E3B] dark:text-[#C9A227]">
+              <span className="text-base font-bold text-primary dark:text-accent">
                 {recordingState === "recording" ? t.student.releaseToStop : t.student.holdToRecord}
               </span>
             </div>
@@ -291,22 +291,22 @@ export default function SubmitRecitationPage() {
               <button
                 disabled={recordingState !== "saved"}
                 onClick={togglePlayback}
-                className={`w-14 h-14 rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-slate-50 hover:text-slate-600 cursor-pointer"}`}
+                className={`w-14 h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
               >
                 {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
               </button>
-              <span className="text-sm text-gray-400 dark:text-gray-500 font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
+              <span className="text-sm text-muted-foreground font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
             </div>
           </div>
 
           {/* Qira'ah Selection */}
           <div className="w-full max-w-sm opacity-90">
-            <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 mr-1">{t.student.selectedQiraahLabel}</label>
+            <label className="block text-xs font-bold text-muted-foreground mb-2 mr-1">{t.student.selectedQiraahLabel}</label>
             <select
               value={qiraah}
               onChange={(e) => setQiraah(e.target.value)}
               disabled={recordingState === "recording"}
-              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-4 px-5 text-base font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/10 transition-all appearance-none cursor-pointer"
+              className="w-full bg-muted/50 border border-border rounded-xl py-4 px-5 text-base font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10 transition-all appearance-none cursor-pointer"
               style={{ direction: 'rtl' }}
             >
               <option value="hafs">{t.qiraat.hafs}</option>
@@ -330,14 +330,14 @@ export default function SubmitRecitationPage() {
         <div className="flex gap-4">
           <button
             onClick={() => router.push('/student')}
-            className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-4 px-6 rounded-2xl font-bold shadow-sm transition-colors text-center"
+            className="flex-1 bg-card border border-border text-destructive hover:bg-destructive/10 py-4 px-6 rounded-2xl font-bold shadow-sm transition-colors text-center"
           >
             {t.student.cancelBtn}
           </button>
           <button
             disabled={recordingState !== "saved"}
             onClick={handleSubmit}
-            className="flex-[2] bg-[#C9A227] disabled:opacity-50 disabled:cursor-not-allowed text-white hover:bg-yellow-600 py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            className="flex-[2] bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-accent-foreground hover:bg-accent/90 py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
           >
             <span>{submitting ? t.student.submittingStatus : t.student.submitBtn}</span>
             {!submitting && <Send className="w-5 h-5 rtl:-scale-x-100 transform rotate-180" />}
@@ -345,8 +345,8 @@ export default function SubmitRecitationPage() {
         </div>
 
         {/* Note at the bottom */}
-        <div className="text-center p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20">
-          <p className="text-[#C9A227] font-bold text-sm md:text-base leading-relaxed">
+        <div className="text-center p-6 bg-accent/5 rounded-2xl border border-accent/20">
+          <p className="text-accent font-bold text-sm md:text-base leading-relaxed">
             {t.student.recordingNote}
           </p>
         </div>

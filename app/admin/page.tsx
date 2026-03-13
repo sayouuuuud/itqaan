@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   if (loading || !data) {
     return (
       <div className="flex justify-center p-20">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -52,11 +52,11 @@ export default function AdminDashboard() {
   const { stats, latestRecitations } = data
 
   const statCards = [
-    { label: t.admin.totalStudents, value: stats.totalStudents, icon: Users, iconBg: "bg-indigo-50 text-indigo-600" },
-    { label: t.admin.totalReaders, value: stats.totalReaders, icon: BookOpen, iconBg: "bg-emerald-50 text-emerald-600" },
-    { label: t.admin.todaysRecitations, value: stats.recitationsToday, icon: ClipboardList, iconBg: "bg-blue-50 text-blue-600" },
-    { label: t.admin.avgReviewTime, value: stats.avgReviewTime, icon: Clock, iconBg: "bg-amber-50 text-amber-600" },
-    { label: t.admin.pendingReaderApps, value: stats.pendingReaderApps, icon: UserCheck, iconBg: "bg-orange-50 text-orange-600" },
+    { label: t.admin.totalStudents, value: stats.totalStudents, icon: Users, iconBg: "bg-primary/10 text-primary border-primary/20" },
+    { label: t.admin.totalReaders, value: stats.totalReaders, icon: BookOpen, iconBg: "bg-accent/10 text-accent border-accent/20" },
+    { label: t.admin.todaysRecitations, value: stats.recitationsToday, icon: ClipboardList, iconBg: "bg-primary/10 text-primary border-primary/20" },
+    { label: t.admin.avgReviewTime, value: stats.avgReviewTime, icon: Clock, iconBg: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+    { label: t.admin.pendingReaderApps, value: stats.pendingReaderApps, icon: UserCheck, iconBg: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
   ]
 
   const chartData = (analytics?.overTime || []).map((d: any) => ({
@@ -87,48 +87,48 @@ export default function AdminDashboard() {
     <div className="space-y-6 pb-20 lg:pb-0 font-sans" dir={isAr ? "rtl" : "ltr"}>
       {/* Quick Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/20">
+            <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+            <p className="text-xl sm:text-2xl font-bold text-foreground truncate">
               {totalViews.toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">{t.admin.totalViews} (30 {isAr ? t.admin.daysAgo : 'Days'})</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{t.admin.totalViews} (30 {isAr ? t.admin.daysAgo : 'Days'})</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
-            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/20">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+            <p className="text-xl sm:text-2xl font-bold text-foreground truncate">
               {uniqueVisitors.toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">{t.admin.uniqueVisitors}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{t.admin.uniqueVisitors}</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
-            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 border border-accent/20">
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
           </div>
           <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+            <p className="text-xl sm:text-2xl font-bold text-foreground truncate">
               {(totalStudents + totalReaders).toLocaleString(isAr ? "ar-EG" : "en-US")}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">{t.admin.totalMembers}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{t.admin.totalMembers}</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
-            <ClipboardList className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-amber-100/50 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 border border-amber-200 dark:border-amber-900/50">
+            <ClipboardList className="h-5 w-5 sm:h-6 sm:w-6 text-amber-700 dark:text-amber-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+            <p className="text-xl sm:text-2xl font-bold text-foreground truncate">
               {stats.recitationsToday?.toLocaleString(isAr ? "ar-EG" : "en-US") || '0'}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">{t.admin.todaysRecitations}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{t.admin.todaysRecitations}</p>
           </div>
         </div>
       </div>
@@ -145,15 +145,15 @@ export default function AdminDashboard() {
           return (
             <div
               key={stat.label}
-              className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-card rounded-xl p-5 border border-border shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 ${stat.iconBg} rounded-lg flex items-center justify-center`}>
+                <div className={`w-10 h-10 ${stat.iconBg} rounded-md flex items-center justify-center`}>
                   <Icon className="h-5 w-5" />
                 </div>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{displayValue}</h3>
-              <p className="text-xs sm:text-sm text-gray-500 font-medium">{stat.label}</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{displayValue}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium">{stat.label}</p>
             </div>
           );
         })}
@@ -181,13 +181,13 @@ export default function AdminDashboard() {
       )}
 
       {/* Latest Recitations Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50 mb-0">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex items-center justify-between bg-muted/50 mb-0">
           <div>
-            <h3 className="font-bold text-gray-900">{t.admin.latestRecitations}</h3>
-            <p className="text-sm text-gray-500 mt-1">{t.admin.mostRecentSubmissions}</p>
+            <h3 className="font-bold text-foreground">{t.admin.latestRecitations}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{t.admin.mostRecentSubmissions}</p>
           </div>
-          <Link href="/admin/recitations" className="text-sm text-[#1B5E3B] font-medium hover:underline flex items-center gap-1">
+          <Link href="/admin/recitations" className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
             {t.admin.viewAll}
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-gray-500 bg-white">
+              <tr className="border-b border-border text-muted-foreground bg-card">
                 <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.student}</th>
                 <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.surah}</th>
                 <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.reader}</th>
@@ -203,18 +203,18 @@ export default function AdminDashboard() {
                 <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.date}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {latestRecitations.length > 0 ? latestRecitations.map((rec: any) => (
-                <tr key={rec.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-6 font-medium text-gray-900">{rec.studentName}</td>
-                  <td className="py-4 px-6 text-gray-500 font-medium">{t.reader.surah} {rec.surah} <span className="text-gray-400 font-normal">({rec.fromAyah}-{rec.toAyah})</span></td>
-                  <td className="py-4 px-6 text-gray-500">{rec.assignedReaderName || "---"}</td>
+                <tr key={rec.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="py-4 px-6 font-medium text-foreground">{rec.studentName}</td>
+                  <td className="py-4 px-6 text-muted-foreground font-medium">{t.reader.surah} {rec.surah} <span className="text-muted-foreground/60 font-normal">({rec.fromAyah}-{rec.toAyah})</span></td>
+                  <td className="py-4 px-6 text-muted-foreground">{rec.assignedReaderName || "---"}</td>
                   <td className="py-4 px-6"><StatusBadge status={rec.status as any} /></td>
-                  <td className="py-4 px-6 text-gray-400 text-xs">{new Date(rec.createdAt).toLocaleDateString(t.locale === 'ar' ? "ar-SA" : "en-US")}</td>
+                  <td className="py-4 px-6 text-muted-foreground/60 text-xs">{new Date(rec.createdAt).toLocaleDateString(t.locale === 'ar' ? "ar-SA" : "en-US")}</td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-400">
+                  <td colSpan={5} className="py-8 text-center text-muted-foreground/50">
                     {t.admin.noRecentRecitations}
                   </td>
                 </tr>

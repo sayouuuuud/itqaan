@@ -244,7 +244,7 @@ export default function AdminSettingsPage() {
     ]
 
     return (
-        <div className="min-h-screen relative pb-20" dir={isAr ? 'rtl' : 'ltr'}>
+        <div className="bg-card min-h-full -m-6 lg:-m-8 p-6 lg:p-8 min-h-screen relative pb-20" dir={isAr ? 'rtl' : 'ltr'}>
             {/* Decorative background elements */}
             <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
             <div className="absolute top-20 right-[10%] w-64 h-64 bg-emerald-200/20 rounded-full blur-3xl -z-10 animate-pulse" />
@@ -254,31 +254,31 @@ export default function AdminSettingsPage() {
                 {/* Page Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-2">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-2">
                             <Settings2 className="w-3 h-3" />
                             {t.admin.settings}
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-none">
+                        <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight leading-none">
                             {t.admin.settings}
                         </h1>
-                        <p className="text-slate-500 font-medium max-w-md">
+                        <p className="text-muted-foreground font-medium max-w-md">
                             {t.admin.settingsDesc}
                         </p>
                     </div>
                 </div>
 
             {/* ── Admin Profile ── */}
-            <Card className="border-white/40 shadow-2xl shadow-emerald-900/5 bg-white/70 backdrop-blur-xl rounded-3xl overflow-hidden border">
+            <Card className="border-border shadow-2xl shadow-primary/5 bg-card/70 backdrop-blur-xl rounded-3xl overflow-hidden border">
                 <CardHeader className="p-8 pb-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-[#1B5E3B]">
+                        <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                             <User className="w-5 h-5" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-slate-800">
+                            <CardTitle className="text-lg font-bold text-foreground">
                                 {t.admin.myAccount}
                             </CardTitle>
-                            <CardDescription className="text-slate-500 font-medium text-sm">
+                            <CardDescription className="text-muted-foreground font-medium text-sm">
                                 {t.admin.myAccountDesc}
                             </CardDescription>
                         </div>
@@ -309,17 +309,17 @@ export default function AdminSettingsPage() {
                     {/* Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="admin-name" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.auth.fullName}</Label>
+                            <Label htmlFor="admin-name" className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t.auth.fullName}</Label>
                             <Input
                                 id="admin-name"
                                 value={profile.name}
                                 onChange={e => setProfile({ ...profile, name: e.target.value })}
                                 placeholder={t.auth.fullName}
-                                className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium"
+                                className="h-12 border-border bg-muted/30 rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all border font-medium"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="admin-email" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.auth.email}</Label>
+                            <Label htmlFor="admin-email" className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t.auth.email}</Label>
                             <Input
                                 id="admin-email"
                                 type="email"
@@ -327,11 +327,11 @@ export default function AdminSettingsPage() {
                                 value={profile.email}
                                 onChange={e => setProfile({ ...profile, email: e.target.value })}
                                 placeholder={t.auth.email}
-                                className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium"
+                                className="h-12 border-border bg-muted/30 rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all border font-medium"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
-                            <Label htmlFor="admin-pass" className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">{t.admin.newPassword}</Label>
+                            <Label htmlFor="admin-pass" className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t.admin.newPassword}</Label>
                             <Input
                                 id="admin-pass"
                                 type="password"
@@ -339,7 +339,7 @@ export default function AdminSettingsPage() {
                                 value={profile.password}
                                 onChange={e => setProfile({ ...profile, password: e.target.value })}
                                 placeholder={t.admin.passwordLeaveBlank}
-                                className="h-12 border-slate-200 bg-white/50 rounded-2xl focus:ring-2 focus:ring-[#1B5E3B]/20 transition-all border font-medium"
+                                className="h-12 border-border bg-muted/30 rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all border font-medium"
                             />
                         </div>
                     </div>
@@ -363,17 +363,17 @@ export default function AdminSettingsPage() {
             </Card>
 
             {/* ── Reader Assignment Strategy ── */}
-            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+            <Card className="border-border shadow-sm rounded-2xl overflow-hidden bg-card">
+                <CardHeader className="bg-muted/30 border-b border-border px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
-                            <Settings2 className="w-5 h-5 text-[#1B5E3B]" />
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <Settings2 className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-lg font-bold text-foreground">
                                 {t.admin.readerAssignmentStrategy}
                             </CardTitle>
-                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                            <CardDescription className="text-xs font-medium text-muted-foreground mt-0.5">
                                 {t.admin.readerAssignmentStrategyDesc}
                             </CardDescription>
                         </div>
@@ -389,30 +389,30 @@ export default function AdminSettingsPage() {
                                     type="button"
                                     onClick={() => setStrategy(opt.value)}
                                     className={`relative text-right p-5 rounded-2xl border-2 transition-all duration-200 ${selected
-                                        ? "border-[#1B5E3B] bg-[#1B5E3B]/5 shadow-sm"
-                                        : "border-gray-100 hover:border-[#1B5E3B]/20 hover:bg-gray-50/50"
+                                        ? "border-primary bg-primary/5 shadow-sm"
+                                        : "border-border hover:border-primary/20 hover:bg-muted/50"
                                         }`}
                                 >
                                     {selected && (
-                                        <span className="absolute top-3 left-3 rtl:right-3 rtl:left-auto text-[10px] bg-[#1B5E3B] text-white font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                        <span className="absolute top-3 left-3 rtl:right-3 rtl:left-auto text-[10px] bg-primary text-primary-foreground font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                             {t.active}
                                         </span>
                                     )}
                                     <div className="text-3xl mb-3">{opt.icon}</div>
-                                    <p className={`text-sm font-bold mb-1 transition-colors ${selected ? "text-[#1B5E3B]" : "text-gray-800"}`}>
+                                    <p className={`text-sm font-bold mb-1 transition-colors ${selected ? "text-primary" : "text-foreground"}`}>
                                         {opt.label}
                                     </p>
-                                    <p className="text-[11px] text-gray-400 leading-relaxed font-medium">{opt.desc}</p>
+                                    <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">{opt.desc}</p>
                                 </button>
                             )
                         })}
                     </div>
 
-                    <div className="flex justify-end border-t border-gray-50 pt-5">
+                    <div className="flex justify-end border-t border-border pt-5">
                         <Button
                             onClick={handleStrategySave}
                             disabled={strategySaving}
-                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {strategySaving
                                 ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -430,17 +430,17 @@ export default function AdminSettingsPage() {
             </Card>
 
             {/* ── SMTP Email Settings ── */}
-            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+            <Card className="border-border shadow-sm rounded-2xl overflow-hidden bg-card">
+                <CardHeader className="bg-muted/30 border-b border-border px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
-                            <Mail className="w-5 h-5 text-[#1B5E3B]" />
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <Mail className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-lg font-bold text-foreground">
                                 {t.admin.emailSettings}
                             </CardTitle>
-                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                            <CardDescription className="text-xs font-medium text-muted-foreground mt-0.5">
                                 {t.admin.emailSettingsDesc}
                             </CardDescription>
                         </div>
@@ -449,66 +449,66 @@ export default function AdminSettingsPage() {
                 <CardContent className="pt-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">SMTP Host</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">SMTP Host</Label>
                             <Input
                                 dir="ltr"
                                 value={smtp.host}
                                 onChange={e => setSmtp({ ...smtp, host: e.target.value })}
                                 placeholder="smtp.gmail.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">SMTP Port</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">SMTP Port</Label>
                             <Input
                                 dir="ltr"
                                 type="number"
                                 value={smtp.port}
                                 onChange={e => setSmtp({ ...smtp, port: e.target.value })}
                                 placeholder="465"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.userEmail}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.admin.userEmail}</Label>
                             <Input
                                 dir="ltr"
                                 type="email"
                                 value={smtp.user}
                                 onChange={e => setSmtp({ ...smtp, user: e.target.value })}
                                 placeholder="example@gmail.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.smtpPasswordLabel}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.admin.smtpPasswordLabel}</Label>
                             <Input
                                 dir="ltr"
                                 type="password"
                                 value={smtp.password}
                                 onChange={e => setSmtp({ ...smtp, password: e.target.value })}
                                 placeholder="********"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.fromName}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.admin.fromName}</Label>
                             <Input
                                 value={smtp.fromName}
                                 onChange={e => setSmtp({ ...smtp, fromName: e.target.value })}
                                 placeholder="إتقان الفاتحة"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.fromEmail}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.admin.fromEmail}</Label>
                             <Input
                                 dir="ltr"
                                 type="email"
                                 value={smtp.fromEmail}
                                 onChange={e => setSmtp({ ...smtp, fromEmail: e.target.value })}
                                 placeholder="noreply@example.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                     </div>
@@ -517,7 +517,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleSmtpSave}
                             disabled={smtpSaving}
-                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {smtpSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : smtpSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{smtpSaved ? t.admin.savedSuccess : t.admin.saveEmailSettings}</span>
@@ -527,17 +527,17 @@ export default function AdminSettingsPage() {
             </Card>
 
             {/* ── Cloudinary Settings ── */}
-            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+            <Card className="border-border shadow-sm rounded-2xl overflow-hidden bg-card">
+                <CardHeader className="bg-muted/30 border-b border-border px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
-                            <ImageIcon className="w-5 h-5 text-[#1B5E3B]" />
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <ImageIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-lg font-bold text-foreground">
                                 {t.admin.storageSettings}
                             </CardTitle>
-                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                            <CardDescription className="text-xs font-medium text-muted-foreground mt-0.5">
                                 {t.admin.storageSettingsDesc}
                             </CardDescription>
                         </div>
@@ -546,34 +546,34 @@ export default function AdminSettingsPage() {
                 <CardContent className="pt-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">Cloud Name</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">Cloud Name</Label>
                             <Input
                                 dir="ltr"
                                 value={cloudinary.cloudName}
                                 onChange={e => setCloudinary({ ...cloudinary, cloudName: e.target.value })}
                                 placeholder="dnaq5..."
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">API Key</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">API Key</Label>
                             <Input
                                 dir="ltr"
                                 value={cloudinary.apiKey}
                                 onChange={e => setCloudinary({ ...cloudinary, apiKey: e.target.value })}
                                 placeholder="8433..."
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">API Secret</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">API Secret</Label>
                             <Input
                                 dir="ltr"
                                 type="password"
                                 value={cloudinary.apiSecret}
                                 onChange={e => setCloudinary({ ...cloudinary, apiSecret: e.target.value })}
                                 placeholder="********"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                     </div>
@@ -582,7 +582,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleCloudinarySave}
                             disabled={cloudinarySaving}
-                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {cloudinarySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : cloudinarySaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{cloudinarySaved ? t.admin.savedSuccess : t.admin.saveStorageSettings}</span>
@@ -592,17 +592,17 @@ export default function AdminSettingsPage() {
             </Card>
 
             {/* ── Contact Settings ── */}
-            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+            <Card className="border-border shadow-sm rounded-2xl overflow-hidden bg-card">
+                <CardHeader className="bg-muted/30 border-b border-border px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
-                            <Phone className="w-5 h-5 text-[#1B5E3B]" />
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <Phone className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-lg font-bold text-foreground">
                                 {t.admin.contactSettings}
                             </CardTitle>
-                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                            <CardDescription className="text-xs font-medium text-muted-foreground mt-0.5">
                                 {t.admin.contactSettingsDesc}
                             </CardDescription>
                         </div>
@@ -611,32 +611,32 @@ export default function AdminSettingsPage() {
                 <CardContent className="pt-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.auth.email}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.auth.email}</Label>
                             <Input
                                 dir="ltr"
                                 value={contactInfo.email}
                                 onChange={e => setContactInfo({ ...contactInfo, email: e.target.value })}
                                 placeholder="info@itqaan.com"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.phone}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.admin.phone}</Label>
                             <Input
                                 dir="ltr"
                                 value={contactInfo.phone}
                                 onChange={e => setContactInfo({ ...contactInfo, phone: e.target.value })}
                                 placeholder="+966 50 000 0000"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
-                            <Label className="font-bold text-xs text-gray-500 uppercase tracking-widest">{t.admin.address}</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">{t.admin.address}</Label>
                             <Input
                                 value={contactInfo.address}
                                 onChange={e => setContactInfo({ ...contactInfo, address: e.target.value })}
                                 placeholder="الرياض، المملكة العربية السعودية"
-                                className="h-11 border-gray-100 bg-gray-50/50 rounded-xl focus:ring-[#1B5E3B]/20"
+                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
                         </div>
                     </div>
@@ -645,7 +645,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleContactSave}
                             disabled={contactSaving}
-                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {contactSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : contactSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{contactSaved ? t.admin.savedSuccess : t.admin.saveContactSettings}</span>
@@ -655,17 +655,17 @@ export default function AdminSettingsPage() {
             </Card>
 
             {/* ── Branding Settings ── */}
-            <Card className="border-gray-100 shadow-sm rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="bg-gray-50/30 border-b border-gray-50 px-6 py-5">
+            <Card className="border-border shadow-sm rounded-2xl overflow-hidden bg-card">
+                <CardHeader className="bg-muted/30 border-b border-border px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#1B5E3B]/10 rounded-xl">
-                            <ImageIcon className="w-5 h-5 text-[#1B5E3B]" />
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <ImageIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-lg font-bold text-foreground">
                                 {t.admin.brandingTitle}
                             </CardTitle>
-                            <CardDescription className="text-xs font-medium text-gray-500 mt-0.5">
+                            <CardDescription className="text-xs font-medium text-muted-foreground mt-0.5">
                                 {t.admin.brandingDesc}
                             </CardDescription>
                         </div>
@@ -699,7 +699,7 @@ export default function AdminSettingsPage() {
                         <Button
                             onClick={handleBrandingSave}
                             disabled={brandingSaving}
-                            className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
                             {brandingSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : brandingSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             <span className="mx-2">{brandingSaved ? t.admin.savedSuccess : "Save Branding"}</span>

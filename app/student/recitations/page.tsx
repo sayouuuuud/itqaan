@@ -32,11 +32,11 @@ export default function StudentRecitationsPage() {
   }, [])
 
   const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = useMemo(() => ({
-    pending: { label: t.student.statusPending, color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
-    in_review: { label: t.student.statusInReview, color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
-    mastered: { label: t.student.statusMastered, color: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle },
-    needs_session: { label: t.student.statusNeedsSession, color: "bg-blue-50 text-blue-700 border-blue-200", icon: Calendar },
-    session_booked: { label: t.student.statusBooked, color: "bg-purple-50 text-purple-700 border-purple-200", icon: Calendar },
+    pending: { label: t.student.statusPending, color: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20", icon: Clock },
+    in_review: { label: t.student.statusInReview, color: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20", icon: Clock },
+    mastered: { label: t.student.statusMastered, color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20", icon: CheckCircle },
+    needs_session: { label: t.student.statusNeedsSession, color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20", icon: Calendar },
+    session_booked: { label: t.student.statusBooked, color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20", icon: Calendar },
   }), [t])
 
   const filters = [
@@ -61,8 +61,8 @@ export default function StudentRecitationsPage() {
     <div className="max-w-3xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.student.myRecitations}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t.student.myRecitationsDesc}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t.student.myRecitations}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t.student.myRecitationsDesc}</p>
         </div>
         <Link
           href="/student/submit"
@@ -80,8 +80,8 @@ export default function StudentRecitationsPage() {
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filter === f.value
-              ? "bg-[#1B5E3B] text-white border-[#1B5E3B]"
-              : "bg-white text-gray-600 border-gray-200 hover:border-[#1B5E3B]/40"
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card text-muted-foreground border-border hover:border-primary/40"
               }`}
           >
             {f.label}
@@ -91,15 +91,15 @@ export default function StudentRecitationsPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-2xl py-16 text-center shadow-sm">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-            <FileText className="w-7 h-7 text-gray-300" />
+        <div className="bg-card border border-border rounded-2xl py-16 text-center shadow-sm">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border border-border">
+            <FileText className="w-7 h-7 text-muted-foreground/40" />
           </div>
-          <p className="text-gray-500 font-medium">{t.noResults}</p>
-          <p className="text-gray-400 text-sm mt-1">{t.student.noRecitationDesc}</p>
+          <p className="text-muted-foreground font-medium">{t.noResults}</p>
+          <p className="text-muted-foreground/60 text-sm mt-1">{t.student.noRecitationDesc}</p>
           <Link href="/student/submit" className="inline-flex items-center gap-2 mt-5 bg-[#C9A227] text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-[#A6841E] transition-colors">
             <Mic className="w-4 h-4" /> {t.student.recordNowBtn}
           </Link>
@@ -110,16 +110,16 @@ export default function StudentRecitationsPage() {
             const cfg = STATUS_CONFIG[rec.status] || STATUS_CONFIG.pending
             const Icon = cfg.icon
             return (
-              <div key={rec.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:border-[#1B5E3B]/40 hover:shadow-md transition-all">
+              <div key={rec.id} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:border-primary/40 hover:shadow-md transition-all">
 
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-[#1B5E3B]/[0.06] flex items-center justify-center shrink-0">
-                      <Mic className="w-5 h-5 text-[#1B5E3B]" />
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Mic className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-800">{rec.surah_name || t.student.surahFatiha}</p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
+                      <p className="font-bold text-foreground">{rec.surah_name || t.student.surahFatiha}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
                         <span>{new Date(rec.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { year: "numeric", month: "short", day: "numeric" })}</span>
                         {rec.audio_duration_seconds && <span>• {formatDuration(rec.audio_duration_seconds)}</span>}
                       </div>
@@ -134,7 +134,7 @@ export default function StudentRecitationsPage() {
 
                     <Link
                       href={`/student/recitations/${rec.id}`}
-                      className="text-xs bg-[#1B5E3B] text-white hover:bg-[#1B5E3B]/90 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                      className="text-xs bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
                     >
                       {t.student.viewRecitation}
                     </Link>

@@ -83,9 +83,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
                             height: dotSize,
                             backgroundColor:
                                 index < filledDots
-                                    ? isSelected || isHovered
-                                        ? "#0B3D2E"
-                                        : "#86efac"
+                                    ? (isSelected || isHovered ? "var(--primary)" : "#86efac")
                                     : undefined,
                         }}
                     />
@@ -97,14 +95,14 @@ export function ViewsChart({ data }: ViewsChartProps) {
     const targetValue = Math.round(maxValue * 0.7)
 
     return (
-        <div className="w-full p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="w-full p-6 bg-card rounded-xl border border-border shadow-sm">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h3 className="font-bold text-lg text-gray-900">
+                    <h3 className="font-bold text-lg text-foreground">
                         {t.admin.analytics.viewsStats}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         {t.admin.analytics.total}: {totalValue.toLocaleString(isAr ? "ar-EG" : "en-US")} | {t.admin.analytics.average}:{" "}
                         {avgValue.toLocaleString(isAr ? "ar-EG" : "en-US")} {t.admin.analytics.dailySuffix}
                     </p>
@@ -112,12 +110,12 @@ export function ViewsChart({ data }: ViewsChartProps) {
 
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Metric Toggle */}
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1 border border-gray-100">
+                    <div className="flex items-center gap-2 bg-muted rounded-lg p-1 border border-border">
                         <button
                             onClick={() => setMetric("views")}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm transition-colors ${metric === "views"
-                                ? "bg-[#0B3D2E] text-white shadow-sm"
-                                : "text-gray-500 hover:text-gray-900"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             <Eye className="h-4 w-4" />
@@ -126,8 +124,8 @@ export function ViewsChart({ data }: ViewsChartProps) {
                         <button
                             onClick={() => setMetric("visitors")}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm transition-colors ${metric === "visitors"
-                                ? "bg-[#0B3D2E] text-white shadow-sm"
-                                : "text-gray-500 hover:text-gray-900"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             <Users className="h-4 w-4" />
@@ -137,7 +135,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="text-gray-700 bg-white border-gray-200 hover:bg-gray-50 gap-1 h-9">
+                            <Button variant="outline" className="text-foreground bg-card border-border hover:bg-muted gap-1 h-9">
                                 {period}
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
@@ -155,7 +153,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Button variant="outline" size="icon" className="text-gray-500 bg-white border-gray-200 hover:bg-gray-50 h-9 w-9">
+                    <Button variant="outline" size="icon" className="text-muted-foreground bg-card border-border hover:bg-muted h-9 w-9">
                         <Download className="h-4 w-4" />
                     </Button>
                 </div>
@@ -163,34 +161,34 @@ export function ViewsChart({ data }: ViewsChartProps) {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                    <p className="text-2xl font-bold text-gray-900">
+                <div className="bg-muted/50 rounded-lg p-3 text-center border border-border">
+                    <p className="text-2xl font-bold text-foreground">
                         {totalValue.toLocaleString(isAr ? "ar-EG" : "en-US")}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                         {t.admin.analytics.total} {metric === "views" ? t.admin.analytics.views : t.admin.analytics.visitors}
                     </p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                    <p className="text-2xl font-bold text-gray-900">
+                <div className="bg-muted/50 rounded-lg p-3 text-center border border-border">
+                    <p className="text-2xl font-bold text-foreground">
                         {avgValue.toLocaleString(isAr ? "ar-EG" : "en-US")}
                     </p>
-                    <p className="text-xs text-gray-500">{t.admin.analytics.dailyAverage}</p>
+                    <p className="text-xs text-muted-foreground">{t.admin.analytics.dailyAverage}</p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                    <p className="text-2xl font-bold text-gray-900">
+                <div className="bg-muted/50 rounded-lg p-3 text-center border border-border">
+                    <p className="text-2xl font-bold text-foreground">
                         {Math.max(...chartData.map((d) => d.value)).toLocaleString(isAr ? "ar-EG" : "en-US")}
                     </p>
-                    <p className="text-xs text-gray-500">{t.admin.analytics.highestDay}</p>
+                    <p className="text-xs text-muted-foreground">{t.admin.analytics.highestDay}</p>
                 </div>
             </div>
 
             {/* Chart Area */}
             <div className="relative mt-8">
                 {/* Y-axis labels */}
-                <div className="absolute right-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-400 font-medium z-0">
+                <div className="absolute right-0 top-0 bottom-8 flex flex-col justify-between text-xs text-muted-foreground font-medium z-0">
                     <span>{maxValue}</span>
                     <span>{Math.round(maxValue * 0.66)}</span>
                     <span>{Math.round(maxValue * 0.33)}</span>
@@ -202,12 +200,12 @@ export function ViewsChart({ data }: ViewsChartProps) {
                     className="absolute right-8 left-0 flex items-center z-0"
                     style={{ top: `${((maxValue - targetValue) / maxValue) * 100}%` }}
                 >
-                    <div className="bg-[#0B3D2E] text-white text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1">
+                    <div className="bg-primary text-primary-foreground text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1">
                         <TrendingUp className="h-3 w-3" />
                         <span className="font-bold">{targetValue}</span>
                     </div>
                     <div
-                        className="flex-1 border-t border-dashed border-[#0B3D2E]/20"
+                        className="flex-1 border-t border-dashed border-primary/20"
                         style={{ marginRight: 8 }}
                     />
                 </div>
@@ -225,7 +223,7 @@ export function ViewsChart({ data }: ViewsChartProps) {
                 </div>
 
                 {/* X-axis labels */}
-                <div className="mr-12 flex justify-between mt-2 text-xs text-gray-400 font-medium">
+                <div className="mr-12 flex justify-between mt-2 text-xs text-muted-foreground font-medium">
                     {chartData
                         .filter((_, i) => (chartData.length - 1 - i) % (totalDays > 30 ? 10 : 5) === 0)
                         .map((item) => (

@@ -117,16 +117,16 @@ export default function BookingPage() {
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400">
-        <Link href="/student" className="hover:text-[#1B5E3B] transition-colors">{t.student.dashboard}</Link>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/student" className="hover:text-primary transition-colors">{t.student.dashboard}</Link>
         <ChevronLeft className="w-3 h-3 rotate-180 rtl:rotate-0" />
-        <span className="text-gray-700 font-medium">{t.student.bookSessionBtnBase || t.student.booking}</span>
+        <span className="text-foreground font-medium">{t.student.bookSessionBtnBase || t.student.booking}</span>
       </div>
 
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">{t.student.bookingTitle}</h1>
-        <p className="text-gray-500">{t.student.bookingDesc}</p>
+        <h1 className="text-3xl font-bold text-foreground">{t.student.bookingTitle}</h1>
+        <p className="text-muted-foreground">{t.student.bookingDesc}</p>
       </div>
 
       {/* Info Banner */}
@@ -138,24 +138,24 @@ export default function BookingPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-4 text-sm">
           {error}
         </div>
       )}
 
       {success ? (
-        <div className="bg-white border border-emerald-200 rounded-2xl p-10 shadow-sm text-center space-y-6 max-w-2xl mx-auto mt-8">
-          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100">
-            <Check className="w-10 h-10 text-emerald-600" />
+        <div className="bg-card border border-emerald-500/20 rounded-2xl p-10 shadow-sm text-center space-y-6 max-w-2xl mx-auto mt-8">
+          <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+            <Check className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-gray-800">{t.student.bookingSuccessTitle}</h2>
-            <p className="text-gray-500 text-base leading-relaxed">
+            <h2 className="text-2xl font-bold text-foreground">{t.student.bookingSuccessTitle}</h2>
+            <p className="text-muted-foreground text-base leading-relaxed">
               {t.student.bookingSuccessDesc}
             </p>
           </div>
           <div className="pt-6">
-            <Link href="/student" className="inline-flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#124028] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-[#1B5E3B]/20">
+            <Link href="/student" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3.5 px-8 rounded-xl transition-colors shadow-lg shadow-primary/20">
               {t.student.backToDashboard}
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             </Link>
@@ -165,15 +165,15 @@ export default function BookingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Calendar */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">{t.student.selectDateTitle}</h3>
-                <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
-                  <button onClick={prevMonth} className="p-1 hover:bg-white rounded-lg transition-colors text-gray-700">
+                <h3 className="text-lg font-bold text-foreground">{t.student.selectDateTitle}</h3>
+                <div className="flex items-center gap-2 bg-muted rounded-xl p-1 border border-border">
+                  <button onClick={prevMonth} className="p-1 hover:bg-card rounded-lg transition-colors text-foreground">
                     <ChevronRight className="w-5 h-5" />
                   </button>
-                  <span className="font-bold px-2 min-w-[140px] text-center text-sm text-gray-800">{monthName}</span>
-                  <button onClick={nextMonth} className="p-1 hover:bg-white rounded-lg transition-colors text-gray-700">
+                  <span className="font-bold px-2 min-w-[140px] text-center text-sm text-foreground">{monthName}</span>
+                  <button onClick={nextMonth} className="p-1 hover:bg-card rounded-lg transition-colors text-foreground">
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                 </div>
@@ -181,7 +181,7 @@ export default function BookingPage() {
               {/* Day Headers */}
               <div className="grid grid-cols-7 mb-2">
                 {['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((d) => (
-                  <span key={d} className="text-center text-xs font-semibold text-gray-400 py-2">
+                  <span key={d} className="text-center text-xs font-semibold text-muted-foreground py-2">
                     {t.days_short[d]}
                   </span>
                 ))}
@@ -204,10 +204,10 @@ export default function BookingPage() {
                       onClick={() => handleSelectDay(day)}
                       disabled={isPast}
                       className={`aspect-square flex items-center justify-center rounded-full text-sm transition-all ${isSelected
-                        ? "bg-[#1B5E3B] text-white font-bold shadow-lg"
+                        ? "bg-primary text-primary-foreground font-bold shadow-lg"
                         : isPast
-                          ? "text-gray-300 cursor-default"
-                          : "text-gray-700 font-medium hover:bg-gray-50"
+                          ? "text-muted-foreground/30 cursor-default"
+                          : "text-foreground font-medium hover:bg-muted"
                         }`}
                     >
                       {day}
@@ -218,9 +218,9 @@ export default function BookingPage() {
             </div>
 
             {/* Time Slots */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-1">{t.student.availableSlots}</h3>
-              <p className="text-sm text-gray-500 mb-4">
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6">
+              <h3 className="text-lg font-bold text-foreground mb-1">{t.student.availableSlots}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 {selectedDate
                   ? selectedDate.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
                   : t.student.selectDayPrompt}
@@ -228,7 +228,7 @@ export default function BookingPage() {
 
               {loadingSlots ? (
                 <div className="flex items-center justify-center py-10">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#1B5E3B]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   <span className="mr-2 text-sm text-muted-foreground">{t.student.loadingTimes}</span>
                 </div>
               ) : !selectedDate ? (
@@ -237,7 +237,7 @@ export default function BookingPage() {
                   {t.student.selectDayPrompt}
                 </div>
               ) : availableSlots.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   {t.student.noTimesAvailable}
                 </div>
@@ -250,8 +250,8 @@ export default function BookingPage() {
                         key={slot.id}
                         onClick={() => setSelectedSlot(slot)}
                         className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 border transition-all text-sm font-medium ${isActive
-                          ? "border-[#1B5E3B] bg-[#1B5E3B] text-white shadow-md"
-                          : "border-gray-100 bg-white text-gray-700 hover:border-[#1B5E3B]/50 hover:bg-[#1B5E3B]/5"
+                          ? "border-primary bg-primary text-primary-foreground shadow-md"
+                          : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5"
                           }`}
                       >
                         <Clock className={`w-4 h-4 ${isActive ? "text-white" : "text-muted-foreground"}`} />
@@ -267,19 +267,19 @@ export default function BookingPage() {
 
           {/* Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sticky top-24">
+              <h3 className="text-lg font-bold text-foreground mb-6 pb-4 border-b border-border">
                 {t.student.bookingSummary}
               </h3>
 
               <div className="space-y-5 mb-8">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#1B5E3B]/10 rounded-xl text-[#1B5E3B]">
+                  <div className="p-2 bg-primary/10 rounded-xl text-primary">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">{t.student.dateLabel || t.student.date}</p>
-                    <p className="font-bold text-gray-800">
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t.student.dateLabel || t.student.date}</p>
+                    <p className="font-bold text-foreground">
                       {selectedDate
                         ? selectedDate.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
                         : t.student.notSelected}
@@ -287,12 +287,12 @@ export default function BookingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#1B5E3B]/10 rounded-xl text-[#1B5E3B]">
+                  <div className="p-2 bg-primary/10 rounded-xl text-primary">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">{t.student.timeLabel}</p>
-                    <p className="font-bold text-gray-800">
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t.student.timeLabel}</p>
+                    <p className="font-bold text-foreground">
                       {selectedSlot
                         ? `${formatTime(selectedSlot.start_time)} – ${formatTime(selectedSlot.end_time)}`
                         : t.student.notSelected}
@@ -300,12 +300,12 @@ export default function BookingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#C9A227]/10 rounded-xl text-[#C9A227]">
+                  <div className="p-2 bg-accent/10 rounded-xl text-accent">
                     <Info className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">{t.student.instructor || t.student.readerLabel}</p>
-                    <p className="font-bold text-gray-800">{t.student.assignedAuto}</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t.student.instructor || t.student.readerLabel}</p>
+                    <p className="font-bold text-foreground">{t.student.assignedAuto}</p>
                   </div>
                 </div>
               </div>
@@ -314,7 +314,7 @@ export default function BookingPage() {
                 <button
                   onClick={handleConfirm}
                   disabled={!selectedSlot || submitting}
-                  className="w-full h-12 bg-[#C9A227] hover:bg-[#A6841E] transition-all rounded-xl text-white font-bold shadow-lg shadow-[#C9A227]/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-accent hover:bg-accent/90 transition-all rounded-xl text-accent-foreground font-bold shadow-lg shadow-accent/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /> {t.student.submittingBooking}</>
@@ -322,7 +322,7 @@ export default function BookingPage() {
                     <><span>{t.student.confirmBooking}</span><ArrowLeft className="w-4 h-4 rtl:rotate-180" /></>
                   )}
                 </button>
-                <p className="text-xs text-center text-gray-400">
+                <p className="text-xs text-center text-muted-foreground">
                   {t.student.cancelPolicy}
                 </p>
               </div>

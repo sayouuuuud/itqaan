@@ -7,18 +7,20 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Search, Users, BookOpen, UserCheck,
-  UserX, Edit, Trash2, UserPlus, Filter, TrendingUp, Loader2
+  UserX, Edit, Trash2, UserPlus, Filter, TrendingUp, Loader2,
+  Mail, Shield, User as UserIcon
 } from "lucide-react"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 
 export default function AdminUsersPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const router = useRouter()
-  const isAr = t.locale === "ar"
+  const isAr = locale === "ar"
 
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState<"students" | "readers" | "admins" | "supervisors">("students")
@@ -73,7 +75,7 @@ export default function AdminUsersPage() {
   }
 
   const filteredUsers = users.filter(
-    (u) => u.name.includes(searchQuery) || u.email.includes(searchQuery)
+    (u) => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
@@ -154,274 +156,249 @@ export default function AdminUsersPage() {
   }
 
   const avatarColors = [
-    "bg-blue-100 text-blue-600",
-    "bg-green-100 text-green-600",
-    "bg-[#8b5cf6]/15 text-[#8b5cf6]",
-    "bg-red-100 text-red-600",
-    "bg-indigo-100 text-indigo-600",
+    "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    "bg-rose-500/10 text-rose-400 border-rose-500/20",
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-card min-h-full -m-6 lg:-m-8 p-6 lg:p-8 space-y-8" dir={isAr ? "rtl" : "ltr"}>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
+            <Users className="w-8 h-8 text-primary" />
             {t.admin.usersManagementTitle}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-muted-foreground font-bold tracking-wide">
             {t.admin.usersManagementDesc}
           </p>
+        </div>
+        <Button 
+          className="rounded-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 h-12 px-6 gap-2" 
+          onClick={() => {
+            const defaultRole = currentUserRole === 'reciter_supervisor' ? 'reader' : 'student'
+            setFormData({ name: "", email: "", password: "", role: defaultRole, gender: "" })
+            setIsAddUserOpen(true)
+          }}
+        >
+          <UserPlus className="w-5 h-5 ml-1" />
+          {t.admin.addUser}
+        </Button>
+      </div>
+
+      {/* Tabs and Search Row */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex p-1 bg-muted/50 border border-border rounded-2xl w-fit gap-1">
+          {[
+            { id: "students", label: t.admin.students },
+            { id: "readers", label: t.admin.readers },
+            { id: "admins", label: t.admin.admins },
+            { id: "supervisors", label: t.admin.supervisors }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative max-w-sm w-full">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder={t.search}
+            className="pr-12 h-12 border-border bg-card rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
       {/* Table Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Table Header with Tabs */}
-        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex p-1 bg-gray-100 rounded-xl w-fit">
-            <button
-              onClick={() => setActiveTab("students")}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "students"
-                ? "bg-white text-[#1B5E3B] shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
-                }`}
-            >
-              {t.admin.students}
-            </button>
-            <button
-              onClick={() => setActiveTab("readers")}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "readers"
-                ? "bg-white text-[#1B5E3B] shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
-                }`}
-            >
-              {t.admin.readers}
-            </button>
-            <button
-              onClick={() => setActiveTab("admins")}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "admins"
-                ? "bg-white text-[#1B5E3B] shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
-                }`}
-            >
-              {t.admin.admins}
-            </button>
-            <button
-              onClick={() => setActiveTab("supervisors")}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "supervisors"
-                ? "bg-white text-[#1B5E3B] shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
-                }`}
-            >
-              {t.admin.supervisors}
-            </button>
-          </div>
-          <div className="flex gap-3">
-            <div className="relative hidden sm:block">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={t.search}
-                className="pr-10 w-64 border-gray-200"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button size="sm" className="flex items-center gap-2 bg-[#1B5E3B] hover:bg-[#0a3326] text-white" onClick={() => {
-              const defaultRole = currentUserRole === 'reciter_supervisor' ? 'reader' : 'student'
-              setFormData({ name: "", email: "", password: "", role: defaultRole, gender: "" })
-              setIsAddUserOpen(true)
-            }}>
-              <UserPlus className="w-4 h-4" />
-              {t.admin.addUser}
-            </Button>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto min-h-[300px]">
+      <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden">
+        <div className="overflow-x-auto min-h-[400px]">
           {loading ? (
-            <div className="flex justify-center p-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+            <div className="flex justify-center p-24">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
           ) : (
-            <table className="w-full text-right">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-4">
-                    {t.auth.fullName}
-                  </th>
-                  <th className="px-6 py-4">
-                    {t.auth.email}
-                  </th>
-                  <th className="px-6 py-4">
-                    {t.admin.joinDate}
-                  </th>
-                  <th className="px-6 py-4">
-                    {t.auth.role}
-                  </th>
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="bg-muted/50 text-muted-foreground text-[11px] font-black uppercase tracking-widest border-b border-border">
+                  <th className="px-6 py-5 font-black">{t.auth.fullName}</th>
+                  <th className="px-6 py-5 font-black">{t.auth.email}</th>
+                  <th className="px-6 py-5 font-black">{t.admin.joinDate}</th>
+                  <th className="px-6 py-5 font-black">{t.auth.role}</th>
                   {activeTab === 'readers' && (
-                    <th className="px-6 py-4">
-                      {t.readerRegister.nationality}
-                    </th>
+                    <th className="px-6 py-5 font-black">{t.readerRegister.nationality}</th>
                   )}
-                  <th className="px-6 py-4">
-                    {t.reader.status}
-                  </th>
-                  <th className="px-6 py-4 text-center">
-                    {t.admin.action}
-                  </th>
+                  <th className="px-6 py-5 font-black">{t.reader.status}</th>
+                  <th className="px-6 py-5 text-center font-black">{t.admin.action}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredUsers.map((user, idx) => (
-                  <tr
-                    key={user.id}
-                    onClick={() => router.push(`/admin/users/${user.id}`)}
-                    className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${avatarColors[idx % avatarColors.length]}`}
-                          >
-                            {user.avatar_url ? (
-                              <img src={user.avatar_url} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                            ) : (user.name || t.userFallbackLetter).charAt(0)}
-                          </div>
-                          {user.is_online && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" title={t.admin.onlineNow} />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 text-sm">
-                            {user.name}
-                          </p>
-                          <p className="text-xs text-gray-400 truncate w-24 sm:w-auto" title={user.id}>
-                            ID: #{user.id.substring(0, 8)}...
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500" dir="ltr">
-                      {user.email}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(user.created_at).toLocaleDateString(
-                        isAr ? "ar-SA" : "en-US"
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {user.role === 'student' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                          {t.auth.student}
-                        </span>
-                      ) : user.role === 'admin' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          {t.auth.admin}
-                        </span>
-                      ) : user.role === 'reader' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6]" />
-                          {t.auth.reader}
-                        </span>
-                      ) : user.role === 'student_supervisor' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          {t.auth.studentSupervisor}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                          {t.auth.reciterSupervisor}
-                        </span>
-                      )}
-                    </td>
-                    {activeTab === 'readers' && (
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {user.nationality || '-'}
-                      </td>
-                    )}
-                    <td className="px-6 py-4">
-                      {user.is_active ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
-                          {t.active}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20">
-                          {t.admin.banned}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-center items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openEditModal(user)
-                          }}
-                          className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                          title={t.edit}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleToggleStatus(user.id, user.is_active)
-                          }}
-                          className={`p-1.5 rounded-lg transition-colors ${user.is_active
-                            ? "text-muted-foreground hover:text-amber-600 hover:bg-amber-50"
-                            : "text-amber-600 bg-amber-50 hover:bg-amber-100 hover:text-amber-700"
-                            }`}
-                          title={
-                            user.is_active
-                              ? t.admin.block
-                              : t.admin.activate
-                          }
-                        >
-                          {user.is_active ? (
-                            <UserX className="w-4 h-4" />
-                          ) : (
-                            <UserCheck className="w-4 h-4" />
-                          )}
-                        </button>
+              <tbody className="divide-y divide-border">
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Users className="w-12 h-12 opacity-20 mb-4" />
+                        <p className="font-bold">{isAr ? "لا توجد نتائج" : "No results found"}</p>
                       </div>
                     </td>
                   </tr>
+                ) : (
+                  filteredUsers.map((user, idx) => (
+                    <tr
+                      key={user.id}
+                      onClick={() => router.push(`/admin/users/${user.id}`)}
+                      className="hover:bg-muted/30 transition-colors group cursor-pointer"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border transition-all ${avatarColors[idx % avatarColors.length]}`}>
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt={user.name} className="w-full h-full rounded-2xl object-cover" />
+                            ) : (user.name || "U").charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-black text-foreground text-sm group-hover:text-primary transition-colors">
+                              {user.name}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter">ID: #{user.id.substring(0, 8)}</span>
+                              {user.is_online && (
+                                <span className="flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+                                  <span className="text-[9px] font-black text-success uppercase tracking-widest">{t.admin.onlineNow}</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-xs font-bold text-muted-foreground" dir="ltr">
+                        {user.email}
+                      </td>
+                      <td className="px-6 py-4 text-xs font-bold text-muted-foreground">
+                        {new Date(user.created_at).toLocaleDateString(isAr ? "ar-SA" : "en-US")}
+                      </td>
+                      <td className="px-6 py-4">
+                        {user.role === 'student' ? (
+                          <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
+                            {t.auth.student}
+                          </Badge>
+                        ) : user.role === 'admin' ? (
+                          <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
+                            {t.auth.admin}
+                          </Badge>
+                        ) : user.role === 'reader' ? (
+                          <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
+                            {t.auth.reader}
+                          </Badge>
+                        ) : user.role === 'student_supervisor' ? (
+                          <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
+                            {t.auth.studentSupervisor}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
+                            {t.auth.reciterSupervisor}
+                          </Badge>
+                        )}
+                      </td>
+                      {activeTab === 'readers' && (
+                        <td className="px-6 py-4 text-xs font-black text-muted-foreground">
+                          {user.nationality || '-'}
+                        </td>
+                      )}
+                      <td className="px-6 py-4">
+                        {user.is_active ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            {t.active}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            {t.admin.banned}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-center items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openEditModal(user)
+                            }}
+                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all border border-transparent hover:border-primary/20"
+                            title={t.edit}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleToggleStatus(user.id, user.is_active)
+                            }}
+                            className={`p-2 rounded-xl transition-all border border-transparent ${user.is_active
+                              ? "text-muted-foreground hover:text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/20"
+                              : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20"
+                              }`}
+                            title={
+                              user.is_active
+                                ? t.admin.block
+                                : t.admin.activate
+                            }
+                          >
+                            {user.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
                 ))}
               </tbody>
             </table>
           )}
         </div>
 
-        {/* Pagination Dummy */}
-        <div className="bg-muted/30 px-6 py-4 border-t border-border flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            {t.admin.totalUsersCount}: {filteredUsers.length}
+        {/* Footer info using semantic classes */}
+        <div className="bg-muted/30 px-6 py-5 border-t border-border flex items-center justify-between">
+          <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+            {t.admin.totalUsersCount}: <span className="text-foreground">{filteredUsers.length}</span>
           </div>
         </div>
       </div>
 
       {/* Add User Modal */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl border-none shadow-2xl bg-card max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t.admin.newUserModalTitle}</DialogTitle>
+            <DialogTitle className="text-xl font-black text-foreground">{t.admin.newUserModalTitle}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
-              <Label>{t.auth.fullName}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.fullName}</Label>
               <Input
+                className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-bold"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>{t.auth.email}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.email}</Label>
               <Input
+                className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-bold"
                 type="email"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -429,8 +406,9 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t.admin.passwordRequirement}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{isAr ? "كلمة المرور" : t.auth.password}</Label>
               <Input
+                className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-bold"
                 type="password"
                 value={formData.password}
                 onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -438,9 +416,9 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t.auth.role}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.role}</Label>
               <select
-                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                className="w-full h-11 border border-border rounded-2xl px-4 bg-muted/30 text-foreground text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
               >
@@ -459,10 +437,10 @@ export default function AdminUsersPage() {
                 )}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label>{t.auth.genderOptional}</Label>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.genderOptional}</Label>
               <select
-                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                className="w-full h-11 border border-border rounded-2xl px-4 bg-muted/30 text-foreground text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                 value={formData.gender}
                 onChange={e => setFormData({ ...formData, gender: e.target.value })}
               >
@@ -472,10 +450,10 @@ export default function AdminUsersPage() {
               </select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>{t.cancel}</Button>
-            <Button onClick={handleCreateUser} disabled={submitting}>
-              {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsAddUserOpen(false)} className="rounded-2xl font-black">{t.cancel}</Button>
+            <Button onClick={handleCreateUser} disabled={submitting} className="rounded-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90">
+              {submitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
               {t.save}
             </Button>
           </DialogFooter>
@@ -484,21 +462,23 @@ export default function AdminUsersPage() {
 
       {/* Edit User Modal */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl border-none shadow-2xl bg-card max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t.admin.editUserModalTitle}</DialogTitle>
+            <DialogTitle className="text-xl font-black text-foreground">{t.admin.editUserModalTitle}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
-              <Label>{t.auth.fullName}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.fullName}</Label>
               <Input
+                className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-bold"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>{t.auth.email}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.email}</Label>
               <Input
+                className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-bold"
                 type="email"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -506,8 +486,9 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t.admin.passwordLeaveBlank}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.admin.passwordLeaveBlank}</Label>
               <Input
+                className="rounded-2xl h-11 bg-muted/30 border-border focus:bg-card font-bold"
                 type="password"
                 value={formData.password}
                 onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -515,9 +496,9 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t.auth.role}</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.role}</Label>
               <select
-                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                className="w-full h-11 border border-border rounded-2xl px-4 bg-muted/30 text-foreground text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
               >
@@ -536,10 +517,10 @@ export default function AdminUsersPage() {
                 )}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label>{t.auth.genderOptional}</Label>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.genderOptional}</Label>
               <select
-                className="w-full h-10 border border-input rounded-md px-3 bg-background font-sans"
+                className="w-full h-11 border border-border rounded-2xl px-4 bg-muted/30 text-foreground text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                 value={formData.gender || ""}
                 onChange={e => setFormData({ ...formData, gender: e.target.value })}
               >
@@ -549,10 +530,10 @@ export default function AdminUsersPage() {
               </select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>{t.cancel}</Button>
-            <Button onClick={handleEditSubmit} disabled={submitting}>
-              {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsEditUserOpen(false)} className="rounded-2xl font-black">{t.cancel}</Button>
+            <Button onClick={handleEditSubmit} disabled={submitting} className="rounded-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90">
+              {submitting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
               {t.profile.saveChanges}
             </Button>
           </DialogFooter>

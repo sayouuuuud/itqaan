@@ -31,22 +31,22 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Countries Stats */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <div className="flex items-center gap-2 mb-6">
-                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+            <div className="bg-card rounded-xl border border-border shadow-sm p-6 transition-colors">
+                <div className="flex items-center gap-2 mb-6 text-foreground">
+                    <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
                         <Globe className="h-5 w-5" />
                     </div>
-                    <h3 className="font-bold text-gray-900">{t.admin.analytics.topCountries}</h3>
+                    <h3 className="font-bold">{t.admin.analytics.topCountries}</h3>
                 </div>
 
                 <div className="space-y-4">
                     {countryData.map((item, index) => (
-                        <div key={item.country} className="flex items-center justify-between">
+                        <div key={item.country} className="flex items-center justify-between group">
                             <div className="flex items-center gap-3 w-32">
-                                <span className="text-sm font-medium w-6 text-gray-400">
+                                <span className="text-sm font-medium w-6 text-muted-foreground/60 group-hover:text-primary transition-colors">
                                     #{index + 1}
                                 </span>
-                                <span className="text-sm font-medium text-gray-900 truncate">
+                                <span className="text-sm font-medium text-foreground/80 truncate">
                                     {(() => {
                                         try {
                                             if (item.country === "Unknown" || !item.country || item.country.length !== 2) {
@@ -60,66 +60,118 @@ export function VisitorStats({ countryData, deviceData }: VisitorStatsProps) {
                                 </span>
                             </div>
                             <div className="flex items-center gap-4 flex-1 mx-4">
-                                <div className="h-2 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-2 flex-1 bg-muted rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-blue-500 rounded-full"
+                                        className="h-full bg-blue-500 rounded-full shadow-sm shadow-blue-500/20"
                                         style={{
                                             width: `${(item.count / Math.max(...countryData.map((d) => d.count), 1)) * 100}%`,
                                         }}
                                     />
                                 </div>
                             </div>
-                            <span className="text-sm font-bold text-gray-900 w-12 text-left">
+                            <span className="text-sm font-bold text-foreground w-12 text-left">
                                 {item.count.toLocaleString()}
                             </span>
                         </div>
                     ))}
 
                     {countryData.length === 0 && (
-                        <div className="text-center py-8 text-gray-400">{t.admin.analytics.noData}</div>
+                        <div className="text-center py-8 text-muted-foreground">{t.admin.analytics.noData}</div>
                     )}
                 </div>
             </div>
 
             {/* Devices Stats */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <div className="flex items-center gap-2 mb-6">
-                    <div className="p-2 bg-green-50 rounded-lg text-green-600">
+            <div className="bg-card rounded-xl border border-border shadow-sm p-6 transition-colors">
+                <div className="flex items-center gap-2 mb-6 text-foreground">
+                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
                         <Smartphone className="h-5 w-5" />
                     </div>
-                    <h3 className="font-bold text-gray-900">{t.admin.analytics.usedDevices}</h3>
+                    <h3 className="font-bold">{t.admin.analytics.usedDevices}</h3>
                 </div>
 
-                <div className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={deviceData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                paddingAngle={5}
-                                dataKey="count"
-                                nameKey="device_type"
-                            >
-                                {deviceData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                            <Legend
-                                layout="vertical"
-                                verticalAlign="middle"
-                                align="right"
-                                formatter={(value, entry: any) => {
-                                    const label = value === 'desktop' ? t.admin.analytics.desktop : value === 'mobile' ? t.admin.analytics.mobile : t.admin.analytics.tablet;
-                                    return <span className={`text-sm text-gray-700 ${isAr ? 'mr-2' : 'ml-2'}`}>{label} ({entry.payload.percentage || 0}%)</span>
-                                }}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <div className="h-[250px] w-full flex items-center">
+                    {(() => {
+                        // Pre-initialize allowed types to ensure they always show in legend
+                        const allowedTypes = ['desktop', 'mobile', 'tablet'];
+                        const aggregated = allowedTypes.map(type => ({
+                            device_type: type,
+                            count: 0,
+                            percentage: 0
+                        }));
+
+                        deviceData.forEach(curr => {
+                            const rawType = (curr.device_type || '').toLowerCase();
+                            
+                            // Check for keywords in the detailed string (e.g., "Chrome — Windows (Desktop)")
+                            let type = '';
+                            if (rawType.includes('desktop')) type = 'desktop';
+                            else if (rawType.includes('mobile') || rawType.includes('iphone') || rawType.includes('android')) type = 'mobile';
+                            else if (rawType.includes('tablet') || rawType.includes('ipad')) type = 'tablet';
+                            
+                            const existing = aggregated.find(d => d.device_type === type);
+                            if (existing) {
+                                existing.count += curr.count;
+                            }
+                        });
+
+                        const total = aggregated.reduce((sum, d) => sum + d.count, 0);
+                        const finalData = aggregated.map(d => ({
+                            ...d,
+                            percentage: total > 0 ? Math.round((d.count / total) * 100) : 0
+                        })).sort((a, b) => b.count - a.count);
+                        
+                        // Ensure we only have data if there's at least one count, or keep them all if that's preferred.
+                        // User specifically asked "Where is the tablet", so keeping all three is better.
+
+                        return (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={finalData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={65}
+                                        outerRadius={85}
+                                        fill="#8884d8"
+                                        paddingAngle={5}
+                                        dataKey="count"
+                                        nameKey="device_type"
+                                        stroke="none"
+                                    >
+                                        {finalData.map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={COLORS[index % COLORS.length]} 
+                                                className="hover:opacity-80 transition-opacity"
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <RechartsTooltip 
+                                        contentStyle={{ 
+                                            borderRadius: '16px', 
+                                            border: 'none', 
+                                            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+                                            backgroundColor: 'hsl(var(--card))',
+                                            color: 'hsl(var(--foreground))',
+                                            fontWeight: 'bold'
+                                        }} 
+                                    />
+                                    <Legend
+                                        layout="vertical"
+                                        verticalAlign="middle"
+                                        align="right"
+                                        formatter={(value, entry: any) => {
+                                            const label = value === 'desktop' ? t.admin.analytics.desktop : value === 'mobile' ? t.admin.analytics.mobile : value === 'tablet' ? t.admin.analytics.tablet : t.admin.analytics.unknown;
+                                            return <span className={`text-xs font-bold text-foreground/70 ${isAr ? 'mr-3' : 'ml-3'}`}>{label} ({entry.payload.percentage || 0}%)</span>
+                                        }}
+                                        iconType="circle"
+                                        iconSize={8}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )
+                    })()}
                 </div>
             </div>
         </div>

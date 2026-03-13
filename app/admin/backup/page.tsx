@@ -118,8 +118,8 @@ export default function AdminBackupPage() {
             <div className="flex items-center gap-3">
                 <Archive className="w-8 h-8 text-[#1B5E3B]" />
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{isAr ? 'النسخ الاحتياطي وإدارة البيانات' : 'Backup & Data Management'}</h1>
-                    <p className="text-gray-500 text-sm">{isAr ? 'تصدير واستيراد البيانات وإدارة التخزين' : 'Export, import data and manage storage'}</p>
+                    <h1 className="text-2xl font-bold text-foreground">{isAr ? 'النسخ الاحتياطي وإدارة البيانات' : 'Backup & Data Management'}</h1>
+                    <p className="text-muted-foreground text-sm">{isAr ? 'تصدير واستيراد البيانات وإدارة التخزين' : 'Export, import data and manage storage'}</p>
                 </div>
             </div>
 
@@ -132,16 +132,16 @@ export default function AdminBackupPage() {
             ))}
 
             {/* DB Size + Stats */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 font-arabic" dir={isAr ? 'rtl' : 'ltr'}>
+            <div className="bg-card rounded-xl border border-border shadow-sm p-6 font-arabic" dir={isAr ? 'rtl' : 'ltr'}>
                 <div className="flex items-center gap-2 mb-5">
                     <Database className="w-5 h-5 text-blue-500" />
-                    <h2 className="font-semibold text-gray-800">{isAr ? 'إحصائيات قاعدة البيانات' : 'Database Statistics'}</h2>
+                    <h2 className="font-semibold text-foreground">{isAr ? 'إحصائيات قاعدة البيانات' : 'Database Statistics'}</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {tableRows.map(row => (
-                        <div key={row.key} className="bg-gray-50 rounded-lg p-3 text-center">
-                            <p className="text-xl font-bold text-gray-800">{(stats?.tables?.[row.key] || 0).toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 mt-1">{row.label}</p>
+                        <div key={row.key} className="bg-muted rounded-lg p-3 text-center">
+                            <p className="text-xl font-bold text-foreground">{(stats?.tables?.[row.key] || 0).toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{row.label}</p>
                         </div>
                     ))}
                 </div>
@@ -150,48 +150,48 @@ export default function AdminBackupPage() {
             {/* Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Export */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <Download className="w-5 h-5 text-green-600" />
+                        <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                            <Download className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <div>
-                            <p className="font-semibold text-gray-800">{isAr ? 'تصدير البيانات' : 'Export Data'}</p>
-                            <p className="text-xs text-gray-500">{isAr ? 'تنزيل JSON كامل للبيانات' : 'Download full JSON dump'}</p>
+                            <p className="font-semibold text-foreground">{isAr ? 'تصدير البيانات' : 'Export Data'}</p>
+                            <p className="text-xs text-muted-foreground">{isAr ? 'تنزيل JSON كامل للبيانات' : 'Download full JSON dump'}</p>
                         </div>
                     </div>
-                    <Button onClick={handleExport} disabled={actionLoading === 'export'} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    <Button onClick={handleExport} disabled={actionLoading === 'export'} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
                         {actionLoading === 'export' ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : <Download className="w-4 h-4 me-2" />}
                         {isAr ? 'تصدير الآن' : 'Export Now'}
                     </Button>
                 </div>
 
                 {/* Refresh Stats */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <RefreshCcw className="w-5 h-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <RefreshCcw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <p className="font-semibold text-gray-800">{isAr ? 'تحديث الإحصائيات' : 'Refresh Stats'}</p>
-                            <p className="text-xs text-gray-500">{isAr ? 'إعادة تحميل بيانات قاعدة البيانات' : 'Reload database statistics'}</p>
+                            <p className="font-semibold text-foreground">{isAr ? 'تحديث الإحصائيات' : 'Refresh Stats'}</p>
+                            <p className="text-xs text-muted-foreground">{isAr ? 'إعادة تحميل بيانات قاعدة البيانات' : 'Reload database statistics'}</p>
                         </div>
                     </div>
-                    <Button onClick={() => { setLoading(true); loadStats() }} variant="outline" className="w-full">
+                    <Button onClick={() => { setLoading(true); loadStats() }} variant="outline" className="w-full border-border hover:bg-muted">
                         <RefreshCcw className="w-4 h-4 me-2" />
                         {isAr ? 'تحديث' : 'Refresh'}
                     </Button>
                 </div>
 
                 {/* Restore Data */}
-                <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-6">
+                <div className="bg-card rounded-xl border border-blue-200 dark:border-blue-900 shadow-sm p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <RefreshCcw className="w-5 h-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <RefreshCcw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <p className="font-semibold text-gray-800">{isAr ? 'استرداد البيانات' : 'Restore Data'}</p>
-                            <p className="text-xs text-gray-500">{isAr ? 'رفع ملف JSON لاستعادة البيانات' : 'Upload JSON file to restore'}</p>
+                            <p className="font-semibold text-foreground">{isAr ? 'استرداد البيانات' : 'Restore Data'}</p>
+                            <p className="text-xs text-muted-foreground">{isAr ? 'رفع ملف JSON لاستعادة البيانات' : 'Upload JSON file to restore'}</p>
                         </div>
                     </div>
                     <div className="relative">
@@ -210,21 +210,21 @@ export default function AdminBackupPage() {
                 </div>
 
                 {/* Clear Cache */}
-                <div className="bg-white rounded-xl border border-amber-200 shadow-sm p-6">
+                <div className="bg-card rounded-xl border border-amber-200 dark:border-amber-900 shadow-sm p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <RefreshCcw className="w-5 h-5 text-amber-600" />
+                        <div className="w-10 h-10 bg-amber-500/10 dark:bg-amber-500/20 rounded-lg flex items-center justify-center">
+                            <RefreshCcw className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                         </div>
                         <div>
-                            <p className="font-semibold text-gray-800">{isAr ? 'تفريغ الكاش' : 'Clear Cache'}</p>
-                            <p className="text-xs text-gray-500">{isAr ? 'تحديث الموقع وإعادة تحميل البيانات' : 'Refresh site and reload content'}</p>
+                            <p className="font-semibold text-foreground">{isAr ? 'تفريغ الكاش' : 'Clear Cache'}</p>
+                            <p className="text-xs text-muted-foreground">{isAr ? 'تحديث الموقع وإعادة تحميل البيانات' : 'Refresh site and reload content'}</p>
                         </div>
                     </div>
                     <Button
                         onClick={() => handleAction('clear_cache', isAr ? 'تم تفريغ الكاش بنجاح' : 'Cache cleared successfully', '')}
                         disabled={actionLoading === 'clear_cache'}
                         variant="outline"
-                        className="w-full border-amber-300 text-amber-700 hover:bg-amber-50"
+                        className="w-full border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10"
                     >
                         {actionLoading === 'clear_cache' ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : <RefreshCcw className="w-4 h-4 me-2" />}
                         {isAr ? 'مسح الكاش الآن' : 'Clear Cache Now'}
@@ -233,9 +233,9 @@ export default function AdminBackupPage() {
             </div>
 
             {/* Warning */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-amber-700 text-sm">
+            <div className="bg-amber-500/10 border border-amber-200 dark:border-amber-900 rounded-xl p-4 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-amber-700 dark:text-amber-300 text-sm">
                     {isAr
                         ? 'تحذير: عمليات المسح لا يمكن التراجع عنها. تأكد من وجود نسخة احتياطية قبل المتابعة.'
                         : 'Warning: Deletion operations cannot be undone. Make sure you have a backup before proceeding.'}

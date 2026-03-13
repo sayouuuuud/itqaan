@@ -6,23 +6,26 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge } from "@/components/status-badge"
 import {
-  Search, Download, Plus, Eye, UserPlus, Filter, Loader2, Clock, CheckCircle, Calendar
+  Search, Download, Plus, Eye, UserPlus, Filter, Loader2, Clock, CheckCircle, Calendar,
+  Hash, User as UserIcon, BookOpen as BookIcon, ChevronRight, Mic
 } from "lucide-react"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
 } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 export default function AdminRecitationsPage() {
-  const { t } = useI18n()
-  const isAr = t.locale === "ar"
+  const { t, locale } = useI18n()
+  const isAr = locale === "ar"
 
   const [recitations, setRecitations] = useState<any[]>([])
   const [readers, setReaders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const [searchQuery, setSearchQuery] = useState("")
+  const [readerSearchQuery, setReaderSearchQuery] = useState("")
   const [readerFilter, setReaderFilter] = useState("")
   const [activeTab, setActiveTab] = useState("all")
 
@@ -74,11 +77,6 @@ export default function AdminRecitationsPage() {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    fetchRecitations()
-  }
-
   const handleReassign = async (readerId: string) => {
     if (!selectedRecitationId) return
     setProcessing(true)
@@ -101,43 +99,46 @@ export default function AdminRecitationsPage() {
 
   const openReassignDialog = (recId: string) => {
     setSelectedRecitationId(recId)
+    setReaderSearchQuery("")
     setReassignDialog(true)
   }
 
   const avatarColors = [
-    "bg-blue-100 text-blue-600",
-    "bg-green-100 text-green-600",
-    "bg-[#8b5cf6]/15 text-[#8b5cf6]",
-    "bg-red-100 text-red-600",
-    "bg-indigo-100 text-indigo-600",
+    "bg-primary/10 text-primary border-primary/20",
+    "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    "bg-orange-500/10 text-orange-500 border-orange-500/20",
+    "bg-rose-500/10 text-rose-500 border-rose-500/20",
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="bg-card min-h-full -m-6 lg:-m-8 p-6 lg:p-8 space-y-8" dir={isAr ? "rtl" : "ltr"}>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
+            <Mic className="w-8 h-8 text-primary" />
             {t.admin.recitationsManagement}
           </h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <p className="text-muted-foreground font-bold tracking-wide">
             {t.admin.recitationsManagementDesc}
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" size="sm" className="flex items-center gap-2 border-gray-200 text-gray-600 hover:text-gray-900">
-            <Download className="w-4 h-4" />
-            {t.admin.exportReport}
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          className="rounded-2xl font-black border-border hover:bg-muted h-11 px-6 gap-2"
+        >
+          <Download className="w-4 h-4 ml-1" />
+          {t.admin.exportReport}
+        </Button>
       </div>
 
-      {/* Filters & Tabs Wrapper */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 overflow-hidden space-y-4">
+      {/* Filters & Tabs Section */}
+      <div className="bg-card rounded-3xl shadow-sm border border-border p-2 space-y-4">
         {/* Status Tabs */}
-        <div className="flex flex-wrap gap-1 border-b border-gray-50 pb-2">
+        <div className="flex p-1 bg-muted/50 rounded-2xl w-full sm:w-fit gap-1 overflow-x-auto no-scrollbar">
           {[
             { id: "all", label: t.admin.allStatuses, icon: Filter },
-            { id: "unassigned", label: t.admin.unassignedRecitations, icon: Clock, count: recitations.filter(r => !r.assignedReaderId && r.status === 'pending').length },
+            { id: "unassigned", label: t.admin.unassignedRecitations, icon: UserPlus, count: recitations.filter(r => !r.assignedReaderId && r.status === 'pending').length },
             { id: "pending", label: t.pending, icon: Clock },
             { id: "in_review", label: t.inReview, icon: Search },
             { id: "mastered", label: t.mastered, icon: CheckCircle },
@@ -146,17 +147,17 @@ export default function AdminRecitationsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all relative ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all relative shrink-0 ${
                 activeTab === tab.id
-                  ? "bg-[#1B5E3B] text-white shadow-md shadow-emerald-900/10"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "opacity-100" : "opacity-40"}`} />
+              <tab.icon className="w-3.5 h-3.5" />
               {tab.label}
-              {tab.id === 'unassigned' && (tab as any).count > 0 && (
-                <span className="absolute -top-1 -left-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full animate-pulse border-2 border-white">
-                  {(tab as any).count}
+              {tab.id === 'unassigned' && tab.count && tab.count > 0 && (
+                <span className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-rose-500 text-white text-[9px] flex items-center justify-center rounded-full font-black border-2 border-card shadow-lg shadow-rose-500/20">
+                  {tab.count}
                 </span>
               )}
             </button>
@@ -164,176 +165,159 @@ export default function AdminRecitationsPage() {
         </div>
 
         {/* Search & Reader Filter Row */}
-        <div className="flex flex-col md:flex-row gap-4 p-2">
-          <div className="flex-1 relative group">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#1B5E3B] transition-colors" />
-            <input
+        <div className="flex flex-col lg:flex-row gap-4 p-2">
+          <div className="flex-1 relative">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
               type="text"
               placeholder={t.admin.searchRecitationsPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 pr-11 pl-4 rounded-xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:border-[#1B5E3B] focus:ring-4 focus:ring-[#1B5E3B]/5 outline-none transition-all text-sm font-medium"
+              className="w-full h-12 pr-11 pl-4 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
             />
           </div>
-          <div className="w-full md:w-64 relative group">
-            <UserPlus className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:text-[#1B5E3B] transition-colors" />
+          <div className="w-full lg:w-72 relative">
+            <UserIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <select
-              className="w-full h-12 pr-11 pl-4 rounded-xl border border-gray-100 bg-gray-50/50 appearance-none focus:bg-white focus:border-[#1B5E3B] focus:ring-4 focus:ring-[#1B5E3B]/5 outline-none transition-all text-sm font-bold text-gray-700 cursor-pointer shadow-sm"
+              className="w-full h-12 pr-11 pl-4 rounded-2xl border border-border bg-muted/30 text-sm font-bold text-foreground outline-none focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer appearance-none"
               value={readerFilter}
               onChange={(e) => setReaderFilter(e.target.value)}
             >
               <option value="">{t.admin.allReaders}</option>
               {readers.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
+                <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
+            <ChevronRight className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none rotate-90" />
           </div>
           {(searchQuery || readerFilter || activeTab !== "all") && (
-            <button
+            <Button
               onClick={() => {
                 setSearchQuery("")
                 setReaderFilter("")
                 setActiveTab("all")
               }}
-              className="px-4 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
+              variant="ghost"
+              className="h-12 px-6 text-xs font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 hover:bg-rose-500/5 rounded-2xl shrink-0"
             >
-              {isAr ? "مسح التصفية" : "Reset"}
-            </button>
+              {isAr ? "مسح التصفية" : "Reset Filters"}
+            </Button>
           )}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Table Section */}
+      <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
           {loading ? (
-            <div className="flex justify-center p-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#1B5E3B]" />
+            <div className="flex justify-center p-24">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
           ) : (
-            <table className="w-full text-sm text-right">
-              <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">ID</th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.auth.student}
-                  </th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.admin.surahAyahs}
-                  </th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.admin.assignedReader}
-                  </th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.admin.sessionReader}
-                  </th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.reader.status}
-                  </th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                    {t.admin.submissionDate}
-                  </th>
-                  <th className="px-6 py-4 font-semibold whitespace-nowrap text-center">
-                    {t.admin.action}
-                  </th>
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="bg-muted/50 text-muted-foreground text-[11px] font-black uppercase tracking-widest border-b border-border">
+                  <th className="px-6 py-5">ID</th>
+                  <th className="px-6 py-5">{t.auth.student}</th>
+                  <th className="px-6 py-5">{t.admin.surahAyahs}</th>
+                  <th className="px-6 py-5">{t.admin.assignedReader}</th>
+                  <th className="px-6 py-5">{t.admin.sessionReader}</th>
+                  <th className="px-6 py-5">{t.reader.status}</th>
+                  <th className="px-6 py-5">{t.admin.submissionDate}</th>
+                  <th className="px-6 py-5 text-center">{t.admin.action}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {recitations.length > 0 ? recitations.map((rec, idx) => (
                   <tr
                     key={rec.id}
-                    className="hover:bg-gray-50/50 transition-colors group"
+                    className="hover:bg-muted/30 transition-all group border-transparent"
                   >
-                    <td className="px-6 py-4 text-gray-400 font-mono text-xs">
-                      <Link href={`/admin/recitations/${rec.id}`} className="hover:text-[#1B5E3B] hover:underline">
+                    <td className="px-6 py-5">
+                      <Link href={`/admin/recitations/${rec.id}`} className="text-[10px] font-black text-muted-foreground hover:text-primary transition-colors bg-muted/50 px-2 py-1 rounded-lg border border-border">
                         #{rec.id.substring(0, 8)}
                       </Link>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${avatarColors[idx % avatarColors.length]}`}
-                        >
-                          {(rec.studentName || t.userFallbackLetter).charAt(0)}
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 border transition-all group-hover:scale-110 ${avatarColors[idx % avatarColors.length]}`}>
+                          {(rec.studentName || "S").charAt(0)}
                         </div>
-                        <div>
-                          <div className="font-medium text-gray-900">
+                        <div className="min-w-0">
+                          <p className="font-black text-foreground text-sm leading-tight group-hover:text-primary transition-colors truncate">
                             {rec.studentName}
-                          </div>
-                          <div className="text-xs text-gray-500">
+                          </p>
+                          <p className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
                             {rec.studentEmail}
-                          </div>
+                          </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {rec.surah} ({rec.fromAyah}-{rec.toAyah})
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <UserPlus className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">
-                          {rec.assignedReaderName || "---"}
-                        </span>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2 text-foreground font-bold text-xs bg-muted/30 px-3 py-1.5 rounded-xl border border-border w-fit">
+                        <BookIcon className="w-3.5 h-3.5 text-primary" />
+                        {rec.surah} <span className="text-muted-foreground opacity-60">({rec.fromAyah}-{rec.toAyah})</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                        <UserIcon className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                        <span className="truncate max-w-[120px]">{rec.assignedReaderName || "---"}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
                       {rec.sessionReaderName ? (
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-emerald-700">{rec.sessionReaderName}</span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-black text-primary truncate max-w-[120px]">{rec.sessionReaderName}</span>
                           {rec.bookingSlotStart && (
-                            <span className="text-xs text-muted-foreground mt-0.5">
+                            <span className="text-[10px] text-muted-foreground font-bold tracking-tighter flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-primary/40" />
                               {new Date(rec.bookingSlotStart).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400">---</span>
+                        <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-widest">{t.none || "---"}</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
                       <StatusBadge status={rec.status} />
                     </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      <div className="flex flex-col text-xs">
-                        <span>
-                          {new Date(rec.createdAt).toLocaleDateString(
-                            isAr ? "ar-SA" : "en-US"
-                          )}
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col text-[10px] font-black text-muted-foreground uppercase tracking-tight">
+                        <span className="text-foreground">
+                          {new Date(rec.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-US")}
                         </span>
-                        <span className="opacity-75">
-                          {new Date(rec.createdAt).toLocaleTimeString(
-                            isAr ? "ar-SA" : "en-US",
-                            { hour: "2-digit", minute: "2-digit" }
-                          )}
+                        <span className="opacity-40">
+                          {new Date(rec.createdAt).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center justify-center gap-3">
                         <Link
                           href={`/admin/recitations/${rec.id}`}
-                          className="p-1.5 text-gray-400 hover:text-[#1B5E3B] hover:bg-emerald-50 rounded-lg transition-colors"
+                          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all border border-transparent hover:border-primary/20"
                           title={t.viewDetails}
                         >
-                          <Eye className="w-5 h-5" />
+                          <Eye className="w-4.5 h-4.5" />
                         </Link>
                         <button
-                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title={t.admin.assignReader}
+                          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all border border-transparent hover:border-primary/20"
                           onClick={() => openReassignDialog(rec.id)}
                         >
-                          <UserPlus className="w-5 h-5" />
+                          <UserPlus className="w-4.5 h-4.5" />
                         </button>
                       </div>
                     </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={8} className="py-20 text-center text-muted-foreground">
-                      {t.admin.noRecitationsFound}
+                    <td colSpan={8} className="py-24 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Mic className="w-12 h-12 opacity-20 mb-4" />
+                        <p className="font-black uppercase tracking-widest text-xs">{t.admin.noRecitationsFound}</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -342,9 +326,9 @@ export default function AdminRecitationsPage() {
           )}
         </div>
 
-        {/* Total Count */}
-        <div className="bg-muted/30 px-6 py-4 border-t border-border flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+        {/* Footer info using semantic classes */}
+        <div className="bg-muted/30 px-6 py-5 border-t border-border flex items-center justify-between">
+          <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
             {t.admin.totalResults.replace('{count}', recitations.length.toString())}
           </div>
         </div>
@@ -352,53 +336,88 @@ export default function AdminRecitationsPage() {
 
       {/* Reassign Dialog */}
       <Dialog open={reassignDialog} onOpenChange={setReassignDialog}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl border-none shadow-2xl bg-card max-w-lg">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-black text-foreground">
               {t.admin.assignReader}
             </DialogTitle>
-            <DialogDescription>
-              {t.admin.assignReaderDesc}
+            <DialogDescription className="text-muted-foreground font-bold">
+              {isAr ? "اختر قارئاً من القائمة لتعيينه لهذه التلاوة" : "Select a reader from the list to assign to this recitation"}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
-            {readers.length > 0 ? readers.map((reader) => (
+          <div className="space-y-4 pt-6">
+            <div className="relative">
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={isAr ? "بحث بالاسم أو الإيميل أو الـ ID..." : "Search by name, email or ID..."}
+                value={readerSearchQuery}
+                onChange={(e) => setReaderSearchQuery(e.target.value)}
+                className="w-full h-11 pr-11 pl-4 rounded-2xl border-border bg-muted/30 focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+              />
+            </div>
+
+            <div className="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
+              {readers.filter(r => 
+                !readerSearchQuery || 
+                r.name.toLowerCase().includes(readerSearchQuery.toLowerCase()) || 
+                r.email.toLowerCase().includes(readerSearchQuery.toLowerCase()) ||
+                r.id.toLowerCase().includes(readerSearchQuery.toLowerCase())
+              ).length > 0 ? readers.filter(r => 
+                !readerSearchQuery || 
+                r.name.toLowerCase().includes(readerSearchQuery.toLowerCase()) || 
+                r.email.toLowerCase().includes(readerSearchQuery.toLowerCase()) ||
+                r.id.toLowerCase().includes(readerSearchQuery.toLowerCase())
+              ).map((reader) => (
               <button
                 key={reader.id}
-                className="w-full flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-right"
+                className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border hover:bg-card hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all text-right group/r active:scale-95"
                 onClick={() => handleReassign(reader.id)}
                 disabled={processing}
               >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      {reader.name}
-                    </p>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${reader.is_accepting_recitations ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {reader.is_accepting_recitations ? t.reader.active : t.reader.inactive}
-                    </span>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black group-hover/r:scale-110 transition-transform">
+                    {reader.name.charAt(0)}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t.auth.reader}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-black text-foreground transition-colors group-hover/r:text-primary">
+                        {reader.name}
+                      </p>
+                      <Badge className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border pointer-events-none ${reader.is_accepting_recitations ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border'}`}>
+                        {reader.is_accepting_recitations ? t.reader.active : t.reader.inactive}
+                      </Badge>
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                      {t.auth.reader}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs text-primary font-medium">
-                  {reader.rating || "---"}/5
-                </span>
+                <div className="bg-card px-2 py-1 rounded-lg border border-border shadow-sm flex items-center gap-1">
+                  <span className="text-[11px] text-primary font-black">
+                    {reader.rating || "5.0"}
+                  </span>
+                  <span className="text-[10px] text-primary">★</span>
+                </div>
               </button>
             )) : (
-              <p className="text-center text-muted-foreground py-4">{t.admin.noReadersFound}</p>
+              <div className="py-12 flex flex-col items-center justify-center text-muted-foreground">
+                <UserIcon className="w-12 h-12 opacity-20 mb-3" />
+                <p className="font-black uppercase tracking-widest text-[10px]">{t.admin.noReadersFound}</p>
+              </div>
             )}
+            
             <button
-              className="w-full flex items-center justify-center p-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors mt-4 text-sm font-bold"
+              className="w-full flex items-center justify-center p-4 rounded-2xl bg-rose-500/10 text-rose-500 border-2 border-dashed border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all mt-6 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-rose-500/5 active:scale-95"
               onClick={() => handleReassign("")}
               disabled={processing}
             >
-              {t.admin.unassignReader}
+              {isAr ? "إزالة تعيين القارئ الحالي" : "Unassign Reader"}
             </button>
           </div>
+        </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReassignDialog(false)}>
+            <Button variant="outline" onClick={() => setReassignDialog(false)} className="rounded-2xl font-black w-full h-11 border-border">
               {t.cancel}
             </Button>
           </DialogFooter>

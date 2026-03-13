@@ -110,8 +110,8 @@ function ResetPasswordContent() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden bg-[#0B3D2E]">
       {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-[#D4A843]/10 rounded-full blur-[100px] animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-[#D4A843]/5 rounded-full blur-[100px]"></div>
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-primary/10 rounded-full blur-[100px] animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-primary/5 rounded-full blur-[100px]"></div>
 
       <nav className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 max-w-7xl mx-auto w-full">
         <Link href="/" className="text-3xl font-bold tracking-tighter text-[#D4A843] hover:opacity-80 transition-opacity drop-shadow-sm">{t.appName}</Link>
@@ -122,12 +122,12 @@ function ResetPasswordContent() {
       </nav>
 
       <main className="relative z-10 w-full max-w-lg px-4 py-12">
-        <div className="bg-white/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2.5rem] p-8 md:p-12">
+        <div className="bg-card/95 backdrop-blur-2xl border border-border shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2.5rem] p-8 md:p-12">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#0B3D2E]/5 mb-6 border border-[#0B3D2E]/10">
-              <Lock className="w-10 h-10 text-[#0B3D2E]" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-secondary/10 mb-6 border border-border">
+              <Lock className="w-10 h-10 text-primary" />
             </div>
-            <h1 className="text-3xl font-black text-[#0B3D2E] mb-3 tracking-tight">{t.resetPassword.title}</h1>
+            <h1 className="text-3xl font-black text-foreground mb-3 tracking-tight">{t.resetPassword.title}</h1>
             {initialEmail ? (
               <p className="text-slate-500 text-sm leading-relaxed">
                 {t.resetPassword.enterCodeTo} <br />
@@ -163,7 +163,7 @@ function ResetPasswordContent() {
                   onChange={(e) => setInputEmail(e.target.value)}
                   placeholder="name@example.com"
                   dir="ltr"
-                  className="w-full px-4 py-4 text-center bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-[#D4A843]/10 focus:border-[#D4A843] focus:bg-white transition-all text-base font-bold placeholder:font-medium placeholder:text-slate-300"
+                  className="w-full px-4 py-4 text-center bg-secondary/20 dark:bg-secondary/10 border-2 border-border rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-card transition-all text-base font-bold placeholder:font-medium placeholder:text-muted-foreground/30 text-foreground"
                   required
                 />
               </div>
@@ -183,7 +183,7 @@ function ResetPasswordContent() {
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={handlePaste}
-                    className="w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black text-[#0B3D2E] bg-slate-50 border-2 border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#D4A843]/20 focus:border-[#D4A843] transition-all transform focus:scale-105"
+                    className="w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black text-foreground bg-secondary/20 dark:bg-secondary/10 border-2 border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all transform focus:scale-105"
                     autoComplete="off"
                   />
                 ))}
@@ -214,7 +214,7 @@ function ResetPasswordContent() {
             <button
               type="submit"
               disabled={loading || success || code.join("").length < 6 || !inputEmail || newPassword.length < 6}
-              className="w-full py-4.5 bg-[#D4A843] hover:bg-[#E5B954] text-[#0B3D2E] font-black rounded-2xl shadow-xl shadow-[#D4A843]/20 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
+              className="w-full py-4.5 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl shadow-xl shadow-primary/20 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
             >
               {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t.resetPassword.saving}</> : t.resetPassword.updatePassword}
             </button>

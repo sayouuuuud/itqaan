@@ -668,6 +668,7 @@ export const ar = {
     stateBooked: 'موعد محجوز',
     stateSuspended: 'معلق',
     slotsRemaining: 'المواعيد المتاحة عند المقرئ:',
+    sessions: 'الجلسات',
     // Reader Dashboard
     readerOverview: 'لوحة المقرئ',
     readerActivitySummary: 'نظرة عامة على نشاطك وجلساتك الحالية.',

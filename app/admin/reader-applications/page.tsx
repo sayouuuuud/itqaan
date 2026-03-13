@@ -6,7 +6,7 @@ import {
   UserCheck, UserX, Clock, ChevronRight, GraduationCap,
   BookOpen, Phone, MapPin, CheckCircle, XCircle, AlertCircle,
   Loader2, Mail, Calendar, FileText, ExternalLink, Globe,
-  ShieldCheck, BadgeCheck, Search, Trash2
+  ShieldCheck, BadgeCheck, Search, Trash2, User as UserIcon
 } from "lucide-react"
 import {
   Dialog,
@@ -27,6 +27,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 type AppStatus = "pending_approval" | "approved" | "rejected" | "auto_approved"
 
@@ -48,8 +50,8 @@ type Application = {
 }
 
 export default function ReaderApplicationsPage() {
-  const { t } = useI18n()
-  const isAr = t.locale === "ar"
+  const { t, locale } = useI18n()
+  const isAr = locale === "ar"
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | AppStatus>("all")
@@ -64,7 +66,6 @@ export default function ReaderApplicationsPage() {
         if (res.ok) {
           const data = await res.json()
           setApplications(data.applications || [])
-          // Select the first pending application if any
           const firstPending = (data.applications || []).find((a: Application) => a.approval_status === "pending_approval")
           if (firstPending) setSelectedId(firstPending.id)
           else if (data.applications?.length > 0) setSelectedId(data.applications[0].id)
@@ -143,58 +144,56 @@ export default function ReaderApplicationsPage() {
   const statusConfig: Record<AppStatus, { label: string; color: string; icon: React.ReactNode; bg: string }> = {
     pending_approval: {
       label: t.admin.pendingApproval,
-      color: "text-amber-600",
-      bg: "bg-amber-50 border-amber-100",
-      icon: <Clock className="w-4 h-4" />,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10 border-amber-500/20",
+      icon: <Clock className="w-3.5 h-3.5" />,
     },
     approved: {
       label: t.approved,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 border-emerald-100",
-      icon: <CheckCircle className="w-4 h-4" />,
+      color: "text-primary",
+      bg: "bg-primary/10 border-primary/20",
+      icon: <CheckCircle className="w-3.5 h-3.5" />,
     },
     auto_approved: {
       label: t.approved,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 border-emerald-100",
-      icon: <ShieldCheck className="w-4 h-4" />,
+      color: "text-primary",
+      bg: "bg-primary/10 border-primary/20",
+      icon: <ShieldCheck className="w-3.5 h-3.5" />,
     },
     rejected: {
       label: t.rejected,
-      color: "text-rose-600",
-      bg: "bg-rose-50 border-rose-100",
-      icon: <XCircle className="w-4 h-4" />,
+      color: "text-destructive",
+      bg: "bg-destructive/10 border-destructive/20",
+      icon: <XCircle className="w-3.5 h-3.5" />,
     },
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden -m-4 md:-m-6">
+    <div className="bg-card min-h-full flex flex-col h-[calc(100vh-120px)] overflow-hidden -m-6 lg:-m-8 p-0" dir={isAr ? "rtl" : "ltr"}>
       {/* Header Bar */}
-      <div className="bg-white border-b border-gray-100 p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-10 shrink-0">
+      <div className="bg-card border-b border-border p-5 md:p-8 flex flex-col lg:flex-row justify-between lg:items-center gap-6 z-10 shrink-0">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            <span className="p-2 bg-[#0B3D2E] text-white rounded-xl shadow-lg shadow-[#0B3D2E]/20">
-              <BadgeCheck className="w-6 h-6" />
-            </span>
+          <h1 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-4">
+            <BadgeCheck className="w-8 h-8 text-primary" />
             {t.admin.readerApplications}
           </h1>
-          <p className="text-sm text-gray-400 mt-1 font-medium">{t.admin.readerApplicationsDesc}</p>
+          <p className="text-sm text-muted-foreground mt-1 font-bold tracking-wide">{t.admin.readerApplicationsDesc}</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder={isAr ? "البحث عن طلب..." : "Search applications..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-9 pl-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B3D2E]/20 outline-none transition-all w-64 font-medium"
+              className="w-full pr-11 pl-4 py-3 bg-muted/50 border border-border rounded-2xl text-sm focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground outline-none"
             />
           </div>
           {counts.pending_approval > 0 && (
-            <div className="flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg shadow-amber-500/20 animate-pulse">
-              <AlertCircle className="w-3 h-3" />
+            <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-500/5 animate-pulse shrink-0">
+              <AlertCircle className="w-3.5 h-3.5" />
               {counts.pending_approval} {isAr ? "طلبات بانتظار المراجعة" : "Pending Reviews"}
             </div>
           )}
@@ -203,18 +202,18 @@ export default function ReaderApplicationsPage() {
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar List */}
-        <div className="w-full md:w-96 border-l border-gray-100 bg-white flex flex-col shrink-0 overflow-hidden relative">
+        <div className="w-full lg:w-96 border-l border-border bg-card/50 backdrop-blur-sm flex flex-col shrink-0 overflow-hidden relative">
           {/* Filter Tabs */}
-          <div className="p-4 border-b border-gray-50 flex gap-2 overflow-x-auto no-scrollbar shrink-0">
+          <div className="p-4 border-b border-border flex gap-2 overflow-x-auto no-scrollbar shrink-0 bg-muted/30">
             {["all", "pending_approval", "approved", "rejected"].map((k) => (
               <button
                 key={k}
                 onClick={() => setFilter(k as any)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap",
+                  "px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
                   filter === k
-                    ? "bg-[#0B3D2E] text-white shadow-md"
-                    : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 {k === 'all' ? t.all : k === 'pending_approval' ? t.admin.pendingApproval : k === 'approved' ? t.approved : t.rejected}
@@ -222,15 +221,17 @@ export default function ReaderApplicationsPage() {
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3">
             {loading ? (
               Array(5).fill(0).map((_, i) => (
-                <div key={i} className="h-20 bg-gray-50 rounded-2xl animate-pulse" />
+                <div key={i} className="h-24 bg-muted/30 rounded-3xl animate-pulse" />
               ))
             ) : filtered.length === 0 ? (
-              <div className="py-20 text-center">
-                <UserCheck className="w-12 h-12 text-gray-100 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm font-bold">{t.admin.noApplicationsFound}</p>
+              <div className="py-24 text-center">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border border-border">
+                  <UserCheck className="w-8 h-8 text-muted-foreground opacity-20" />
+                </div>
+                <p className="text-muted-foreground text-xs font-black uppercase tracking-widest">{t.admin.noApplicationsFound}</p>
               </div>
             ) : filtered.map((app) => {
               const status = statusConfig[app.approval_status] || statusConfig.pending_approval
@@ -239,35 +240,38 @@ export default function ReaderApplicationsPage() {
                   key={app.id}
                   onClick={() => setSelectedId(app.id)}
                   className={cn(
-                    "group w-full p-4 rounded-2xl border transition-all text-right flex flex-col gap-2 relative",
+                    "group w-full p-5 rounded-[28px] border-2 transition-all text-right flex flex-col gap-3 relative overflow-hidden",
                     selectedId === app.id
-                      ? "bg-emerald-50/50 border-emerald-200 shadow-sm"
-                      : "bg-white border-transparent hover:border-gray-100 hover:bg-gray-50/50"
+                      ? "bg-primary/5 border-primary shadow-xl shadow-primary/5 active:scale-95"
+                      : "bg-card border-transparent hover:border-border hover:bg-muted/30"
                   )}
                 >
-                  <div className="flex justify-between items-start">
-                    <span className={cn("text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border", status.bg, status.color)}>
+                  {selectedId === app.id && (
+                    <div className="absolute top-0 right-0 w-1.5 h-full bg-primary" />
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className={cn("text-[9px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-lg border", status.bg, status.color)}>
                       {status.label}
                     </span>
-                    <span className="text-[10px] text-gray-400 font-medium">
+                    <span className="text-[10px] text-muted-foreground font-bold tracking-tighter">
                       {new Date(app.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 transition-transform group-hover:scale-105",
-                      selectedId === app.id ? "bg-[#0B3D2E] text-white shadow-lg" : "bg-gray-100 text-gray-600"
+                      "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 transition-all duration-500",
+                      selectedId === app.id ? "bg-primary text-primary-foreground shadow-2xl scale-110" : "bg-muted text-muted-foreground border border-border"
                     )}>
                       {app.name.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 text-sm truncate">{app.name}</h3>
-                      <p className="text-xs text-gray-400 truncate font-medium">{app.email}</p>
+                      <h3 className="font-black text-foreground text-sm truncate group-hover:text-primary transition-colors">{app.name}</h3>
+                      <p className="text-[10px] text-muted-foreground truncate font-bold uppercase tracking-tight opacity-70 mt-0.5">{app.email}</p>
                     </div>
                   </div>
                   {selectedId === app.id && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                      <ChevronRight className={cn("w-4 h-4 text-emerald-400 transition-all", isAr ? "rotate-180" : "")} />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-opacity">
+                      <ChevronRight className={cn("w-5 h-5 text-primary transition-all", isAr ? "rotate-180" : "")} />
                     </div>
                   )}
                 </button>
@@ -277,57 +281,59 @@ export default function ReaderApplicationsPage() {
         </div>
 
         {/* Detail Content */}
-        <div className="flex-1 overflow-y-auto no-scrollbar bg-gray-50/30 p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto no-scrollbar bg-card/20 p-6 md:p-10">
           {selectedApp ? (
-            <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
               {/* Hero Card */}
-              <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-[#0B3D2E] to-emerald-500" />
+              <div className="bg-card rounded-[40px] p-8 md:p-12 shadow-2xl shadow-foreground/5 border border-border relative overflow-hidden group transition-all duration-500 hover:shadow-primary/5">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-emerald-400 to-primary" />
+                <div className="absolute -top-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors" />
 
-                <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
-                  <div className="w-24 h-24 bg-gradient-to-br from-[#0B3D2E] to-[#145A3E] rounded-[24px] flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-emerald-900/10">
+                <div className="flex flex-col md:flex-row gap-10 items-start relative z-10">
+                  <div className="w-28 h-28 bg-gradient-to-br from-primary to-emerald-600 rounded-[32px] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-primary/20 transition-all duration-700 group-hover:rotate-6 group-hover:scale-110">
                     {selectedApp.name.charAt(0)}
                   </div>
 
-                  <div className="flex-1 space-y-4">
-                    <div className="flex flex-wrap justify-between items-center gap-4">
+                  <div className="flex-1 space-y-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                       <div>
-                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">{selectedApp.full_name_triple || selectedApp.name}</h2>
-                        <div className="flex flex-wrap items-center gap-4 mt-2">
-                          <div className="flex items-center gap-1.5 text-gray-400 font-bold text-sm">
-                            <Mail className="w-4 h-4" />
+                        <h2 className="text-4xl font-black text-foreground tracking-tight leading-tight">{selectedApp.full_name_triple || selectedApp.name}</h2>
+                        <div className="flex flex-wrap items-center gap-6 mt-4">
+                          <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs bg-muted/50 px-3 py-2 rounded-xl border border-border">
+                            <Mail className="w-4 h-4 text-primary" />
                             {selectedApp.email}
                           </div>
-                          <div className="flex items-center gap-1.5 text-gray-400 font-bold text-sm">
-                            <Phone className="w-4 h-4" />
+                          <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs bg-muted/50 px-3 py-2 rounded-xl border border-border">
+                            <Phone className="w-4 h-4 text-primary" />
                             {selectedApp.phone || "---"}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {selectedApp.approval_status === "pending_approval" ? (
                           <>
-                            <button
+                            <Button
                               onClick={() => handleAction(selectedApp.id, "reject")}
                               disabled={!!processingId}
-                              className="px-6 py-3 rounded-2xl bg-white border-2 border-rose-100 text-rose-500 font-black text-sm hover:bg-rose-50 transition-all"
+                              variant="outline"
+                              className="rounded-2xl h-14 px-8 border-destructive/20 text-destructive font-black text-xs uppercase tracking-widest hover:bg-destructive/10 transition-all"
                             >
                               {processingId === selectedApp.id ? <Loader2 className="w-5 h-5 animate-spin" /> : isAr ? "رفض الطلب" : "Reject"}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() => handleAction(selectedApp.id, "approve")}
                               disabled={!!processingId}
-                              className="px-8 py-3 rounded-2xl bg-[#0B3D2E] text-white font-black text-sm shadow-xl shadow-[#0B3D2E]/20 hover:scale-105 transition-all"
+                              className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
                             >
                               {processingId === selectedApp.id ? <Loader2 className="w-5 h-5 animate-spin" /> : isAr ? "اعتماد القارئ" : "Approve Reader"}
-                            </button>
+                            </Button>
                           </>
                         ) : (
                           (() => {
                             const status = statusConfig[selectedApp.approval_status] || statusConfig.pending_approval
                             return (
-                              <div className={cn("px-6 py-3 rounded-2xl border-2 flex items-center gap-2 font-black text-sm", status.bg, status.color)}>
+                              <div className={cn("h-14 px-8 rounded-2xl border-2 flex items-center gap-3 font-black text-[11px] uppercase tracking-widest", status.bg, status.color)}>
                                 {status.icon}
                                 {status.label}
                               </div>
@@ -336,31 +342,31 @@ export default function ReaderApplicationsPage() {
                         )}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <button
+                            <Button
                               disabled={!!processingId}
-                              className="p-3 rounded-2xl border-2 border-rose-100 text-rose-400 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
-                              title={isAr ? "حذف الطلب" : "Delete Application"}
+                              variant="outline"
+                              className="w-14 h-14 rounded-2xl border-rose-500/20 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/40 transition-all p-0"
                             >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
+                              <Trash2 className="w-6 h-6" />
+                            </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="rounded-[40px] border-none shadow-2xl p-10 bg-card max-w-lg">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-rose-600 flex items-center gap-2">
-                                <Trash2 className="w-5 h-5" />
+                              <AlertDialogTitle className="text-2xl font-black text-destructive flex items-center gap-3">
+                                <Trash2 className="w-7 h-7" />
                                 {isAr ? "حذف طلب المقرئ" : "Delete Reader Application"}
                               </AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-600">
+                              <AlertDialogDescription className="text-muted-foreground font-bold leading-relaxed pt-2">
                                 {isAr
-                                  ? `هل أنت متأكد من حذف طلب التسجيل الخاص بـ "${selectedApp.full_name_triple || selectedApp.name}"? سيتم حذف الحساب وجميع البيانات المرتبطة نهائياً ولا يمكن التراجع عنه.`
-                                  : `Are you sure you want to delete the application for "${selectedApp.full_name_triple || selectedApp.name}"? The account and all associated data will be permanently removed.`}
+                                  ? `هل أنت متأكد من حذف طلب التسجيل الخاص بـ "${selectedApp.full_name_triple || selectedApp.name}"? سيتم حذف الحساب وجميع البيانات المرتبطة نهائياً.`
+                                  : `Are you sure you want to delete the application for "${selectedApp.full_name_triple || selectedApp.name}"? This action is permanent.`}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{isAr ? "إلغاء" : "Cancel"}</AlertDialogCancel>
+                            <AlertDialogFooter className="pt-6 gap-3">
+                              <AlertDialogCancel className="rounded-2xl h-12 font-black border-border">{isAr ? "إلغاء" : "Cancel"}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDelete(selectedApp.id)}
-                                className="bg-rose-600 hover:bg-rose-700 text-white"
+                                className="rounded-2xl h-12 bg-destructive text-destructive-foreground font-black hover:bg-destructive/90 shadow-xl shadow-destructive/20"
                               >
                                 {processingId === selectedApp.id
                                   ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -375,197 +381,156 @@ export default function ReaderApplicationsPage() {
                 </div>
               </div>
 
-              {/* Stats & Documents Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-4">
-                <div className="md:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-1 hover:shadow-md transition-shadow cursor-default">
-                  <div className="p-2 bg-blue-50 text-blue-600 w-fit rounded-xl mb-2">
-                    <GraduationCap className="w-5 h-5" />
-                  </div>
-                  <span className="text-gray-400 text-xs font-bold">{t.readerRegister.qualification}</span>
-                  <span className="text-gray-900 font-black text-lg leading-tight">{selectedApp.qualification || "---"}</span>
-                </div>
-
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-1 cursor-default">
-                  <div className="p-2 bg-emerald-50 text-emerald-600 w-fit rounded-xl mb-2">
-                    <BookOpen className="w-5 h-5" />
-                  </div>
-                  <span className="text-gray-400 text-xs font-bold">{t.readerRegister.memorizedParts}</span>
-                  <span className="text-gray-900 font-black text-lg">{selectedApp.memorized_parts || "---"} {isAr ? "جزءاً" : "Parts"}</span>
-                </div>
-
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-1 cursor-default">
-                  <div className="p-2 bg-purple-50 text-purple-600 w-fit rounded-xl mb-2">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <span className="text-gray-400 text-xs font-bold">{t.readerRegister.yearsOfExperience}</span>
-                  <span className="text-gray-900 font-black text-lg">{selectedApp.years_of_experience || 0} {t.years}</span>
-                </div>
-
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-1 cursor-default">
-                  <div className="p-2 bg-amber-50 text-amber-600 w-fit rounded-xl mb-2">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <span className="text-gray-400 text-xs font-bold">{t.readerRegister.nationality}</span>
-                  <span className="text-gray-900 font-black text-lg">{selectedApp.nationality || "---"}</span>
-                </div>
-
-                {/* Documents Section Integrated in Grid */}
-                <div className="lg:col-span-3 bg-[#0B3D2E] text-white rounded-3xl p-6 shadow-xl shadow-emerald-900/10 flex flex-col justify-center">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-emerald-300" />
-                      <h3 className="text-lg font-black">{isAr ? "الوثائق المرفقة" : "Documents"}</h3>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { icon: GraduationCap, label: t.readerRegister.qualification, val: selectedApp.qualification || "---", color: "blue" },
+                  { icon: BookOpen, label: t.readerRegister.memorizedParts, val: `${selectedApp.memorized_parts || "---"} ${isAr ? "جزءاً" : "Parts"}`, color: "emerald" },
+                  { icon: Clock, label: t.readerRegister.years_of_experience, val: `${selectedApp.years_of_experience || 0} ${t.years}`, color: "purple" },
+                  { icon: Globe, label: t.readerRegister.nationality, val: selectedApp.nationality || "---", color: "orange" }
+                ].map((stat, i) => (
+                   <div key={i} className="bg-card p-6 md:p-8 rounded-[32px] border border-border shadow-sm flex flex-col gap-2 group hover:border-primary/20 transition-all duration-500">
+                    <div className={cn(
+                        "p-3 w-fit rounded-2xl group-hover:scale-110 transition-transform duration-500",
+                        stat.color === 'blue' && "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+                        stat.color === 'emerald' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                        stat.color === 'purple' && "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+                        stat.color === 'orange' && "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                    )}>
+                      <stat.icon className="w-6 h-6" />
                     </div>
+                    <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mt-2">{stat.label}</span>
+                    <span className="text-foreground font-black text-xl tracking-tight leading-tight group-hover:text-primary transition-colors">{stat.val}</span>
+                  </div>
+                ))}
+              </div>
 
+              {/* Documents & Detailed Info */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Documents Card */}
+                <div className="bg-card rounded-[32px] p-8 border border-border shadow-sm overflow-hidden flex flex-col group">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-primary/10 text-primary rounded-2xl">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-xl font-black text-foreground tracking-tight">{isAr ? "الوثائق المرفقة" : "Documents"}</h3>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-4">
                     {selectedApp.certificate_file_url ? (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button className="w-full sm:w-auto flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl transition-all group text-right">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-emerald-500 rounded-lg group-hover:scale-110 transition-transform shrink-0">
-                                <FileText className="w-5 h-5 text-white" />
+                      selectedApp.certificate_file_url.split(',').filter(Boolean).map((url, idx) => (
+                        <Dialog key={idx}>
+                          <DialogTrigger asChild>
+                             <button className="w-full h-20 px-5 bg-muted/30 border border-border rounded-2xl flex items-center justify-between transition-all hover:bg-card hover:border-primary/20 group/doc">
+                              <div className="flex items-center gap-4">
+                                <div className="p-2.5 bg-primary/10 text-primary rounded-xl group-hover/doc:scale-110 transition-all">
+                                  <FileText className="w-6 h-6" />
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-black text-foreground mb-1">{isAr ? `وثيقة ${idx + 1}` : `Document ${idx + 1}`}</p>
+                                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">{isAr ? "اضغط للمراجعة" : "Click to review"}</p>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-xs font-bold text-white">{isAr ? "صورة المؤهل / الإجازة" : "Certificate"}</p>
-                                <p className="text-[10px] text-emerald-300 font-medium">{isAr ? "اضغط للعرض" : "Preview"}</p>
-                              </div>
-                            </div>
-                            <ExternalLink className="w-4 h-4 text-emerald-300 group-hover:text-white transition-colors mr-2" />
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-white border-0 flex flex-col !inset-0 m-auto !translate-x-0 !translate-y-0">
-                          <DialogHeader className="p-4 border-b bg-gray-50 shrink-0">
-                            <DialogTitle className="flex items-center gap-2 text-gray-900 justify-end w-full pl-8" dir="ltr">
-                              <span className="truncate text-right w-full font-cairo">
-                                {selectedApp.full_name_triple || selectedApp.name}
-                              </span>
-                              <FileText className="w-5 h-5 text-[#0B3D2E] shrink-0" />
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="flex-1 overflow-auto bg-gray-100 min-h-0 p-4 flex flex-col items-center gap-8">
-                            {(() => {
-                              const urls = selectedApp.certificate_file_url!.split(',').filter(Boolean)
-
-                              return urls.map((url, idx) => {
+                              <ExternalLink className="w-5 h-5 text-muted-foreground group-hover/doc:text-primary transition-colors" />
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-5xl h-[95vh] p-0 overflow-hidden bg-card border-none rounded-[40px] flex flex-col shadow-2xl">
+                            <DialogHeader className="p-6 border-b border-border flex flex-row items-center justify-between shrink-0 bg-muted/30">
+                              <DialogTitle className="flex items-center gap-3 text-lg font-black text-foreground" dir="ltr">
+                                <span className="truncate max-w-md">{selectedApp.full_name_triple || selectedApp.name}</span>
+                                <Badge variant="outline" className="rounded-lg">{isAr ? `وثيقة ${idx + 1}` : `Document ${idx + 1}`}</Badge>
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="flex-1 overflow-auto p-6 bg-muted/20 flex flex-col items-center">
+                              {(() => {
                                 const isCloudinary = url.includes('cloudinary.com')
                                 const isUploadThing = url.includes('utfs.io') || url.includes('uploadthing.com')
-
                                 const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i) || false
                                 const isPdf = url.toLowerCase().includes('.pdf') ||
                                   url.toLowerCase().includes('raw/upload') ||
-                                  (isUploadThing && !isImage) // Fallback to PDF if not an explicit image
+                                  (isUploadThing && !isImage)
 
                                 return (
-                                  <div key={idx} className="w-full max-w-4xl flex flex-col items-center gap-2">
-                                    <div className="w-full flex justify-between items-center px-4 py-2 bg-white rounded-lg shadow-sm">
-                                      <span className="text-sm font-bold text-gray-700">{isAr ? `وثيقة ${idx + 1}` : `Document ${idx + 1}`}</span>
-                                      <a
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-[#0B3D2E] font-bold flex items-center gap-1 hover:underline"
-                                      >
-                                        <ExternalLink className="w-3 h-3" />
-                                        {isAr ? "افتح في تبويب" : "Open in Tab"}
-                                      </a>
-                                    </div>
+                                  <div className="w-full max-w-4xl">
                                     {isPdf ? (
                                       isCloudinary ? (
-                                        <>
+                                        <div className="space-y-6">
                                           {[1, 2, 3].map(pg => {
                                             const imgUrl = url.replace('/upload/', `/upload/pg_${pg},w_1200,q_auto/`)
                                             return (
-                                              <img
-                                                key={pg}
-                                                src={imgUrl}
-                                                alt={`Page ${pg}`}
-                                                className="w-full rounded-lg shadow-lg bg-white"
-                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                                              />
+                                              <img key={pg} src={imgUrl} alt={`Page ${pg}`} className="w-full rounded-[32px] shadow-2xl border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                                             )
                                           })}
-                                        </>
+                                        </div>
                                       ) : (
-                                        <div className="w-full aspect-[1/1.4] flex flex-col" dir="ltr">
-                                          <iframe
-                                            src={`${url}#view=FitH`}
-                                            className="w-full h-full border-0 rounded-lg shadow-xl bg-white flex-1"
-                                            title={`Document ${idx + 1}`}
-                                          />
+                                        <div className="w-full aspect-[1/1.4] rounded-[32px] overflow-hidden shadow-2xl border-4 border-card">
+                                          <iframe src={`${url}#view=FitH`} className="w-full h-full border-none bg-white" title={`Document ${idx + 1}`} />
                                         </div>
                                       )
                                     ) : (
-                                      <img
-                                        src={url}
-                                        alt={`Document ${idx + 1}`}
-                                        className="max-w-full object-contain rounded-lg shadow-xl bg-white"
-                                      />
+                                      <img src={url} alt={`Document ${idx + 1}`} className="w-full h-auto rounded-[32px] shadow-2xl border border-border bg-white" />
                                     )}
                                   </div>
                                 )
-                              })
-                            })()}
-                          </div>
-                          <div className="p-4 border-t bg-gray-50 flex justify-end shrink-0">
-                            <button
-                              onClick={() => {
-                                const urls = selectedApp.certificate_file_url!.split(',').filter(Boolean)
-                                urls.forEach(u => window.open(u, '_blank'))
-                              }}
-                              className="px-4 py-2 bg-[#0B3D2E] text-white rounded-xl text-xs font-black flex items-center gap-2 hover:bg-emerald-900 transition-colors"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              {isAr ? "فتح جميع الوثائق" : "Open All Documents"}
-                            </button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                              })()}
+                            </div>
+                            <div className="p-6 border-t border-border bg-muted/30 flex justify-end gap-3 shrink-0">
+                               <button onClick={() => window.open(url, '_blank')} className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                {isAr ? "تحميل الملف" : "Download File"}
+                               </button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      ))
                     ) : (
-                      <div className="flex items-center gap-2 text-white/40 italic text-sm">
-                        <AlertCircle className="w-5 h-5" />
-                        <span>{isAr ? "لا توجد وثائق" : "No docs"}</span>
+                      <div className="py-12 border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center opacity-40">
+                        <FileText className="w-10 h-10 mb-2" />
+                        <span className="text-xs font-black uppercase tracking-widest">{isAr ? "لا توجد وثائق" : "No documents"}</span>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
 
-              {/* Account Information - Full Width Bottom */}
-              <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50/50 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
-                <h3 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-2 relative">
-                  <ShieldCheck className="w-6 h-6 text-[#0B3D2E]" />
-                  {isAr ? "معلومات الحساب" : "Account Information"}
-                </h3>
+                {/* Additional Details Card */}
+                <div className="bg-primary text-primary-foreground rounded-[32px] p-8 shadow-2xl shadow-primary/20 relative overflow-hidden flex flex-col">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                  
+                  <h3 className="text-xl font-black mb-8 flex items-center gap-3 relative">
+                    <ShieldCheck className="w-6 h-6" />
+                    {isAr ? "معلومات إضافية" : "Additional Info"}
+                  </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
-                  <div className="space-y-1 group">
-                    <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{t.auth.nationality}</span>
-                    <p className="text-gray-900 font-black text-base transition-colors group-hover:text-[#0B3D2E]">{selectedApp.nationality || "---"}</p>
-                  </div>
-                  <div className="space-y-1 group">
-                    <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{isAr ? "المدينة" : "City"}</span>
-                    <p className="text-gray-900 font-black text-base transition-colors group-hover:text-[#0B3D2E]">{selectedApp.city || "---"}</p>
-                  </div>
-                  <div className="space-y-1 group">
-                    <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{t.readerRegister.gender}</span>
-                    <p className="text-gray-900 font-black text-base transition-colors group-hover:text-[#0B3D2E]">{selectedApp.gender === 'male' ? t.auth.male : t.auth.female}</p>
-                  </div>
-                  <div className="space-y-1 group">
-                    <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{isAr ? "تاريخ التقديم" : "Applied At"}</span>
-                    <p className="text-gray-900 font-black text-base transition-colors group-hover:text-[#0B3D2E]">{new Date(selectedApp.created_at).toLocaleString(isAr ? 'ar-SA' : 'en-US')}</p>
+                  <div className="grid grid-cols-1 gap-8 relative flex-1">
+                    {[
+                      { icon: MapPin, label: isAr ? "المدينة والمنطقة" : "City & Region", val: selectedApp.city || "---" },
+                      { icon: UserIcon, label: t.readerRegister.gender, val: selectedApp.gender === 'male' ? t.auth.male : t.auth.female },
+                      { icon: Calendar, label: isAr ? "تاريخ تقديم الطلب" : "Application Date", val: new Date(selectedApp.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                      { icon: BadgeCheck, label: isAr ? "وقت التقديم" : "Application Time", val: new Date(selectedApp.created_at).toLocaleTimeString(isAr ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }) }
+                    ].map((detail, i) => (
+                      <div key={i} className="flex items-center gap-5 group">
+                        <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 transition-transform duration-500 group-hover:scale-110">
+                          <detail.icon className="w-5 h-5" />
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">{detail.label}</p>
+                          <p className="text-lg font-black tracking-tight">{detail.val}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 bg-gray-50 rounded-[40px] flex items-center justify-center text-gray-200 mb-4">
-                <UserCheck className="w-10 h-10" />
+            <div className="h-full flex flex-col items-center justify-center text-center p-12">
+              <div className="w-32 h-32 bg-muted/50 rounded-[48px] border border-border shadow-inner flex items-center justify-center mb-8 animate-bounce transition-all duration-1000">
+                <UserCheck className="w-12 h-12 text-muted-foreground opacity-20" />
               </div>
-              <h3 className="text-lg font-black text-gray-900">{isAr ? "اختر تطبيقاً للمراجعة" : "Select an application to review"}</h3>
-              <p className="text-gray-400 text-sm max-w-xs mx-auto mt-2 font-medium">
-                {isAr ? "سيتم عرض التفاصيل الكاملة والوثائق هنا بمجرد اختيار طلب من القائمة الجانبية." : "Detailed information and certificates will be displayed here."}
+              <h3 className="text-2xl font-black text-foreground uppercase tracking-widest">{isAr ? "اختر طلباً للمراجعة" : "Choose an application"}</h3>
+              <p className="text-muted-foreground font-bold max-w-sm mx-auto mt-4 leading-relaxed">
+                {isAr ? "سيتم عرض جميع التفاصيل والوثائق والمؤهلات هنا بمجرد اختيار طلب من القائمة." : "Detailed credentials and certificates will be visible upon selection."}
               </p>
             </div>
           )}

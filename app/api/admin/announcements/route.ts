@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     let params: any[] = []
     let idx = 1
 
-    if (audience) { conditions.push(`target_audience = $${idx++}`); params.push(audience) }
+    if (audience) { conditions.push(`target_audience LIKE $${idx++}`); params.push(`%${audience}%`) }
     if (published === 'true') { conditions.push(`is_published = true`) }
     else if (published === 'false') { conditions.push(`is_published = false`) }
 
@@ -64,12 +64,19 @@ export async function POST(req: NextRequest) {
         let usersQuery = 'SELECT id FROM users WHERE is_active = true'
         const usersParams: any[] = []
 
-        if (target_audience === 'students') {
-            usersQuery += ' AND role = $1'
-            usersParams.push('student')
-        } else if (target_audience === 'readers') {
-            usersQuery += ' AND role = $1'
-            usersParams.push('reader')
+        if (target_audience !== 'all') {
+            const rolesObj: Record<string, string[]> = {
+                'students': ['student'],
+                'readers': ['reader'],
+                'supervisors': ['student_supervisor', 'reciter_supervisor']
+            }
+            const selectedAudiences = target_audience.split(',')
+            const selectedDbRoles = selectedAudiences.flatMap((a: string) => rolesObj[a] || [])
+            
+            if (selectedDbRoles.length > 0) {
+                usersQuery += ` AND role = ANY($1::text[])`
+                usersParams.push(selectedDbRoles)
+            }
         }
 
         const usersData = await query<{ id: string }>(usersQuery, usersParams)
@@ -128,12 +135,19 @@ export async function PATCH(req: NextRequest) {
             let usersQuery = 'SELECT id FROM users WHERE is_active = true'
             const usersParams: any[] = []
 
-            if (announcement.target_audience === 'students') {
-                usersQuery += ' AND role = $1'
-                usersParams.push('student')
-            } else if (announcement.target_audience === 'readers') {
-                usersQuery += ' AND role = $1'
-                usersParams.push('reader')
+            if (announcement.target_audience !== 'all') {
+                const rolesObj: Record<string, string[]> = {
+                    'students': ['student'],
+                    'readers': ['reader'],
+                    'supervisors': ['student_supervisor', 'reciter_supervisor']
+                }
+                const selectedAudiences = announcement.target_audience.split(',')
+                const selectedDbRoles = selectedAudiences.flatMap((a: string) => rolesObj[a] || [])
+                
+                if (selectedDbRoles.length > 0) {
+                    usersQuery += ` AND role = ANY($1::text[])`
+                    usersParams.push(selectedDbRoles)
+                }
             }
 
             const usersData = await query<{ id: string }>(usersQuery, usersParams)

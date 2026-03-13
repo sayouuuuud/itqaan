@@ -56,7 +56,18 @@ export async function GET(
             return NextResponse.json({ error: "Recitation not found" }, { status: 404 })
         }
 
-        return NextResponse.json(recitation)
+        const wordMistakes = await db.query(
+            `SELECT word
+             FROM word_mistakes 
+             WHERE recitation_id = $1
+             ORDER BY created_at ASC`,
+            [id]
+        )
+
+        return NextResponse.json({ 
+            ...recitation, 
+            wordMistakes: wordMistakes.map((wm: any) => wm.word) 
+        })
     } catch (error) {
         console.error("Admin recitation fetch error:", error)
         return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })

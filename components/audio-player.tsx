@@ -88,7 +88,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   }
 
   return (
-    <div className={`bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm w-full ${className}`}>
+    <div className={`bg-slate-50 dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-4 shadow-sm w-full ${className}`}>
       <audio ref={audioRef} src={src} />
 
       <div className="flex flex-col gap-4">
@@ -97,14 +97,14 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full w-12 h-12 bg-[#0B3D2E] text-white hover:bg-[#0B3D2E]/90 hover:text-white shrink-0 shadow-lg shadow-[#0B3D2E]/20"
+            className="rounded-full w-12 h-12 bg-[#0B3D2E] dark:bg-primary text-white dark:text-primary-foreground hover:bg-[#0B3D2E]/90 dark:hover:bg-primary/90 hover:text-white dark:hover:text-primary-foreground shrink-0 shadow-lg shadow-[#0B3D2E]/20 dark:shadow-primary/20"
             onClick={togglePlay}
           >
             {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
           </Button>
 
           <div className="flex-1 space-y-2">
-            <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest tabular-nums">
+            <div className="flex justify-between text-[10px] font-bold text-slate-400 dark:text-muted-foreground uppercase tracking-widest tabular-nums">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -121,12 +121,12 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="text-slate-500 hover:text-[#0B3D2E] h-8 w-8"
+              className="text-slate-500 dark:text-muted-foreground hover:text-[#0B3D2E] dark:hover:text-primary h-8 w-8"
               onClick={toggleMute}
             >
               {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
-            <div className="w-20 hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-white p-2 rounded-lg shadow-xl border border-slate-100 transition-all">
+            <div className="w-20 hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-card p-2 rounded-lg shadow-xl border border-slate-100 dark:border-border transition-all">
               <Slider
                 value={[isMuted ? 0 : volume]}
                 max={1}
@@ -140,7 +140,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="text-slate-400 hover:text-slate-600 h-8 w-8"
+            className="text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground h-8 w-8"
             onClick={reset}
           >
             <RotateCcw className="w-4 h-4" />

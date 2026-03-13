@@ -169,6 +169,22 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                                         <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">{data.detailed_feedback}</p>
                                     </div>
                                 )}
+
+                                {data.wordMistakes && data.wordMistakes.length > 0 && (
+                                    <div className="p-5 bg-destructive/5 rounded-xl border border-destructive/10">
+                                        <h3 className="font-bold mb-3 flex items-center gap-2 text-destructive">
+                                            <AlertCircle className="w-4 h-4" />
+                                            {isAr ? "الكلمات التي أخطأ فيها" : "Mistakes In Words"}
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {data.wordMistakes.map((word: string, i: number) => (
+                                                <span key={i} className="px-3 py-1.5 bg-destructive/10 text-destructive font-bold text-sm rounded-lg flex items-center gap-1">
+                                                    {word}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     )}

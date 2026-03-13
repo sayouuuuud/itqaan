@@ -13,6 +13,7 @@ interface AvatarUploadProps {
 export function AvatarUpload({ currentUrl, name, size = "md", onUploaded }: AvatarUploadProps) {
     const [uploading, setUploading] = useState(false)
     const [preview, setPreview] = useState<string | null>(currentUrl || null)
+    const [imageError, setImageError] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
 
     const sizeClasses = {
@@ -36,6 +37,7 @@ export function AvatarUpload({ currentUrl, name, size = "md", onUploaded }: Avat
         // Show local preview immediately
         const localUrl = URL.createObjectURL(file)
         setPreview(localUrl)
+        setImageError(false)
 
         setUploading(true)
         try {
@@ -66,8 +68,8 @@ export function AvatarUpload({ currentUrl, name, size = "md", onUploaded }: Avat
             <div
                 className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-white shadow-md flex items-center justify-center bg-[#0B3D2E]/10 font-bold text-[#0B3D2E] select-none`}
             >
-                {preview ? (
-                    <img src={preview} alt={name || "avatar"} className="w-full h-full object-cover" />
+                {preview && !imageError ? (
+                    <img src={preview} alt={name || "avatar"} className="w-full h-full object-cover" onError={() => setImageError(true)} />
                 ) : (
                     <span>{initials}</span>
                 )}

@@ -150,6 +150,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
   const [user, setUser] = useState<{ name: string; email: string; role: string; avatar_url?: string | null } | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [avatarError, setAvatarError] = useState(false)
 
   // Heartbeat to track online presence
   useEffect(() => {
@@ -290,8 +291,8 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         <div className="p-4 border-t border-border mt-auto">
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 bg-muted/30 border border-border transition-colors">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center font-bold text-sm ring-2 ring-background shadow-sm shrink-0">
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" />
+              {user?.avatar_url && !avatarError ? (
+                <img src={user.avatar_url} alt={config.name} className="w-full h-full object-cover" onError={() => setAvatarError(true)} />
               ) : (
                 <span>{(config.name || t.userFallbackLetter || 'U')[0]}</span>
               )}

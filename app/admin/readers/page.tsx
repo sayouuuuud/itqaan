@@ -257,34 +257,25 @@ export default function AdminReadersPage() {
                                 <Input value={editForm.years_of_experience || 0} onChange={e => setEditForm((f: any) => ({ ...f, years_of_experience: Number(e.target.value) }))} type="number" min={0} />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t.reader.availabilityMode}</Label>
-                                <select 
-                                    className="w-full h-10 px-3 border rounded-md text-sm"
-                                    value={editForm.availability_mode}
-                                    onChange={e => setEditForm((f: any) => ({ ...f, availability_mode: e.target.value }))}
-                                >
-                                    <option value="automatic">{t.reader.autoAvailability}</option>
-                                    <option value="manual">{t.reader.manualAvailability}</option>
-                                    <option value="closed">{t.reader.closedAvailability}</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2">
                                 <Label>{t.reader.maxTotalSlots}</Label>
                                 <Input value={editForm.max_total_slots || 0} onChange={e => setEditForm((f: any) => ({ ...f, max_total_slots: Number(e.target.value) }))} type="number" min={0} />
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-6 pt-2">
-                            <div className="flex items-center gap-3">
-                                <input type="checkbox" id="is_active" checked={!!editForm.is_active} onChange={e => setEditForm((f: any) => ({ ...f, is_active: e.target.checked }))} className="w-4 h-4" />
-                                <Label htmlFor="is_active">{t.admin.adminReaders.accountActive}</Label>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <input type="checkbox" id="is_accepting_recitations" checked={!!editForm.is_accepting_recitations} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_recitations: e.target.checked }))} className="w-4 h-4" />
-                                <Label htmlFor="is_accepting_recitations">{t.admin.adminReaders.evaluationActive}</Label>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <input type="checkbox" id="is_accepting_students" checked={!!editForm.is_accepting_students} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_students: e.target.checked }))} className="w-4 h-4" />
-                                <Label htmlFor="is_accepting_students">{t.admin.adminReaders.sessionsActive}</Label>
+                        <div className="border-t pt-4 mt-2">
+                            <Label className="text-xs font-semibold text-gray-500 mb-3 block uppercase tracking-wider">التحكم وبطاقة الحالة</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" id="is_active" checked={!!editForm.is_active} onChange={e => setEditForm((f: any) => ({ ...f, is_active: e.target.checked }))} className="w-4 h-4 accent-[#1B5E3B]" />
+                                    <Label htmlFor="is_active" className="cursor-pointer">{t.admin.adminReaders.accountActive}</Label>
+                                </div>
+                                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" id="is_accepting_recitations" checked={!!editForm.is_accepting_recitations} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_recitations: e.target.checked }))} className="w-4 h-4 accent-[#1B5E3B]" />
+                                    <Label htmlFor="is_accepting_recitations" className="cursor-pointer">{t.admin.adminReaders.evaluationActive}</Label>
+                                </div>
+                                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" id="is_accepting_students" checked={!!editForm.is_accepting_students} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_students: e.target.checked }))} className="w-4 h-4 accent-[#1B5E3B]" />
+                                    <Label htmlFor="is_accepting_students" className="cursor-pointer">{t.admin.adminReaders.sessionsActive}</Label>
+                                </div>
                             </div>
                         </div>
                     </div>

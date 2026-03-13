@@ -1255,6 +1255,8 @@ export const ar = {
       memorizedParts: 'عدد الأجزاء المحفوظة',
       yearsExperience: 'سنوات الخبرة',
       accountActive: 'الحساب نشط',
+      evaluationActive: 'نشط لاستقبال التلاوات',
+      sessionsActive: 'نشط لاستقبال الطلاب',
       cancel: 'إلغاء',
       saveChanges: 'حفظ التغييرات',
     },

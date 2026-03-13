@@ -3,14 +3,7 @@ import { getSession } from '@/lib/auth'
 import { query } from '@/lib/db'
 import crypto from 'crypto'
 
-function getDeviceType(ua: string): 'mobile' | 'tablet' | 'desktop' | 'bot' | 'unknown' {
-    if (!ua) return 'unknown'
-    const uaL = ua.toLowerCase()
-    if (/bot|crawl|spider|slurp|facebookexternalhit/i.test(uaL)) return 'bot'
-    if (/tablet|ipad|kindle|playbook/i.test(uaL)) return 'tablet'
-    if (/mobile|iphone|android.*phone|windows phone/i.test(uaL)) return 'mobile'
-    return 'desktop'
-}
+import { getDetailedDeviceType, getCountryFromIp } from '@/lib/geo'
 
 function hashIp(ip: string): string {
     return crypto.createHash('sha256').update(ip + 'itqaan_salt').digest('hex').substring(0, 16)
@@ -21,9 +14,13 @@ export async function POST(req: NextRequest) {
         const { path, referrer, userId } = await req.json()
         const ua = req.headers.get('user-agent') || ''
         const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || ''
-        const country = req.headers.get('x-vercel-ip-country') ||
+        let country = req.headers.get('x-vercel-ip-country') ||
             req.headers.get('cf-ipcountry') ||
             (req as any).geo?.country || null
+
+        if (!country && ip) {
+            country = await getCountryFromIp(ip)
+        }
 
         await query(
             `INSERT INTO page_views (path, country, device_type, user_agent, ip_hash, user_id, referrer)
@@ -31,7 +28,7 @@ export async function POST(req: NextRequest) {
             [
                 path || '/',
                 country,
-                getDeviceType(ua),
+                getDetailedDeviceType(ua),
                 ua.substring(0, 500),
                 ip ? hashIp(ip) : null,
                 userId || null,

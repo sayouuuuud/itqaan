@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
       // Most active students
       query(`
         SELECT u.id, u.name, u.email, u.avatar_url,
-          COUNT(DISTINCT rec.id) AS recitations,
+          COUNT(DISTINCT rec.id) AS recitations_count,
           COUNT(DISTINCT b.id) AS bookings,
           COUNT(DISTINCT rr.id) AS ratings_given
         FROM users u
@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
       `),
       // Certificates issued
       query(`
-        SELECT COUNT(*) AS count FROM certificate_data WHERE certificate_issued = true ${timeFilter.replace('created_at', 'issued_at')}
+        SELECT COUNT(*) AS count FROM certificate_data WHERE certificate_issued = true ${timeFilter.replace('created_at', 'COALESCE(issued_at, updated_at)')}
       `),
       // Emails sent (activity log)
       query(`
@@ -206,7 +206,7 @@ export async function GET(req: NextRequest) {
       topReviewers,
       topSessionReaders,
       topContributors,
-      topStudents,
+      topStudents: topStudents.map((s: any) => ({ ...s, recitations: s.recitations_count })),
       certificates: (certificateCount[0] as any)?.count || 0,
       emailsSent: (emailCount[0] as any)?.count || 0,
       masteryTrend,

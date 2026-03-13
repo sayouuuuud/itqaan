@@ -144,11 +144,21 @@ export async function POST(req: NextRequest) {
       [user.id]
     )
 
-    // Log successful login
+    const userAgent = req.headers.get("user-agent") || "Unknown"
+    const { getDetailedDeviceType, getCountryFromIp } = await import('@/lib/geo')
+    const deviceDetail = getDetailedDeviceType(userAgent)
+    
+    // Geolocation from IP
+    let country = req.headers.get('x-vercel-ip-country') || req.headers.get('cf-ipcountry') || null
+    if ((!country || country === 'N/A') && ip) {
+      country = await getCountryFromIp(ip)
+    }
+
+    // Log successful login with tech details
     await query(
-      `INSERT INTO activity_logs (user_id, action, description, ip_address)
-       VALUES ($1, 'login_success', $2, $3)`,
-       [user.id, `Successful login for ${user.email}`, ip]
+      `INSERT INTO activity_logs (user_id, action, description, ip_address, user_agent)
+       VALUES ($1, 'login_success', $2, $3, $4)`,
+       [user.id, `Successful login from ${deviceDetail}${country ? ` (${country})` : ''}`, ip, userAgent]
     ).catch(() => { })
 
     if (activeRole === 'admin' || activeRole === 'student_supervisor' || activeRole === 'reciter_supervisor') {
@@ -156,7 +166,7 @@ export async function POST(req: NextRequest) {
       await createNotificationForAdmins({
         type: 'general',
         title: 'تسجيل دخول إداري 🔐',
-        message: `قام ${user.name} بتسجيل الدخول إلى لوحة التحكم (${activeRole})`,
+        message: `قام ${user.name} بتسجيل الدخول إلى لوحة التحكم (${activeRole}) من ${deviceDetail}`,
         category: 'account'
       })
     }
@@ -168,13 +178,11 @@ export async function POST(req: NextRequest) {
       name: user.name,
     })
 
-    const userAgent = req.headers.get("user-agent") || "Unknown"
-
     // insert a new session for the active active token
     await query(
       `INSERT INTO user_sessions (user_id, token, ip_address, user_agent, expires_at)
        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '30 days')`,
-      [user.id, token, ip, userAgent]
+      [user.id, token, ip, deviceDetail]
     ).catch((err) => {
       console.error("Failed to insert user session:", err)
     })

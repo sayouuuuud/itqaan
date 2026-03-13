@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
       rp.rating, rp.total_reviews, rp.total_sessions_completed, rp.is_accepting_students,
       rp.availability_mode, rp.max_total_slots, rp.current_reserved_slots,
       rsta.total_reviews_completed, rsta.total_sessions_completed AS sessions_done,
+      rsta.total_sessions_booked,
       rsta.average_session_rating, rsta.last_review_at
     FROM users u
     LEFT JOIN reader_profiles rp ON u.id = rp.user_id
@@ -78,7 +79,7 @@ export async function PATCH(req: NextRequest) {
     const allowed = [
       'name', 'phone', 'city', 'gender', 'qualification', 'memorized_parts', 
       'years_of_experience', 'is_active', 'is_accepting_recitations',
-      'availability_mode', 'max_total_slots'
+      'availability_mode', 'max_total_slots', 'is_accepting_students'
     ]
     const setters: string[] = []
     const params: any[] = []
@@ -86,7 +87,7 @@ export async function PATCH(req: NextRequest) {
 
     for (const [k, v] of Object.entries(fields)) {
         if (allowed.includes(k)) {
-            if (['availability_mode', 'max_total_slots'].includes(k)) {
+            if (['availability_mode', 'max_total_slots', 'is_accepting_students'].includes(k)) {
                 // These are on reader_profiles
                 await query(`UPDATE reader_profiles SET ${k} = $1 WHERE user_id = $2`, [v, id]);
             } else {

@@ -62,6 +62,7 @@ export default function AdminReadersPage() {
             years_of_experience: r.years_of_experience || 0,
             is_active: !!r.is_active,
             is_accepting_recitations: !!r.is_accepting_recitations,
+            is_accepting_students: !!r.is_accepting_students,
             availability_mode: r.availability_mode || 'automatic',
             max_total_slots: r.max_total_slots || 50,
         })
@@ -141,6 +142,9 @@ export default function AdminReadersPage() {
                                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_accepting_recitations ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
                                                 {r.is_accepting_recitations ? t.reader.active : t.reader.inactive}
                                             </span>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${r.is_accepting_students ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                {r.is_accepting_students ? t.admin.adminReaders.sessionsActive : t.reader.inactive}
+                                            </span>
                                             <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
                                                 {r.gender === 'male' ? t.auth.male : r.gender === 'female' ? t.auth.female : ''}
                                             </span>
@@ -181,11 +185,12 @@ export default function AdminReadersPage() {
                                     <p className="text-[10px] text-gray-500">{t.admin.adminReaders.sessionsLabel}</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-gray-900 flex items-center justify-center gap-1">
-                                        {r.average_session_rating ? Number(r.average_session_rating).toFixed(1) : '—'}
-                                        {r.average_session_rating && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
+                                    <p className="text-lg font-bold text-gray-900">
+                                        {r.total_sessions_booked > 0 
+                                            ? `${Math.round((r.sessions_done / r.total_sessions_booked) * 100)}%` 
+                                            : '—'}
                                     </p>
-                                    <p className="text-[10px] text-gray-500">{t.admin.adminReaders.ratingLabel}</p>
+                                    <p className="text-[10px] text-gray-500">{t.admin.adminReaders.completionRateLabel}</p>
                                 </div>
                             </div>
 
@@ -276,6 +281,10 @@ export default function AdminReadersPage() {
                             <div className="flex items-center gap-3">
                                 <input type="checkbox" id="is_accepting_recitations" checked={!!editForm.is_accepting_recitations} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_recitations: e.target.checked }))} className="w-4 h-4" />
                                 <Label htmlFor="is_accepting_recitations">{t.admin.adminReaders.evaluationActive}</Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input type="checkbox" id="is_accepting_students" checked={!!editForm.is_accepting_students} onChange={e => setEditForm((f: any) => ({ ...f, is_accepting_students: e.target.checked }))} className="w-4 h-4" />
+                                <Label htmlFor="is_accepting_students">{t.admin.adminReaders.sessionsActive}</Label>
                             </div>
                         </div>
                     </div>

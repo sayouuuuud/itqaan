@@ -157,7 +157,7 @@ export default function StudentDashboard() {
                 {t.student.noRecitationDesc || (locale === 'ar' ? 'ابدأ رحلتك بتسجيل سورة الفاتحة ليقوم المقرئ بمراجعتها.' : 'Start your journey by recording Surah Al-Fatiha for review.')}
               </p>
             </div>
-            <Link href="/student/record" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-primary/20 transform hover:-translate-y-1">
+            <Link href="/student/submit" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-primary/20 transform hover:-translate-y-1">
               <Mic className="w-5 h-5" />
               <span>{t.student.recordNowBtn}</span>
             </Link>

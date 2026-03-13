@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
 import {
     ChevronRight, Calendar, User as UserIcon, Mic2,
-    AlertCircle, FileAudio, Loader2, Info, MessageSquare
+    AlertCircle, FileAudio, Loader2, Info, MessageSquare, Award
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -133,6 +133,45 @@ export default function AdminRecitationDetailsPage({ params }: { params: Promise
                         </CardContent>
                     </Card>
 
+                    {/* Evaluator's Notes / Feedback */}
+                    {(data.detailed_feedback || data.verdict) && (
+                        <Card className="border-border/50 shadow-2xl shadow-black/5 rounded-[32px] bg-card/60 backdrop-blur-xl border">
+                            <CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
+                                <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
+                                    <Award className="w-5 h-5 text-primary" />
+                                    {isAr ? "تقييم المقرئ والملاحظات" : "Evaluator's Feedback & Verdict"}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 space-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="p-4 bg-muted/30 rounded-xl border border-border/50">
+                                        <span className="text-sm text-muted-foreground block mb-1">{isAr ? "القرار النهائي" : "Final Verdict"}</span>
+                                        <span className="font-bold text-foreground">
+                                            {data.verdict === 'mastered' ? (isAr ? "متقن" : "Mastered") :
+                                             data.verdict === 'needs_session' ? (isAr ? "يحتاج جلسة مصححة" : "Needs Session") :
+                                             data.verdict}
+                                        </span>
+                                    </div>
+                                    {data.overall_score && (
+                                    <div className="p-4 bg-muted/30 rounded-xl border border-border/50">
+                                        <span className="text-sm text-muted-foreground block mb-1">{isAr ? "التقييم العام" : "Overall Score"}</span>
+                                        <span className="font-bold text-foreground">{data.overall_score}/100</span>
+                                    </div>
+                                    )}
+                                </div>
+
+                                {data.detailed_feedback && (
+                                    <div className="p-5 bg-blue-500/5 rounded-xl border border-blue-500/10">
+                                        <h3 className="font-bold mb-3 flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                                            <MessageSquare className="w-4 h-4" />
+                                            {isAr ? "ملاحظات المقرئ المكتوبة" : "Evaluator's Written Feedback"}
+                                        </h3>
+                                        <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">{data.detailed_feedback}</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
                 </div>
 

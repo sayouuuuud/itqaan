@@ -37,7 +37,7 @@ export default function RecitationReviewPage() {
   const [newMistake, setNewMistake] = useState("")
   
   // Audio state
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -118,10 +118,11 @@ export default function RecitationReviewPage() {
         toast.success(t.reader.reviewSubmitted)
         router.push("/reader/recitations")
       } else {
-        toast.error("Failed to submit review")
+        const errData = await res.json().catch(() => null)
+        toast.error(errData?.error || (isAr ? "فشل في إرسال التقييم" : "Failed to submit review"))
       }
     } catch (err) {
-      toast.error("Error submitting review")
+      toast.error(isAr ? "حدث خطأ عند الإرسال" : "Error submitting review")
     } finally {
       setSubmitting(false)
     }
@@ -240,13 +241,14 @@ export default function RecitationReviewPage() {
                 </div>
               </div>
 
-              <audio
-                ref={audioRef}
+              <video
+                ref={audioRef as any}
                 src={recitation.audio_url}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={() => setIsPlaying(false)}
                 className="hidden"
+                playsInline
               />
             </div>
           </div>

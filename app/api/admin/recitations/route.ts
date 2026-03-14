@@ -88,54 +88,114 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "معرف التلاوة مطلوب" }, { status: 400 })
         }
 
-        // Get recitation details before updating
-        const recitationDetails = await query(
-            `SELECT r.surah_name, r.ayah_from, r.ayah_to, u.name as student_name, u.email as student_email
+        // Get full recitation details before updating (including old reader)
+        const recitationRows = await query(
+            `SELECT r.id, r.surah_name, r.ayah_from, r.ayah_to, r.status, r.assigned_reader_id,
+                    u.name as student_name, u.email as student_email
              FROM recitations r
              JOIN users u ON u.id = r.student_id
              WHERE r.id = $1`,
             [recitationId]
         )
+        const recitation = (recitationRows as any)[0]
 
-        const oldReaderId = await query(
-            `SELECT assigned_reader_id FROM recitations WHERE id = $1`,
-            [recitationId]
-        )
+        if (!recitation) {
+            return NextResponse.json({ error: "التلاوة غير موجودة" }, { status: 404 })
+        }
 
+        const oldReaderId = recitation.assigned_reader_id
+        const isActuallyChanging = oldReaderId !== (readerId || null)
+
+        // ── 1. Update the recitation: new reader + reset status to pending ──
         await query(
-            "UPDATE recitations SET assigned_reader_id = $1, assigned_at = NOW() WHERE id = $2",
+            `UPDATE recitations 
+             SET assigned_reader_id = $1,
+                 assigned_at = NOW(),
+                 status = 'pending',
+                 reviewed_at = NULL
+             WHERE id = $2`,
             [readerId || null, recitationId]
         )
 
-        // Create notification for the new reader
-        if (readerId && (oldReaderId as any)[0]?.assigned_reader_id !== readerId) {
-            const recitation = (recitationDetails as any)[0]
-            const surahInfo = recitation 
-                ? `${recitation.surah_name} (${recitation.ayah_from}-${recitation.ayah_to})`
-                : "تلاوة جديدة"
+        // ── 2. Clean up old review data (only if actually reassigning) ──
+        if (isActuallyChanging && oldReaderId) {
+            // Delete old review record
+            await query(
+                `DELETE FROM reviews WHERE recitation_id = $1`,
+                [recitationId]
+            )
 
+            // Delete old word mistakes
+            await query(
+                `DELETE FROM word_mistakes WHERE recitation_id = $1`,
+                [recitationId]
+            )
+
+            // Cancel pending reserved_slot for the old reader linked to this recitation
+            const oldSlots = await query(
+                `SELECT id, reader_id FROM reserved_slots 
+                 WHERE recitation_id = $1 AND reader_id = $2 AND status = 'pending'`,
+                [recitationId, oldReaderId]
+            )
+
+            if ((oldSlots as any[]).length > 0) {
+                await query(
+                    `UPDATE reserved_slots SET status = 'cancelled', updated_at = NOW()
+                     WHERE recitation_id = $1 AND reader_id = $2 AND status = 'pending'`,
+                    [recitationId, oldReaderId]
+                )
+
+                // Restore old reader's reserved slot count
+                await query(
+                    `UPDATE reader_profiles 
+                     SET current_reserved_slots = GREATEST(0, current_reserved_slots - 1)
+                     WHERE user_id = $1`,
+                    [oldReaderId]
+                )
+            }
+
+            // ── 3. Notify old reader that recitation was taken from them ──
+            const surahInfo = `${recitation.surah_name} (${recitation.ayah_from}-${recitation.ayah_to})`
             try {
                 await createNotification({
-                    userId: readerId,
-                    type: "recitation_received",
-                    title: "تم تعيينك لتقييم تلاوة جديدة",
-                    message: `تم تعيينك لتقييم تلاوة الطالب ${recitation?.student_name || 'غير معروف'}: ${surahInfo}`,
+                    userId: oldReaderId,
+                    type: "recitation_reassigned",
+                    title: "تم نقل تلاوة من قائمتك",
+                    message: `تم نقل تلاوة الطالب ${recitation.student_name || 'غير معروف'} (${surahInfo}) وإسنادها لمقرئ آخر.`,
                     category: "recitation",
                     link: `/reader/recitations`,
                     relatedRecitationId: recitationId
                 })
             } catch (notifError) {
-                console.error("Failed to create notification for reader:", notifError)
-                // Don't fail the request if notification fails
+                console.error("Failed to notify old reader:", notifError)
             }
         }
 
+        // ── 4. Notify new reader ──
+        if (readerId && readerId !== oldReaderId) {
+            const surahInfo = `${recitation.surah_name} (${recitation.ayah_from}-${recitation.ayah_to})`
+            try {
+                await createNotification({
+                    userId: readerId,
+                    type: "recitation_received",
+                    title: "تم تعيينك لتقييم تلاوة جديدة",
+                    message: `تم تعيينك لتقييم تلاوة الطالب ${recitation.student_name || 'غير معروف'}: ${surahInfo}`,
+                    category: "recitation",
+                    link: `/reader/recitations`,
+                    relatedRecitationId: recitationId
+                })
+            } catch (notifError) {
+                console.error("Failed to notify new reader:", notifError)
+            }
+        }
+
+        // ── 5. Log the admin action ──
         await logAdminAction({
             userId: session!.sub,
             action: 'recitation_reassigned',
             entityType: 'recitation',
             entityId: recitationId,
-            description: `Admin reassigned recitation to reader ${readerId || 'unassigned'}`,
+            description: `Admin reassigned recitation from reader ${oldReaderId || 'unassigned'} to ${readerId || 'unassigned'}. Previous review data cleared.`,
         })
 
         return NextResponse.json({ success: true })

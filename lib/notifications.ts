@@ -18,6 +18,7 @@ export type NotificationType =
     | "reschedule_accepted"        // student+reader: reschedule accepted
     | "reschedule_rejected"        // student+reader: reschedule rejected
     | "reader_reassigned"          // student+reader: admin reassigned reader
+    | "recitation_reassigned"     // reader: admin took the recitation from them and reassigned it
     | "general"
 
 export interface CreateNotificationInput {

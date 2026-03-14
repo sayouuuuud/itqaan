@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
-import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin, ExternalLink, Download, BarChart3, TrendingUp, Loader2 } from 'lucide-react'
+import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin, ExternalLink, Download, BarChart3, TrendingUp, Loader2, Info } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { RecitationRecorder } from '@/components/student/RecitationRecorder'
 
@@ -47,7 +47,6 @@ function useStudentData() {
   useEffect(() => {
     async function load() {
       try {
-        // Fetch recitation data
         const res = await fetch('/api/recitations/my-latest')
         if (res.ok) {
           const data = await res.json()
@@ -73,23 +72,18 @@ function useStudentData() {
           setRecitation({ status: 'no_recitation' })
         }
 
-        // Fetch certificate data
         const certRes = await fetch(`/api/certificate?t=${Date.now()}`)
         if (certRes.ok) {
           const certData = await certRes.json()
-          if (certData.certificate) {
-            setCertificate(certData.certificate)
-          }
+          if (certData.certificate) setCertificate(certData.certificate)
         }
 
-        // Fetch user status
         const meRes = await fetch('/api/auth/me')
         if (meRes.ok) {
           const meData = await meRes.json()
           setStudentStatus(meData.user?.student_status || 'active')
         }
 
-        // Fetch stats
         const statsRes = await fetch('/api/stats?range=month')
         if (statsRes.ok) {
           const statsData = await statsRes.json()
@@ -122,253 +116,329 @@ export default function StudentDashboard() {
   const rawStatus = recitation?.status || 'no_recitation'
   const isSuspended = studentStatus === 'suspended'
   
-  // Literal states mapping for Part 3
   let state: 'new' | 'review' | 'waiting' | 'booked' | 'suspended' = 'new'
-  
-  if (isSuspended) {
-    state = 'suspended'
-  } else if (rawStatus === 'no_recitation') {
-    state = 'new'
-  } else if (['pending', 'in_review'].includes(rawStatus)) {
-    state = 'review'
-  } else if (rawStatus === 'needs_session') {
-    state = 'waiting'
-  } else if (rawStatus === 'session_booked') {
-    state = 'booked'
-  }
+  if (isSuspended) state = 'suspended'
+  else if (rawStatus === 'no_recitation') state = 'new'
+  else if (['pending', 'in_review'].includes(rawStatus)) state = 'review'
+  else if (rawStatus === 'needs_session') state = 'waiting'
+  else if (rawStatus === 'session_booked') state = 'booked'
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center py-10 px-4 space-y-12">
-      {/* Title */}
-      <div className="w-full max-w-xl mx-auto text-center space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">{t.student.dashboard}</h1>
-        <p className="text-muted-foreground">{t.student.fatihaStatus}</p>
+    <div className="max-w-[1400px] mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-10">
+      {/* Dynamic Header with Status Indicator */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/60">
+        <div>
+          <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
+            {t.student.dashboard}
+            <span className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-widest border border-primary/20">
+              {studentStatus === 'active' ? (locale === 'ar' ? 'فعال' : 'Active') : (locale === 'ar' ? 'معلق' : 'Suspended')}
+            </span>
+          </h1>
+          <p className="text-muted-foreground font-medium">{t.student.fatihaStatus}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-card/50 backdrop-blur-sm border border-border px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
+            <Info className="w-4 h-4 text-muted-foreground" />
+            <span className="text-xs font-bold text-foreground">
+              {locale === 'ar' ? 'آخر تحديث: مؤخراً' : 'Last activity: Recently'}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Section - Moved Up */}
-      {stats && (
-        <div className="w-full max-w-4xl mx-auto space-y-8 px-4">
-          <div className="flex items-center gap-2 mb-2">
-            <BarChart3 className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-bold text-foreground">{t.admin.studentStats.title}</h2>
-          </div>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        
+        {/* RIGHT COLUMN: MAIN CONTENT (STATUS & APPOINTMENT) */}
+        <div className="xl:col-span-7 space-y-8 order-2 xl:order-1">
+          <div className="bg-card/40 backdrop-blur-md border border-border/80 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden h-full">
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -ml-24 -mb-24" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4 border border-primary/20">
-                  <Award className="w-5 h-5 text-primary" />
+            {/* State Management Section */}
+            <div className="relative z-10 h-full flex flex-col justify-center">
+              
+              {/* STATE 1: NEW */}
+              {state === 'new' && (
+                <div className="text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div className="bg-primary/10 border border-primary/20 rounded-3xl p-8 max-w-lg mx-auto">
+                    <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/30">
+                      <Mic className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-black text-primary mb-3">{t.student.stateNew}</h2>
+                    <p className="text-muted-foreground text-sm font-medium leading-relaxed">
+                      {t.student.noRecitationDesc || (locale === 'ar' ? 'ابدأ رحلتك بتسجيل سورة الفاتحة ليقوم المقرئ بمراجعتها.' : 'Start your journey by recording Surah Al-Fatiha for review.')}
+                    </p>
+                  </div>
+                  <RecitationRecorder onSuccess={() => window.location.reload()} />
                 </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{t.admin.studentStats.masteryRate}</p>
-                <p className="text-3xl font-black text-primary">{stats.masteryRate}%</p>
-              </div>
-              <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-                <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 border border-blue-500/20">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{t.admin.studentStats.completedSessions}</p>
-                <p className="text-3xl font-black text-blue-600">{stats.completedSessions}</p>
-              </div>
-            </div>
+              )}
 
-            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-sm font-bold text-foreground">{t.admin.studentStats.progress}</p>
-                <TrendingUp className="w-4 h-4 text-primary" />
-              </div>
-              <div className="h-[120px]">
-                {stats.progress?.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stats.progress}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
-                      <XAxis dataKey="date" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-                      <YAxis hide />
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }} />
-                      <Bar dataKey="count" fill="var(--primary)" radius={[3, 3, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">{t.admin.studentStats.noData}</div>
-                )}
-              </div>
+              {/* STATE 2: REVIEW */}
+              {state === 'review' && (
+                <div className="text-center space-y-8 py-10">
+                  <div className="w-24 h-24 bg-amber-500/10 rounded-[2rem] flex items-center justify-center mx-auto border border-amber-500/20 transform rotate-3 shadow-lg shadow-amber-500/5">
+                    <Clock className="w-12 h-12 text-amber-600 animate-pulse" />
+                  </div>
+                  <div className="space-y-3">
+                    <h2 className="text-3xl font-black text-amber-600">{t.student.stateReview}</h2>
+                    <p className="text-muted-foreground text-sm font-medium leading-relaxed max-w-sm mx-auto">
+                      {t.student.recitationReceivedDesc}
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-3 bg-amber-500/10 text-amber-600 px-6 py-3 rounded-2xl border border-amber-500/20 text-xs font-black">
+                     <span className="w-2 h-2 bg-amber-600 rounded-full animate-ping" />
+                     {t.student.reviewTakesTime}
+                  </div>
+                </div>
+              )}
+
+              {/* STATE 3: WAITING */}
+              {state === 'waiting' && (
+                <div className="text-center space-y-10 py-10 animate-in fade-in zoom-in duration-500">
+                  <div className="w-24 h-24 bg-blue-500/10 rounded-[2rem] flex items-center justify-center mx-auto border border-blue-500/20 transform -rotate-3 shadow-lg shadow-blue-500/5">
+                    <Calendar className="w-12 h-12 text-blue-600" />
+                  </div>
+                  <div className="space-y-4">
+                    <h2 className="text-3xl font-black text-foreground">{t.student.stateWaiting}</h2>
+                    <p className="text-blue-600 font-black text-xs uppercase tracking-widest bg-blue-500/10 px-4 py-2 rounded-full inline-block border border-blue-500/20">
+                      {t.student.slotsRemaining} {recitation?.assigned_reader_name || ''}
+                    </p>
+                  </div>
+                  <Link href="/student/booking" className="inline-flex items-center gap-4 bg-primary text-primary-foreground font-black py-5 px-12 rounded-[1.5rem] transition-all shadow-2xl shadow-primary/30 transform hover:-translate-y-1 group">
+                    <Calendar className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                    <span className="text-lg">{t.student.bookSessionBtnBase || 'حجز موعد'}</span>
+                  </Link>
+                </div>
+              )}
+
+              {/* STATE 4: BOOKED */}
+              {state === 'booked' && booking && (
+                <div className="space-y-8 animate-in fade-in duration-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-xl font-black text-foreground flex items-center gap-3">
+                       <Video className="w-6 h-6 text-primary" />
+                       {t.student.appointmentDetails}
+                    </h2>
+                    <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-black border border-primary/20 uppercase tracking-widest">
+                       {t.student.bookedStatus}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-card/50 border border-border p-6 rounded-3xl group hover:border-primary/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-background rounded-2xl shadow-inner flex items-center justify-center shrink-0 border border-border group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                          <Calendar className="w-7 h-7" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{t.student.sessionDate}</p>
+                          <p className="text-sm font-bold text-foreground leading-tight">
+                            {new Date(booking.slot_start).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-card/50 border border-border p-6 rounded-3xl group hover:border-primary/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-background rounded-2xl shadow-inner flex items-center justify-center shrink-0 border border-border group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                          <Clock className="w-7 h-7" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{t.student.sessionTime}</p>
+                          <p className="text-sm font-bold text-foreground leading-tight">
+                            {new Date(booking.slot_start).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Join Action Card */}
+                  <div className="bg-primary rounded-[2rem] p-8 text-primary-foreground relative overflow-hidden group shadow-2xl shadow-primary/20">
+                    <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
+                    <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
+                       <div className="text-center md:text-right space-y-1">
+                          <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-widest">{t.student.sessionLinkLabel}</p>
+                          <p className="text-2xl font-black">جاهز للبدء؟</p>
+                       </div>
+                       {booking.meeting_link ? (
+                         <a
+                           href={booking.meeting_link.startsWith('http') ? booking.meeting_link : `https://${booking.meeting_link}`}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-primary hover:bg-white/90 font-black py-5 px-10 rounded-2xl transition-all shadow-xl transform hover:-translate-y-1 active:scale-95"
+                         >
+                           <Video className="w-6 h-6" />
+                           <span className="text-lg">{t.student.joinSessionBtn}</span>
+                         </a>
+                       ) : (
+                         <div className="flex items-center gap-3 text-white/60 bg-white/10 px-6 py-4 rounded-2xl border border-white/20">
+                           <Clock className="w-5 h-5 animate-pulse" />
+                           <span className="text-sm font-black uppercase tracking-tight">{t.student.linkPendingMsg}</span>
+                         </div>
+                       )}
+                    </div>
+                  </div>
+
+                  {/* Comments Sub-section */}
+                  <div className="pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-6">
+                      <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                      <h3 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">{t.student.commentLabel}</h3>
+                    </div>
+                    <CommentBox bookingId={booking.id} />
+                  </div>
+                </div>
+              )}
+
+              {/* STATE 5: SUSPENDED */}
+              {state === 'suspended' && (
+                <div className="text-center space-y-8 py-10">
+                   <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center mx-auto border border-destructive/20 shadow-lg shadow-destructive/5">
+                      <ArrowLeft className="w-12 h-12 text-destructive" />
+                   </div>
+                   <div className="space-y-4">
+                      <h2 className="text-3xl font-black text-destructive">{t.student.stateSuspended}</h2>
+                      <p className="text-muted-foreground text-sm font-medium leading-relaxed max-w-sm mx-auto">
+                        {locale === 'ar'
+                          ? "لقد انتهت مهلة الـ 3 أيام الممنوحة لك لتحديد موعد الجلسة بعد تحويل تلاوتك للمراجعة."
+                          : "The 3-day window to book your session after your recitation review has expired."}
+                      </p>
+                   </div>
+                   <button
+                     onClick={async () => {
+                       const res = await fetch('/api/recitations/request-new-slot', { method: 'POST' });
+                       if (res.ok) window.location.reload();
+                     }}
+                     className="inline-flex items-center gap-3 bg-card border-2 border-destructive/20 hover:bg-destructive hover:text-white text-destructive font-black py-5 px-10 rounded-[1.5rem] transition-all transform hover:-translate-y-1 shadow-lg"
+                   >
+                     <Send className="w-5 h-5" />
+                     <span>{locale === 'ar' ? "طلب موعد جديد" : "Request new slot"}</span>
+                   </button>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
-      )}
 
-      {/* Status / Appointment Details - Moved Down */}
-      <div className="w-full max-w-xl mx-auto text-center space-y-8">
-        {/* State 1: New - لم يسجل تلاوة */}
-        {state === 'new' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full">
-            <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 text-center">
-              <h2 className="text-xl font-bold text-primary mb-2">{t.student.stateNew}</h2>
-              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                {t.student.noRecitationDesc || (locale === 'ar' ? 'ابدأ رحلتك بتسجيل سورة الفاتحة ليقوم المقرئ بمراجعتها.' : 'Start your journey by recording Surah Al-Fatiha for review.')}
-              </p>
+        {/* LEFT COLUMN: STATISTICS & SIDEBAR */}
+        <div className="xl:col-span-5 space-y-8 order-1 xl:order-2">
+          
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-card/40 backdrop-blur-md border border-border/80 rounded-[2rem] p-6 shadow-sm group hover:border-primary/30 transition-all overflow-hidden relative">
+               <div className="absolute top-0 left-0 w-full h-1 bg-primary/20" />
+               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20 group-hover:scale-110 transition-transform">
+                  <Award className="w-6 h-6 text-primary" />
+               </div>
+               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2">{t.admin.studentStats.masteryRate}</p>
+               <div className="flex items-baseline gap-2">
+                 <p className="text-4xl font-black text-foreground">{stats?.masteryRate || 0}</p>
+                 <span className="text-xl font-bold text-primary">%</span>
+               </div>
             </div>
-
-            <RecitationRecorder onSuccess={() => window.location.reload()} />
-          </div>
-        )}
-
-        {/* State 2: Review - قيد التقييم */}
-        {state === 'review' && (
-          <div className="bg-card border border-border rounded-3xl p-10 shadow-sm text-center space-y-6">
-            <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
-              <Clock className="w-10 h-10 text-amber-600 animate-pulse" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-amber-600">{t.student.stateReview}</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
-                {t.student.recitationReceivedDesc}
-              </p>
-            </div>
-            <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4">
-              <p className="text-xs text-amber-600 font-bold">{t.student.reviewTakesTime}</p>
+            
+            <div className="bg-card/40 backdrop-blur-md border border-border/80 rounded-[2rem] p-6 shadow-sm group hover:border-blue-500/30 transition-all overflow-hidden relative">
+               <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/20" />
+               <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform">
+                  <CheckCircle className="w-6 h-6 text-blue-600" />
+               </div>
+               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2">{t.admin.studentStats.completedSessions}</p>
+               <div className="flex items-baseline gap-1">
+                 <p className="text-4xl font-black text-foreground">{stats?.completedSessions || 0}</p>
+               </div>
             </div>
           </div>
-        )}
 
-        {/* State 3: Waiting - ينتظر اختيار موعد */}
-        {state === 'waiting' && (
-          <div className="bg-card border border-border rounded-3xl p-10 shadow-sm text-center space-y-6 animate-in fade-in zoom-in duration-500">
-            <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20">
-              <Calendar className="w-10 h-10 text-blue-600" />
+          {/* Progress Chart Card */}
+          <div className="bg-card/40 backdrop-blur-md border border-border/80 rounded-[2rem] p-8 shadow-sm h-full max-h-[400px] flex flex-col">
+            <div className="flex items-center justify-between mb-8">
+               <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <h3 className="text-sm font-black text-foreground uppercase tracking-[0.15em]">{t.admin.studentStats.progress}</h3>
+               </div>
+               <Link href="/student/recitations" className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter">
+                  {locale === 'ar' ? 'عرض السجل' : 'View History'}
+               </Link>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-blue-600">{t.student.stateWaiting}</h2>
-              <p className="text-blue-600/60 text-sm font-bold">
-                {t.student.slotsRemaining} {recitation?.assigned_reader_name || ''}
-              </p>
-            </div>
-            <Link href="/student/booking" className="inline-flex items-center gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-accent/20 transform hover:-translate-y-1">
-              <Calendar className="w-5 h-5" />
-              <span>{t.student.bookSessionBtnBase || 'حجز موعد'}</span>
-            </Link>
-          </div>
-        )}
-
-        {/* State 4: Booked - موعد محجوز */}
-        {state === 'booked' && booking && (
-          <div className="bg-card border border-border rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden text-right">
-            {/* Premium Header */}
-            <div className="relative p-8 pb-10 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full -ml-12 -mb-12 blur-2xl" />
-
-              <div className="relative flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-accent to-accent/80 rounded-3xl flex items-center justify-center shadow-lg shadow-accent/20 mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-                  <Video className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-2xl font-black text-foreground mb-2">{t.student.appointmentDetails}</h2>
-                <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-5 py-2 rounded-full text-xs font-black border border-accent/20 shadow-sm">
-                  <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-                  {t.student.bookedStatus}
-                </div>
-              </div>
-            </div>
-
-            {/* Info Grid */}
-            <div className="px-8 pb-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-muted/30 hover:bg-muted/50 border border-border p-5 rounded-2xl transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-card rounded-xl shadow-sm border border-border flex items-center justify-center shrink-0">
-                      <Calendar className="w-6 h-6 text-muted-foreground" />
+            
+            <div className="flex-1 w-full min-h-[220px]">
+               {stats?.progress?.length > 0 ? (
+                 <ResponsiveContainer width="100%" height="100%">
+                   <BarChart data={stats.progress} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                     <defs>
+                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                           <stop offset="0%" stopColor="var(--primary)" stopOpacity={1} />
+                           <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.4} />
+                        </linearGradient>
+                     </defs>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
+                     <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 10, fontWeight: 700 }} 
+                        axisLine={false} 
+                        tickLine={false}
+                        dy={10}
+                     />
+                     <YAxis hide />
+                     <Tooltip 
+                        cursor={{ fill: 'var(--primary)', opacity: 0.05 }}
+                        contentStyle={{ 
+                           borderRadius: '16px', 
+                           border: '1px solid var(--border)', 
+                           backgroundColor: 'rgba(var(--card), 0.8)',
+                           backdropBlur: '12px',
+                           boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                           fontSize: '11px',
+                           fontWeight: '800'
+                        }} 
+                     />
+                     <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} barSize={20} />
+                   </BarChart>
+                 </ResponsiveContainer>
+               ) : (
+                 <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center">
+                       <BarChart3 className="w-6 h-6 text-muted-foreground/40" />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">{t.student.sessionDate}</p>
-                      <p className="text-sm font-bold text-foreground">
-                        {new Date(booking.slot_start).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-muted/30 hover:bg-muted/50 border border-border p-5 rounded-2xl transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-card rounded-xl shadow-sm border border-border flex items-center justify-center shrink-0">
-                      <Clock className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">{t.student.sessionTime}</p>
-                      <p className="text-sm font-bold text-foreground">
-                        {new Date(booking.slot_start).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                        {' - '}
-                        {new Date(booking.slot_end).toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Join Session Section */}
-              <div className="bg-primary rounded-[1.5rem] p-6 text-primary-foreground relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
-                <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="text-center md:text-right">
-                    <p className="text-primary-foreground/70 text-xs font-bold mb-1">{t.student.sessionLinkLabel}</p>
-                    <p className="text-primary-foreground text-lg font-black">جاهز للبدء؟</p>
-                  </div>
-                  {booking.meeting_link ? (
-                    <a
-                      href={booking.meeting_link.startsWith('http') ? booking.meeting_link : `https://${booking.meeting_link}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full md:w-auto flex items-center justify-center gap-3 bg-card text-primary hover:bg-muted font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-black/20 transform hover:-translate-y-1 active:scale-95"
-                    >
-                      <Video className="w-5 h-5" />
-                      <span>{t.student.joinSessionBtn}</span>
-                    </a>
-                  ) : (
-                    <div className="flex items-center gap-2 text-primary-foreground/50 bg-black/10 px-4 py-3 rounded-xl">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm font-bold">{t.student.linkPendingMsg}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Modern Comments Section */}
-              <div className="pt-4 border-t border-border">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center border border-border">
-                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-sm font-black text-foreground uppercase tracking-widest">{t.student.commentLabel}</h3>
-                </div>
-                <CommentBox bookingId={booking.id} />
-              </div>
+                    <p className="text-xs font-bold text-muted-foreground">{t.admin.studentStats.noData}</p>
+                 </div>
+               )}
             </div>
           </div>
-        )}
 
-        {/* State 5: Suspended - معلق */}
-        {state === 'suspended' && (
-          <div className="bg-destructive/5 border border-destructive/20 rounded-3xl p-10 shadow-sm text-center space-y-6 animate-in fade-in zoom-in duration-500">
-            <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto shadow-sm border border-destructive/10">
-              <Clock className="w-10 h-10 text-destructive" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-destructive">{t.student.stateSuspended}</h2>
-              <p className="text-destructive/80 text-sm font-medium leading-relaxed max-w-sm mx-auto">
-                {locale === 'ar'
-                  ? "لقد انتهت مهلة الـ 3 أيام الممنوحة لك لتحديد موعد الجلسة بعد تحويل تلاوتك للمراجعة."
-                  : "The 3-day window to book your session after your recitation review has expired."}
-              </p>
-            </div>
-            <button
-              onClick={async () => {
-                const res = await fetch('/api/recitations/request-new-slot', { method: 'POST' });
-                if (res.ok) window.location.reload();
-              }}
-              className="inline-flex items-center gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-destructive/20 transform hover:-translate-y-1 active:scale-95"
-            >
-              <Send className="w-5 h-5" />
-              <span>{locale === 'ar' ? "طلب موعد جديد من المقرئ" : "Request a new slot from the reader"}</span>
-            </button>
+          {/* Quick Shortcuts / Info Card */}
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 border border-border/80 rounded-[2rem] p-6 shadow-sm">
+             <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center shadow-sm border border-border">
+                   <User className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                   <h4 className="text-xs font-black text-foreground uppercase tracking-widest">{locale === 'ar' ? 'رحلتك التعليمية' : 'Learning Journey'}</h4>
+                   <p className="text-[10px] text-muted-foreground font-medium">{locale === 'ar' ? 'استمر في التقدم نحو الإتقان' : 'Keep progressing towards mastery'}</p>
+                </div>
+             </div>
+             <div className="space-y-3">
+                <Link href="/student/recitations" className="flex items-center justify-between p-4 bg-card/60 rounded-2xl border border-border/40 hover:border-primary/30 transition-all group">
+                   <div className="flex items-center gap-3">
+                      <FileText className="w-4 h-4 text-primary" />
+                      <span className="text-xs font-black">{locale === 'ar' ? 'تلاواتي الأخيرة' : 'Last Recitations'}</span>
+                   </div>
+                   <ArrowLeft className="w-3 h-3 text-muted-foreground group-hover:-translate-x-1 transition-transform" />
+                </Link>
+                <Link href="/student/certificates" className="flex items-center justify-between p-4 bg-card/60 rounded-2xl border border-border/40 hover:border-primary/30 transition-all group">
+                   <div className="flex items-center gap-3">
+                      <Award className="w-4 h-4 text-primary" />
+                      <span className="text-xs font-black">{locale === 'ar' ? 'شهاداتي' : 'Certificates'}</span>
+                   </div>
+                   <ArrowLeft className="w-3 h-3 text-muted-foreground group-hover:-translate-x-1 transition-transform" />
+                </Link>
+             </div>
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   )
@@ -415,8 +485,8 @@ function CommentBox({ bookingId }: { bookingId: string }) {
           {comments.map(c => (
             <div key={c.id} className="flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex items-center justify-between gap-4 mb-2">
-                <span className="text-[10px] font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">{c.user_name}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">
+                <span className="text-[10px] font-black text-foreground bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/10">{c.user_name}</span>
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter">
                   {new Date(c.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -425,8 +495,8 @@ function CommentBox({ bookingId }: { bookingId: string }) {
                   })}
                 </span>
               </div>
-              <div className="bg-muted/50 border border-border rounded-2xl rounded-tr-none p-4 shadow-sm">
-                <p className="text-sm text-foreground leading-relaxed font-medium">{c.comment_text}</p>
+              <div className="bg-card/50 border border-border/80 rounded-[1.5rem] rounded-tr-none p-5 shadow-sm">
+                <p className="text-sm text-foreground leading-relaxed font-bold">{c.comment_text}</p>
               </div>
             </div>
           ))}
@@ -448,14 +518,14 @@ function CommentBox({ bookingId }: { bookingId: string }) {
             }
           }}
           placeholder={t.student.writeCommentPlaceholder}
-          className="w-full bg-muted/50 border border-border rounded-[1.25rem] pl-16 pr-6 py-4 text-sm text-foreground focus:bg-card focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all outline-none resize-none placeholder:text-muted-foreground min-h-[56px] max-h-32 font-medium"
+          className="w-full bg-card/60 backdrop-blur-sm border border-border rounded-[1.5rem] pl-16 pr-6 py-5 text-sm text-foreground focus:bg-card focus:ring-8 focus:ring-primary/5 focus:border-primary/30 transition-all outline-none resize-none placeholder:text-muted-foreground min-h-[64px] max-h-40 font-bold shadow-inner"
         />
         <button
           onClick={handleSend}
           disabled={!newComment.trim() || sending}
-          className="absolute left-3 bottom-2.5 w-11 h-11 bg-accent text-accent-foreground rounded-xl flex items-center justify-center hover:bg-accent/90 disabled:opacity-30 transition-all shadow-md active:scale-90"
+          className="absolute left-4 bottom-3 w-12 h-12 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center hover:bg-primary/90 disabled:opacity-30 transition-all shadow-xl shadow-primary/20 active:scale-90"
         >
-          {sending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
+          {sending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5 p-0.5" />}
         </button>
       </div>
     </div>

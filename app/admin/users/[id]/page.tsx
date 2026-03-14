@@ -130,6 +130,15 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         {user.is_active ? t.active : t.blocked}
                     </Badge>
                     <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 font-bold px-4 rounded-xl h-9 border-primary/20 hover:bg-primary/5 hover:border-primary/50 text-foreground transition-all active:scale-95 shadow-sm"
+                        onClick={() => router.push(`/admin/conversations?userId=${id}&userRole=${user.role}`)}
+                    >
+                        <MessageSquare className="w-4 h-4 text-primary" />
+                        {t.admin.messageUser || "Message User"}
+                    </Button>
+                    <Button 
                         variant="destructive" 
                         size="sm" 
                         className="gap-2 font-bold px-4 rounded-xl bg-destructive hover:bg-destructive/90 h-9 shadow-lg shadow-destructive/20 transition-all active:scale-95"
@@ -185,7 +194,14 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
                         {/* Actions */}
                         <div className="flex justify-center sm:justify-start gap-3 shrink-0">
-                             {/* Chat integration removed - as per Phase 4 requirements */}
+                             <Button 
+                                 variant="outline" 
+                                 className="gap-2 font-bold px-6 rounded-2xl h-11 border-primary/20 hover:bg-primary/5 hover:border-primary/50 text-foreground transition-all active:scale-95 shadow-md"
+                                 onClick={() => router.push(`/admin/conversations?userId=${id}&userRole=${user.role}`)}
+                             >
+                                 <MessageSquare className="w-5 h-5 text-primary" />
+                                 {t.admin.messageUser || "Message User"}
+                             </Button>
                         </div>
                     </div>
                 </CardContent>

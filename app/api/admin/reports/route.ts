@@ -5,7 +5,8 @@ import { query } from '@/lib/db'
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+    if (!session || !allowedRoles.includes(session.role as any)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

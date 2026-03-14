@@ -80,6 +80,7 @@ export const ar = {
     advancedTools: 'الأدوات المتقدمة',
     sidebarTitle: 'إتقان الفاتحة',
     contact: 'تواصل',
+    viewSite: 'عرض الموقع',
   },
 
   // Landing

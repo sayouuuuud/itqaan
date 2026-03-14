@@ -148,23 +148,17 @@ export default function ScheduleManagementPage() {
       })
 
       if (res.ok) {
-        const result = await res.json()
-
-        // Refresh full list
-        const listRes = await fetch("/api/reader/schedule")
-        const listData = await listRes.json()
-        setSlots(listData.slots || [])
-
+        const data = await res.json()
+        setSlots([...slots, ...(data.slots || [])].sort((a, b) => {
+          if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week
+          return a.start_time.localeCompare(b.start_time)
+        }))
         setBulkDialogOpen(false)
         setShowSuccess(true)
-        if (result.message) {
-          // result.message already contains a localized description of what happened (e.g., skips due to overlap)
-          alert(result.message); 
-        }
         setTimeout(() => setShowSuccess(false), 3000)
       } else {
-        const data = await res.json()
-        alert(data.error || t.student.bookingError)
+        const errData = await res.json()
+        alert(errData.error || t.student.bookingError)
       }
     } catch {
       alert(t.student.serverError)
@@ -173,274 +167,260 @@ export default function ScheduleManagementPage() {
     }
   }
 
-  const handleDeleteSlot = async (id: string, isRecurring?: boolean) => {
-    const confirmMsg = isRecurring ? t.reader.deleteRecurringConfirm : t.reader.deleteSlotConfirm
-    if (!confirm(confirmMsg || t.reader.deleteSlotConfirm)) return
+  const handleDeleteSlot = async (id: string, isRec: boolean) => {
+    if (!confirm(t.reader.deleteSlotConfirm)) return
 
     try {
-      const res = await fetch(`/api/reader/schedule?id=${id}`, { method: "DELETE" })
+      const res = await fetch(`/api/reader/schedule?id=${id}`, {
+        method: "DELETE"
+      })
+
       if (res.ok) {
         setSlots(slots.filter(s => s.id !== id))
-      } else {
-        alert(t.student.serverError)
       }
-    } catch {
-      alert(t.student.serverError)
+    } catch (err) {
+      console.error(err)
     }
   }
 
   const handleDeleteAll = async () => {
-    if (currentDaySlots.length === 0) return
-    if (!confirm(t.reader.deleteAllConfirm || "هل أنت متأكد من حذف جميع مواعيد هذا اليوم؟")) return
-
-    const dateStr = format(selectedDate, "yyyy-MM-dd")
-    const dayOfWeek = selectedDate.getDay()
+    if (!confirm("هل أنت متأكد من حذف جميع المواعيد المتاحة لهذا اليوم؟")) return
 
     try {
-      const res = await fetch(`/api/reader/schedule?type=all&date=${dateStr}&dayOfWeek=${dayOfWeek}`, { method: "DELETE" })
+      const dayOfWeek = selectedDate.getDay()
+      const date = format(selectedDate, "yyyy-MM-dd")
+      const res = await fetch(`/api/reader/schedule?type=all&dayOfWeek=${dayOfWeek}&date=${date}`, {
+        method: "DELETE"
+      })
+
       if (res.ok) {
-        // Refresh full list
-        const listRes = await fetch("/api/reader/schedule")
-        const listData = await listRes.json()
-        setSlots(listData.slots || [])
-        setShowSuccess(true)
-        setTimeout(() => setShowSuccess(false), 3000)
-      } else {
-        alert(t.student.serverError)
+        setSlots(slots.filter(s => {
+          const isRec = s.is_recurring || !s.specific_date
+          if (isRec && s.day_of_week === dayOfWeek) return false
+          if (s.specific_date && format(new Date(s.specific_date), "yyyy-MM-dd") === date) return false
+          return true
+        }))
       }
-    } catch {
-      alert(t.student.serverError)
+    } catch (err) {
+      console.error(err)
     }
   }
 
-  const toggleDay = (day: number) => {
-    setSelectedDays(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+  const currentDaySlots = slots.filter(s => {
+    const dow = selectedDate.getDay()
+    const dateStr = format(selectedDate, "yyyy-MM-dd")
+    
+    // Show if it's a recurring slot for this day-of-week
+    if ((s.is_recurring || !s.specific_date) && s.day_of_week === dow) return true
+    
+    // Show if it's a specific date slot for THIS EXACT DATE
+    if (s.specific_date && format(new Date(s.specific_date), "yyyy-MM-dd") === dateStr) return true
+    
+    return false
+  }).sort((a, b) => a.start_time.localeCompare(b.start_time))
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
     )
   }
 
-  const addTimeSlot = () => {
-    setBulkTimes([...bulkTimes, { id: Date.now(), start: "09:00", end: "09:30" }])
-  }
-
-  const removeTimeSlot = (id: number) => {
-    if (bulkTimes.length > 1) {
-      setBulkTimes(bulkTimes.filter(t => t.id !== id))
-    }
-  }
-
-  const updateBulkTime = (id: number, field: 'start' | 'end', val: string) => {
-    setBulkTimes(bulkTimes.map(t => t.id === id ? { ...t, [field]: val } : t))
-  }
-
-  const getSlotsForDate = (date: Date) => {
-    const dayOfWeek = date.getDay()
-    const dateStr = format(date, "yyyy-MM-dd")
-
-    return slots.filter(slot => {
-      if (slot.is_recurring || !slot.specific_date) {
-        return slot.day_of_week === dayOfWeek
-      } else {
-        const slotDate = new Date(slot.specific_date)
-        const slotDateStr = format(slotDate, "yyyy-MM-dd")
-        return slotDateStr === dateStr
-      }
-    }).sort((a, b) => a.start_time.localeCompare(b.start_time))
-  }
-
-  const currentDaySlots = getSlotsForDate(selectedDate)
-
   return (
-    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-0">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t.reader.manageScheduleTitle}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t.reader.manageScheduleDesc}</p>
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+          <div className="bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-emerald-400/20">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-bold">{t.reader.scheduleUpdatedSuccess}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
+            <CalendarRange className="w-8 h-8 text-primary" />
+            {t.reader.manageScheduleTitle}
+          </h1>
+          <p className="text-muted-foreground text-lg max-w-2xl">
+            {t.reader.manageScheduleDesc}
+          </p>
         </div>
       </div>
 
-      {showSuccess && (
-        <div className="flex items-center gap-2 p-4 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-bold border border-emerald-200 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle className="w-5 h-5 flex-shrink-0" />
-          {t.reader.scheduleUpdatedSuccess}
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Left Column: Calendar and Controls */}
+        <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+          <Card className="border-border rounded-2xl shadow-sm overflow-hidden bg-card">
+            <CardHeader className="pb-3 border-b border-border bg-muted/30 dark:bg-muted/10">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5 text-primary" />
+                {t.student.selectDate}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => d && setSelectedDate(d)}
+                locale={dateLocale}
+                className="w-full border-none shadow-none bg-transparent"
+                modifiers={{
+                  hasSlots: (date) => {
+                    const dow = date.getDay()
+                    const dateStr = format(date, "yyyy-MM-dd")
+                    return slots.some(s => 
+                      (s.specific_date && format(new Date(s.specific_date), "yyyy-MM-dd") === dateStr) || 
+                      ((s.is_recurring || !s.specific_date) && s.day_of_week === dow)
+                    )
+                  }
+                }}
+                modifiersClassNames={{
+                  hasSlots: "font-bold text-primary underline decoration-2 decoration-[#D4A843] underline-offset-4"
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Button 
+            className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-sm"
+            onClick={() => {
+              setIsRecurring(false)
+              setNewSlotDays([selectedDate.getDay()])
+              setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
+              setDialogOpen(true)
+            }}
+          >
+            <Plus className="w-4 h-4 ml-2 rtl:mr-2" />
+            {t.reader.addNewSlotTitle}
+          </Button>
+
+          <Button 
+            variant="outline"
+            className="w-full h-12 rounded-xl border-[#D4A843] text-[#D4A843] hover:bg-[#D4A843]/10 font-bold"
+            onClick={() => setBulkDialogOpen(true)}
+          >
+            <CalendarRange className="w-4 h-4 ml-2 rtl:mr-2" />
+            {t.reader.addBulkScheduleBtn}
+          </Button>
         </div>
-      )}
 
-      {loading ? (
-        <div className="py-20 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0B3D2E]" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Calendar & Add Buttons */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-4">
-            <Card className="border-border rounded-2xl shadow-sm overflow-hidden">
-              <CardHeader className="pb-2 border-b border-border bg-muted/20">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5 text-primary" />
-                  {t.student.selectDate}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(d) => d && setSelectedDate(d)}
-                  locale={dateLocale}
-                  className="w-full border-none shadow-none bg-transparent"
-                  modifiers={{
-                    hasSlots: (date) => {
-                      const dow = date.getDay()
-                      const dateStr = format(date, "yyyy-MM-dd")
-                      return slots.some(s => 
-                        (s.specific_date && format(new Date(s.specific_date), "yyyy-MM-dd") === dateStr) || 
-                        ((s.is_recurring || !s.specific_date) && s.day_of_week === dow)
-                      )
-                    }
-                  }}
-                  modifiersClassNames={{
-                    hasSlots: "font-bold text-primary underline decoration-2 decoration-[#D4A843] underline-offset-4"
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            <Button 
-              className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-sm"
-              onClick={() => {
-                setIsRecurring(false)
-                setNewSlotDays([selectedDate.getDay()])
-                setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
-                setDialogOpen(true)
-              }}
-            >
-              <Plus className="w-4 h-4 ml-2 rtl:mr-2" />
-              {t.reader.addNewSlotTitle}
-            </Button>
-
-            <Button 
-              variant="outline"
-              className="w-full h-12 rounded-xl border-[#D4A843] text-[#D4A843] hover:bg-[#D4A843]/10 font-bold"
-              onClick={() => setBulkDialogOpen(true)}
-            >
-              <CalendarRange className="w-4 h-4 ml-2 rtl:mr-2" />
-              {t.reader.addBulkScheduleBtn}
-            </Button>
-          </div>
-
-          {/* Right Column: Time Slots List */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-            <Card className="border-border rounded-2xl shadow-sm min-h-[450px] flex flex-col bg-card">
-              <CardHeader className="pb-3 border-b border-border bg-muted/30 dark:bg-muted/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-primary" />
-                      {format(selectedDate, "EEEE، d MMMM", { locale: dateLocale })}
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t.reader.availableSlots} ({currentDaySlots.length})
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {currentDaySlots.length > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        onClick={handleDeleteAll}
-                        title={t.reader.deleteAll || "حذف الكل"}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
+        {/* Right Column: Time Slots List */}
+        <div className="lg:col-span-7 xl:col-span-8 space-y-4">
+          <Card className="border-border rounded-2xl shadow-sm min-h-[450px] flex flex-col bg-card">
+            <CardHeader className="pb-3 border-b border-border bg-muted/30 dark:bg-muted/10">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-primary" />
+                    {format(selectedDate, "EEEE، d MMMM", { locale: dateLocale })}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t.reader.availableSlots} ({currentDaySlots.length})
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {currentDaySlots.length > 0 && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-primary hover:bg-primary/5 rounded-lg transition-colors"
-                      onClick={() => {
-                        setIsRecurring(false)
-                        setNewSlotDays([selectedDate.getDay()])
-                        setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
-                        setDialogOpen(true)
-                      }}
-                      title={t.reader.addSlot || "إضافة موعد"}
+                      className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      onClick={handleDeleteAll}
+                      title={t.reader.deleteAll || "حذف الكل"}
                     >
-                      <Plus className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
-                    <span className={cn(
-                      "text-[10px] sm:text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider",
-                      currentDaySlots.length > 0 ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"
-                    )}>
-                      {currentDaySlots.length > 0 ? t.active : t.inactive}
-                    </span>
-                  </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                    onClick={() => {
+                      setIsRecurring(false)
+                      setNewSlotDays([selectedDate.getDay()])
+                      setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
+                      setDialogOpen(true)
+                    }}
+                    title={t.reader.addSlot || "إضافة موعد"}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                  <span className={cn(
+                    "text-[10px] sm:text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider",
+                    currentDaySlots.length > 0 ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                  )}>
+                    {currentDaySlots.length > 0 ? t.active : t.inactive}
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-6 flex-1">
-                {currentDaySlots.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-24 text-center">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                      <CalendarIcon className="w-8 h-8 text-muted-foreground/40" />
-                    </div>
-                    <p className="font-bold text-lg text-foreground/70">{t.reader.noWeeklySlots}</p>
-                    <p className="text-sm text-muted-foreground mt-1 max-w-xs">{t.reader.noWeeklySlotsDesc}</p>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6 flex-1">
+              {currentDaySlots.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <CalendarIcon className="w-8 h-8 text-muted-foreground/40" />
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {currentDaySlots.map((slot) => {
-                      const isRec = slot.is_recurring || !slot.specific_date
-                      return (
-                        <div 
-                          key={slot.id} 
-                          className={cn(
-                            "group flex items-center justify-between p-4 rounded-xl border transition-all",
-                            isRec ? "border-primary/20 bg-primary/[0.02]" : "border-border bg-card"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/5 transition-colors">
-                              <Clock className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-base font-bold text-foreground font-mono tabular-nums leading-none">
-                                {slot.start_time.substring(0, 5)} - {slot.end_time.substring(0, 5)}
-                              </span>
-                              <span className="text-[10px] uppercase font-bold tracking-wider mt-1 text-muted-foreground/60">
-                                {isRec ? t.reader.weeklyRecurringTitle : t.reader.specificDatesTitle}
-                              </span>
-                            </div>
+                  <p className="font-bold text-lg text-foreground/70">{t.reader.noWeeklySlots}</p>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-xs">{t.reader.noWeeklySlotsDesc}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {currentDaySlots.map((slot) => {
+                    const isRec = slot.is_recurring || !slot.specific_date
+                    return (
+                      <div 
+                        key={slot.id} 
+                        className={cn(
+                          "group flex items-center justify-between p-4 rounded-xl border transition-all",
+                          isRec ? "border-primary/20 bg-primary/[0.02]" : "border-border bg-card"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/5 transition-colors">
+                            <Clock className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                           </div>
-                          <Button
-                            variant="ghost" 
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteSlot(slot.id, isRec)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex flex-col">
+                            <span className="text-base font-bold text-foreground font-mono tabular-nums leading-none">
+                              {slot.start_time.substring(0, 5)} - {slot.end_time.substring(0, 5)}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider mt-1 text-muted-foreground/60">
+                              {isRec ? t.reader.weeklyRecurringTitle : t.reader.specificDatesTitle}
+                            </span>
+                          </div>
                         </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-amber-100 dark:border-amber-900/30 bg-amber-50/50 dark:bg-amber-950/10 rounded-2xl shadow-sm">
-              <CardContent className="pt-4 pb-4 flex gap-3">
-                <Info className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{t.reader.scheduleManagementTips}</p>
-                  <p className="text-sm text-amber-800/70 dark:text-amber-300/60 leading-relaxed text-xs">
-                    {t.reader.bulkAddTip}
-                  </p>
+                        <Button
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleDeleteSlot(slot.id, isRec)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )
+                  })}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-amber-100 dark:border-amber-900/30 bg-amber-50/50 dark:bg-amber-950/10 rounded-2xl shadow-sm">
+            <CardContent className="pt-4 pb-4 flex gap-3">
+              <Info className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{t.reader.scheduleManagementTips}</p>
+                <p className="text-sm text-amber-800/70 dark:text-amber-300/60 leading-relaxed text-xs">
+                  {t.reader.bulkAddTip}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      )}
+      </div>
 
       {/* Simplified Add Slot Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -452,6 +432,13 @@ export default function ScheduleManagementPage() {
                 {t.reader.dayLabel}: {format(selectedDate, "PPPP", { locale: dateLocale })}
               </DialogDescription>
             </DialogHeader>
+          </div>
+
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border-b border-blue-100 dark:border-blue-900/30 flex gap-2 items-start">
+            <Info className="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-snug">
+              سيتم تقسيم أي فترة زمنية تختارها إلى مواعيد مدة كل منها 30 دقيقة، بما يتوافق مع مدة الجلسة.
+            </p>
           </div>
           
           <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
@@ -495,38 +482,48 @@ export default function ScheduleManagementPage() {
                   onClick={() => setNewSlotPeriods([...newSlotPeriods, { id: Date.now(), start: "09:00", end: "09:30" }])}
                   className="h-7 text-[10px] font-black uppercase text-primary hover:bg-primary/5"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
+                  <Plus className="w-3 h-3 ml-1 rtl:mr-1" />
                   {t.reader.addPeriod || "إضافة فترة"}
                 </Button>
               </div>
-
+              
               <div className="space-y-3">
-                {newSlotPeriods.map((period, idx) => (
-                  <div key={period.id} className="flex items-center gap-3 group animate-in slide-in-from-top-1 duration-200">
+                {newSlotPeriods.map((period, index) => (
+                  <div key={period.id} className="group relative flex items-center gap-2 bg-muted/30 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all">
                     <div className="grid grid-cols-2 gap-2 flex-1">
-                      <Input
-                        type="time"
-                        value={period.start}
-                        onChange={(e) => {
-                          setNewSlotPeriods(prev => prev.map(p => p.id === period.id ? { ...p, start: e.target.value } : p))
-                        }}
-                        className="rounded-xl h-11 border-border focus:ring-primary/20 bg-muted/20"
-                      />
-                      <Input
-                        type="time"
-                        value={period.end}
-                        onChange={(e) => {
-                          setNewSlotPeriods(prev => prev.map(p => p.id === period.id ? { ...p, end: e.target.value } : p))
-                        }}
-                        className="rounded-xl h-11 border-border focus:ring-primary/20 bg-muted/20"
-                      />
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase px-1">{t.reader.fromLabel}</span>
+                        <Input
+                          type="time"
+                          value={period.start}
+                          onChange={(e) => {
+                            const updated = [...newSlotPeriods]
+                            updated[index].start = e.target.value
+                            setNewSlotPeriods(updated)
+                          }}
+                          className="h-10 bg-background border-border rounded-lg text-sm font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase px-1">{t.reader.toLabel}</span>
+                        <Input
+                          type="time"
+                          value={period.end}
+                          onChange={(e) => {
+                            const updated = [...newSlotPeriods]
+                            updated[index].end = e.target.value
+                            setNewSlotPeriods(updated)
+                          }}
+                          className="h-10 bg-background border-border rounded-lg text-sm font-mono"
+                        />
+                      </div>
                     </div>
                     {newSlotPeriods.length > 1 && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setNewSlotPeriods(prev => prev.filter(p => p.id !== period.id))}
-                        className="h-9 w-9 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg"
+                        onClick={() => setNewSlotPeriods(newSlotPeriods.filter(p => p.id !== period.id))}
+                        className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg shrink-0 mt-4"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -536,140 +533,206 @@ export default function ScheduleManagementPage() {
               </div>
             </div>
 
-            <div 
-              className={cn(
-                "flex items-center space-x-2 space-x-reverse p-4 rounded-xl border transition-all cursor-pointer",
-                isRecurring ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border hover:bg-muted/20"
-              )}
-              onClick={() => setIsRecurring(!isRecurring)}
-            >
+            {/* Recurring Toggle */}
+            <div className="flex items-center space-x-3 rtl:space-x-reverse bg-card/50 p-4 rounded-xl border border-border shadow-inner">
               <Checkbox 
-                id="recurring" 
+                id="isRecurring" 
                 checked={isRecurring} 
-                onCheckedChange={(checked) => setIsRecurring(!!checked)} 
-                className="w-5 h-5 data-[state=checked]:bg-primary rounded-md"
+                onCheckedChange={(checked) => setIsRecurring(!!checked)}
+                className="w-5 h-5 rounded-md border-primary text-primary"
               />
-              <div className="grid gap-1.5 leading-none px-2">
-                <Label
-                  htmlFor="recurring"
-                  className="text-sm font-bold leading-none cursor-pointer"
-                >
+              <Label 
+                htmlFor="isRecurring" 
+                className="flex flex-col gap-0.5 cursor-pointer flex-1"
+              >
+                <span className="text-sm font-bold text-foreground">
                   {t.reader.weeklyRecurringTitle}
-                </Label>
-                <p className="text-xs text-muted-foreground">
+                </span>
+                <span className="text-[10px] text-muted-foreground">
                   {t.reader.weeklyRecurringExplanation}
-                </p>
-              </div>
+                </span>
+              </Label>
+              {isRecurring && <CheckCircle className="w-4 h-4 text-emerald-500 animate-in zoom-in" />}
             </div>
           </div>
 
-          <DialogFooter className="p-6 pt-0">
+          <DialogFooter className="p-6 bg-muted/20 border-t border-border gap-3">
             <Button 
-              onClick={handleAddSlot} 
-              disabled={submitting} 
-              className="w-full bg-[#D4A843] hover:bg-[#C49A3A] text-white rounded-xl h-12 font-bold shadow-lg transition-all active:scale-[0.98]"
+              variant="ghost" 
+              className="rounded-xl font-bold h-11"
+              onClick={() => setDialogOpen(false)}
+              disabled={submitting}
             >
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t.reader.addSlotBtn}
+              {t.cancel}
+            </Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white font-bold px-8 rounded-xl h-11 shadow-lg shadow-primary/20 flex-1"
+              onClick={handleAddSlot}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t.reader.addPeriod || "جاري الإضافة"}...
+                </>
+              ) : (
+                t.reader.addSlotBtn
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Add Dialog stays mostly same but visually enhanced */}
+      {/* Bulk Add Dialog */}
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-        <DialogContent className="max-w-xl rounded-2xl p-0 overflow-hidden">
-          <div className="bg-[#0B3D2E] p-6 text-white">
+        <DialogContent className="max-w-2xl rounded-2xl p-0 overflow-hidden border-border bg-card shadow-2xl">
+          <div className="bg-[#D4A843] p-6 text-white">
             <DialogHeader>
               <DialogTitle className="text-xl text-white">{t.reader.bulkAddTitle}</DialogTitle>
-              <DialogDescription className="text-emerald-100/70">{t.reader.bulkAddDesc}</DialogDescription>
+              <DialogDescription className="text-amber-50">
+                {t.reader.bulkAddDesc}
+              </DialogDescription>
             </DialogHeader>
           </div>
-          
-          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-            {/* Date Range Selection */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.timeRangeLabel}</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-right font-normal h-12 rounded-xl border-border bg-muted/10">
-                    <CalendarIcon className="ml-2 h-4 w-4 text-primary" />
-                    {dateRange?.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "PPP", { locale: dateLocale })} - {format(dateRange.to, "PPP", { locale: dateLocale })}
-                        </>
-                      ) : (
-                        format(dateRange.from, "PPP", { locale: dateLocale })
-                      )
-                    ) : (
-                      <span>{t.reader.selectPeriod}</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange as any}
-                    numberOfMonths={2}
-                    locale={dateLocale}
-                  />
-                </PopoverContent>
-              </Popover>
+
+          <Tabs defaultValue="setup" className="w-full">
+            <div className="px-6 border-b border-border bg-muted/10">
+              <TabsList className="h-12 bg-transparent gap-6">
+                <TabsTrigger value="setup" className="h-12 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-[#D4A843] bg-transparent font-bold">1. {t.reader.timeRangeLabel}</TabsTrigger>
+                <TabsTrigger value="days" className="h-12 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-[#D4A843] bg-transparent font-bold">2. {t.reader.applyOnDays}</TabsTrigger>
+                <TabsTrigger value="times" className="h-12 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-[#D4A843] bg-transparent font-bold">3. {t.reader.timeSlotsHeader}</TabsTrigger>
+              </TabsList>
             </div>
 
-            {/* Day Selection */}
-            <div className="space-y-3">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.applyOnDays}</Label>
-              <div className="flex flex-wrap gap-2">
-                {daysOfWeek.map((day: string, i: number) => (
-                  <div
-                    key={i}
-                    onClick={() => toggleDay(i)}
-                    className={cn(
-                      "px-4 py-2 rounded-xl border text-sm cursor-pointer transition-all font-bold",
-                      selectedDays.includes(i) 
-                        ? "bg-[#0B3D2E] text-white border-[#0B3D2E] shadow-sm" 
-                        : "bg-background text-foreground border-border hover:border-primary/50"
-                    )}
-                  >
-                    {day}
+            <div className="p-6">
+              <TabsContent value="setup" className="mt-0 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.fromLabel}</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full h-12 justify-start font-mono bg-background border-border rounded-xl">
+                          <CalendarIcon className="ml-2 h-4 w-4" />
+                          {dateRange?.from ? format(dateRange.from, "PPP", { locale: dateLocale }) : t.reader.selectPeriod}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="range"
+                          selected={dateRange}
+                          onSelect={setDateRange}
+                          initialFocus
+                          locale={dateLocale}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Time Slots */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.timeSlotsHeader}</Label>
-                <Button variant="ghost" size="sm" onClick={addTimeSlot} className="text-[#0B3D2E] font-bold h-8 hover:bg-emerald-50">
-                  <Plus className="w-3 h-3 ml-1" />
-                  {t.reader.addPeriodBtn}
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {bulkTimes.map((t) => (
-                  <div key={t.id} className="flex items-center gap-3 bg-muted/10 p-4 rounded-xl border border-border group">
-                    <div className="flex-1 grid grid-cols-2 gap-4 font-mono">
-                      <Input type="time" value={t.start} onChange={e => updateBulkTime(t.id, 'start', e.target.value)} className="h-10 rounded-lg bg-background" />
-                      <Input type="time" value={t.end} onChange={e => updateBulkTime(t.id, 'end', e.target.value)} className="h-10 rounded-lg bg-background" />
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeTimeSlot(t.id)} className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                      <Trash2 className="w-4 h-4" />
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.toLabel}</Label>
+                    <Button variant="outline" className="w-full h-12 justify-start font-mono bg-background border-border rounded-xl cursor-not-allowed">
+                      <CalendarIcon className="ml-2 h-4 w-4" />
+                      {dateRange?.to ? format(dateRange.to, "PPP", { locale: dateLocale }) : t.reader.selectPeriod}
                     </Button>
                   </div>
-                ))}
-              </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="days" className="mt-0 space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {daysOfWeek.map((dayName: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSelectedDays(prev => 
+                          prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx]
+                        )
+                      }}
+                      className={cn(
+                        "px-4 py-3 rounded-xl text-sm font-bold transition-all border shrink-0",
+                        selectedDays.includes(idx) 
+                          ? "bg-[#D4A843] text-white border-[#D4A843] shadow-md shadow-amber-500/20" 
+                          : "bg-muted/50 text-muted-foreground border-border hover:border-amber-500/30"
+                      )}
+                    >
+                      {dayName}
+                    </button>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="times" className="mt-0 space-y-4">
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                  {bulkTimes.map((item, index) => (
+                    <div key={item.id} className="flex items-center gap-3 bg-muted/20 p-4 rounded-2xl border border-border group hover:border-[#D4A843]/30 transition-all">
+                      <div className="grid grid-cols-2 gap-4 flex-1">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground px-1">{t.reader.fromLabel}</Label>
+                          <Input
+                            type="time"
+                            value={item.start}
+                            className="bg-background border-border rounded-xl h-11 font-mono"
+                            onChange={(e) => {
+                              const newTimes = [...bulkTimes]
+                              newTimes[index].start = e.target.value
+                              setBulkTimes(newTimes)
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground px-1">{t.reader.toLabel}</Label>
+                          <Input
+                            type="time"
+                            value={item.end}
+                            className="bg-background border-border rounded-xl h-11 font-mono"
+                            onChange={(e) => {
+                              const newTimes = [...bulkTimes]
+                              newTimes[index].end = e.target.value
+                              setBulkTimes(newTimes)
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-xl mt-4"
+                        onClick={() => setBulkTimes(bulkTimes.filter(t => t.id !== item.id))}
+                        disabled={bulkTimes.length === 1}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-dashed h-12 rounded-xl text-primary font-bold hover:bg-primary/5"
+                    onClick={() => setBulkTimes([...bulkTimes, { id: Date.now(), start: "09:00", end: "09:30" }])}
+                  >
+                    <Plus className="w-4 h-4 ml-2" />
+                    {t.reader.addPeriod}
+                  </Button>
+                </div>
+              </TabsContent>
             </div>
-          </div>
-          <DialogFooter className="p-6 border-t border-border bg-muted/5">
-            <Button onClick={handleBulkAdd} disabled={submitting} className="w-full bg-[#0B3D2E] h-12 font-bold text-white rounded-xl shadow-lg hover:bg-[#0A3528]">
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin ml-2" /> : <CalendarRange className="w-5 h-5 ml-2 rtl:mr-2" />}
-              {t.reader.saveAndInsertSchedule}
-            </Button>
-          </DialogFooter>
+
+            <DialogFooter className="p-6 bg-muted/20 border-t border-border">
+              <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setBulkDialogOpen(false)}>{t.cancel}</Button>
+              <Button 
+                className="bg-[#D4A843] hover:bg-[#C39732] text-white font-black px-10 rounded-xl shadow-lg shadow-amber-500/20"
+                onClick={handleBulkAdd}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    {t.submittingStatus}
+                  </>
+                ) : (
+                  t.reader.saveAndInsertSchedule
+                )}
+              </Button>
+            </DialogFooter>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>

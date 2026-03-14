@@ -80,6 +80,7 @@ export const en = {
     advancedTools: 'Advanced Tools',
     sidebarTitle: 'ITQAAN',
     contact: 'Contact',
+    viewSite: 'View Site',
   },
 
   // Landing

@@ -46,52 +46,71 @@ export async function POST(req: NextRequest) {
 
         const insertedSlots = []
 
+        // Helper to convert HH:mm to minutes
+        const toMinutes = (time: string) => {
+            const [h, m] = time.split(':').map(Number)
+            return h * 60 + m
+        }
+
+        // Helper to convert minutes to HH:mm
+        const fromMinutes = (mins: number) => {
+            const h = Math.floor(mins / 60)
+            const m = mins % 60
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+        }
+
         for (const day of targetDays) {
             for (const period of targetPeriods) {
-                const { startTime, endTime } = period
+                let currentStart = toMinutes(period.startTime)
+                const finalEnd = toMinutes(period.endTime)
 
-                // Check for overlapping slots
-                const overlapQuery = isRecurring
-                    ? `SELECT 1 FROM availability_slots 
-                       WHERE reader_id = $1 AND day_of_week = $2 AND is_recurring = true
-                       AND (
-                         (start_time < $4 AND end_time > $3)
-                       ) LIMIT 1`
-                    : `SELECT 1 FROM availability_slots 
-                       WHERE reader_id = $1 AND (
-                           (is_recurring = true AND day_of_week = $2) OR
-                           (specific_date = $5)
-                       )
-                       AND (
-                         (start_time < $4 AND end_time > $3)
-                       ) LIMIT 1`
+                while (currentStart + 30 <= finalEnd) {
+                    const slotStart = fromMinutes(currentStart)
+                    const slotEnd = fromMinutes(currentStart + 30)
 
-                const overlapParams = isRecurring
-                    ? [session.sub, day, startTime, endTime]
-                    : [session.sub, day, startTime, endTime, specificDate]
+                    // Check for overlapping slots
+                    const overlapQuery = isRecurring
+                        ? `SELECT 1 FROM availability_slots 
+                           WHERE reader_id = $1 AND day_of_week = $2 AND is_recurring = true
+                           AND (
+                             (start_time < $4 AND end_time > $3)
+                           ) LIMIT 1`
+                        : `SELECT 1 FROM availability_slots 
+                           WHERE reader_id = $1 AND (
+                               (is_recurring = true AND day_of_week = $2) OR
+                               (specific_date = $5)
+                           )
+                           AND (
+                             (start_time < $4 AND end_time > $3)
+                           ) LIMIT 1`
 
-                const overlap = await query(overlapQuery, overlapParams)
+                    const overlapParams = isRecurring
+                        ? [session.sub, day, slotStart, slotEnd]
+                        : [session.sub, day, slotStart, slotEnd, specificDate]
 
-                if (overlap.length > 0) {
-                    continue; // Skip overlaps
-                }
+                    const overlap = await query(overlapQuery, overlapParams)
 
-                const res = await query(
-                    `INSERT INTO availability_slots 
-                    (reader_id, day_of_week, start_time, end_time, is_recurring, specific_date)
-                    VALUES ($1, $2, $3, $4, $5, $6)
-                    RETURNING *`,
-                    [session.sub, day, startTime, endTime, isRecurring || false, specificDate || null]
-                )
-                
-                if (res && res[0]) {
-                    insertedSlots.push(res[0])
+                    if (overlap.length === 0) {
+                        const res = await query(
+                            `INSERT INTO availability_slots 
+                            (reader_id, day_of_week, start_time, end_time, is_recurring, specific_date)
+                            VALUES ($1, $2, $3, $4, $5, $6)
+                            RETURNING *`,
+                            [session.sub, day, slotStart, slotEnd, isRecurring || false, specificDate || null]
+                        )
+                        
+                        if (res && res[0]) {
+                            insertedSlots.push(res[0])
+                        }
+                    }
+
+                    currentStart += 30
                 }
             }
         }
 
         if (insertedSlots.length === 0 && targetPeriods.length > 0) {
-            return NextResponse.json({ error: "المواعيد المختارة تتعارض مع مواعيد موجودة مسبقاً" }, { status: 409 })
+            return NextResponse.json({ error: "لا يمكن إضافة مواعيد (ربما بسبب تعارض أو فترة قصيرة جداً)" }, { status: 409 })
         }
 
         return NextResponse.json({ slots: insertedSlots, success: true }, { status: 201 })

@@ -38,7 +38,9 @@ export default function CertificatePage() {
         if (res.ok) {
           const data = await res.json()
           console.log('Certificate page API response:', data)
-          if (!data.isMastered || !data.certificateEnabled) {
+          const eligibleStatuses = ['mastered', 'session_booked']
+          if (!data.certificateEnabled || !eligibleStatuses.includes(data.recitationStatus)) {
+            console.log('User not eligible for certificate page, redirecting to /student. Status:', data.recitationStatus)
             router.push("/student")
             return
           }

@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     certificate: enhancedCertificate || null,
     certificateEnabled,
-    isMastered: latestRecitation?.status === 'mastered',
+    recitationStatus: latestRecitation?.status || 'no_recitation',
     universities: universities.map(u => u.name),
     entities: entities
   })
@@ -59,15 +59,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
   }
 
-  // Verify student is mastered
+  // Verify student is eligible (mastered or session_booked)
   const latestRecitation = await queryOne<{ status: string }>(
     `SELECT status FROM recitations WHERE student_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [session.sub]
   )
 
-  if (latestRecitation?.status !== 'mastered') {
+  const eligibleStatuses = ['mastered', 'session_booked']
+  if (!latestRecitation || !eligibleStatuses.includes(latestRecitation.status)) {
     return NextResponse.json(
-      { error: "يجب أن تكون قراءتك متقنة لإصدار الشهادة" },
+      { error: "يجب أن تكون قد أتممت الجلسة أو قراءتك متقنة لإصدار الشهادة" },
       { status: 403 }
     )
   }

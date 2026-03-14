@@ -111,25 +111,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     // Cleanup file from storage if present
     if (recitation.audio_url) {
-      if (recitation.audio_url.includes("cloudinary.com")) {
-        try {
-          // Extract public_id from Cloudinary URL:
-          // e.g. https://res.cloudinary.com/cloud_name/video/upload/v12345/itqaan/recitations/user_123.webm -> itqaan/recitations/user_123
-          const parts = recitation.audio_url.split('/upload/')
-          if (parts.length === 2) {
-            const pathParts = parts[1].split('/')
-            pathParts.shift() // Remove the version (v12345)
-            const publicIdWithExt = pathParts.join('/')
-            const publicId = publicIdWithExt.substring(0, publicIdWithExt.lastIndexOf('.')) || publicIdWithExt
-
-            // Delete from Cloudinary using legacy helper
-            const { deleteFromCloudinary } = await import("@/lib/cloudinary")
-            await deleteFromCloudinary(publicId, "video")
-          }
-        } catch (cloudinaryError) {
-          console.error("Failed to delete from Cloudinary:", cloudinaryError)
-        }
-      } else if (recitation.audio_url.includes("utfs.io")) {
+      if (recitation.audio_url.includes("utfs.io")) {
         try {
           // Extract key from UploadThing URL: https://utfs.io/f/<key>
           const fileKey = recitation.audio_url.split('/f/')[1]

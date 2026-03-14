@@ -74,21 +74,3 @@ export async function getStorageConfig() {
     }
 }
 
-// Legacy Cloudinary helper (kept for backward compatibility during migration)
-export async function getCloudinaryConfig() {
-    const config = await getSetting<any>("cloudinary_config", null)
-
-    if (config && config.cloudName && config.apiKey && config.apiSecret) {
-        return {
-            cloud_name: config.cloudName,
-            api_key: config.apiKey,
-            api_secret: config.apiSecret,
-        }
-    }
-
-    return {
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET,
-    }
-}

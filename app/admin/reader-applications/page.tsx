@@ -445,30 +445,17 @@ export default function ReaderApplicationsPage() {
                             </DialogHeader>
                             <div className="flex-1 overflow-auto p-6 bg-muted/20 flex flex-col items-center">
                               {(() => {
-                                const isCloudinary = url.includes('cloudinary.com')
                                 const isUploadThing = url.includes('utfs.io') || url.includes('uploadthing.com')
                                 const isImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i) || false
                                 const isPdf = url.toLowerCase().includes('.pdf') ||
-                                  url.toLowerCase().includes('raw/upload') ||
                                   (isUploadThing && !isImage)
 
                                 return (
                                   <div className="w-full max-w-4xl">
                                     {isPdf ? (
-                                      isCloudinary ? (
-                                        <div className="space-y-6">
-                                          {[1, 2, 3].map(pg => {
-                                            const imgUrl = url.replace('/upload/', `/upload/pg_${pg},w_1200,q_auto/`)
-                                            return (
-                                              <img key={pg} src={imgUrl} alt={`Page ${pg}`} className="w-full rounded-[32px] shadow-2xl border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                                            )
-                                          })}
-                                        </div>
-                                      ) : (
-                                        <div className="w-full aspect-[1/1.4] rounded-[32px] overflow-hidden shadow-2xl border-4 border-card">
-                                          <iframe src={`${url}#view=FitH`} className="w-full h-full border-none bg-white" title={`Document ${idx + 1}`} />
-                                        </div>
-                                      )
+                                      <div className="w-full aspect-[1/1.4] rounded-[32px] overflow-hidden shadow-2xl border-4 border-card">
+                                        <iframe src={`${url}#view=FitH`} className="w-full h-full border-none bg-white" title={`Document ${idx + 1}`} />
+                                      </div>
                                     ) : (
                                       <img src={url} alt={`Document ${idx + 1}`} className="w-full h-auto rounded-[32px] shadow-2xl border border-border bg-white" />
                                     )}

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { Mic, Clock, CheckCircle, Calendar, ArrowLeft, Video, MessageSquare, Send, Award, FileText, User, Building, MapPin, ExternalLink, Download, BarChart3, TrendingUp, Loader2 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { RecitationRecorder } from '@/components/student/RecitationRecorder'
 
 type FatihaStatus = 'no_recitation' | 'pending' | 'in_review' | 'mastered' | 'needs_session' | 'session_booked'
 
@@ -147,20 +148,15 @@ export default function StudentDashboard() {
 
         {/* State 1: New - لم يسجل تلاوة */}
         {state === 'new' && (
-          <div className="bg-card border border-border rounded-3xl p-10 shadow-sm text-center space-y-6">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
-              <Mic className="w-10 h-10 text-primary" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-primary">{t.student.stateNew}</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full">
+            <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 text-center">
+              <h2 className="text-xl font-bold text-primary mb-2">{t.student.stateNew}</h2>
+              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
                 {t.student.noRecitationDesc || (locale === 'ar' ? 'ابدأ رحلتك بتسجيل سورة الفاتحة ليقوم المقرئ بمراجعتها.' : 'Start your journey by recording Surah Al-Fatiha for review.')}
               </p>
             </div>
-            <Link href="/student/submit" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-primary/20 transform hover:-translate-y-1">
-              <Mic className="w-5 h-5" />
-              <span>{t.student.recordNowBtn}</span>
-            </Link>
+            
+            <RecitationRecorder onSuccess={() => window.location.reload()} />
           </div>
         )}
 

@@ -142,8 +142,8 @@ export default function RecitationDetailPage() {
 
   if (notFound || !recitation) return (
     <div className="text-center py-20">
-      <p className="text-slate-500">{t.student.recitationNotFound}</p>
-      <Link href="/student/recitations" className="mt-4 inline-block text-[#1B5E3B] font-medium hover:underline">{t.student.back}</Link>
+      <p className="text-slate-500 dark:text-slate-400">{t.student.recitationNotFound}</p>
+      <Link href="/student/recitations" className="mt-4 inline-block text-[#1B5E3B] dark:text-emerald-500 font-medium hover:underline">{t.student.back}</Link>
     </div>
   )
 
@@ -162,15 +162,15 @@ export default function RecitationDetailPage() {
       </div>
 
       {/* Compact Header */}
-      <header className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
+      <header className="bg-card border border-slate-100 dark:border-white/5 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-950/20 rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
         <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-[#1B5E3B]/5 flex items-center justify-center shrink-0 border border-[#1B5E3B]/10">
-            <Mic className="w-8 h-8 text-[#1B5E3B]" />
+          <div className="w-16 h-16 rounded-full bg-[#1B5E3B]/5 dark:bg-[#1B5E3B]/10 flex items-center justify-center shrink-0 border border-[#1B5E3B]/10 dark:border-white/5">
+            <Mic className="w-8 h-8 text-[#1B5E3B] dark:text-emerald-500" />
           </div>
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-xl md:text-2xl font-bold text-slate-800">{recitation.surah_name}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100">{recitation.surah_name}</h1>
               <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider
                 ${recitation.status === 'mastered' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
                   recitation.status === 'needs_session' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
@@ -179,9 +179,9 @@ export default function RecitationDetailPage() {
                 {cfg.label}
               </span>
             </div>
-            <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
+             <div className="flex items-center gap-4 text-sm text-slate-500 underline dark:text-slate-400 font-medium">
               <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-[#C9A227]" /> {t.student.ayah} {recitation.ayah_from} — {recitation.ayah_to}</span>
-              <span className="w-1 h-1 bg-slate-200 rounded-full" />
+              <span className="w-1 h-1 bg-slate-200 dark:bg-white/10 rounded-full" />
               <span>{new Date(recitation.created_at).toLocaleDateString(locale === 'ar' ? "ar-SA" : "en-US", { day: "numeric", month: "long", day: "numeric" })}</span>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function RecitationDetailPage() {
           {recitation.status !== 'pending' && recitation.status !== 'in_review' && (
             <button
               onClick={handleDelete}
-              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-2xl transition-colors font-medium border border-transparent hover:border-red-200"
+               className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/20 px-4 py-2 rounded-2xl transition-colors font-medium border border-transparent hover:border-red-200 dark:hover:border-red-800/50"
               title={t.student.deleteRecitationBtn}
             >
               {t.student.deleteRecitationBtn} 
@@ -278,21 +278,21 @@ export default function RecitationDetailPage() {
           </div>
         </div>
 
-      {/* Notes from Student */}
+       {/* Notes from Student */}
       {recitation.student_notes && (
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-card border border-slate-100 dark:border-white/5 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100">
-              <BookOpen className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center border border-blue-100 dark:border-blue-900/20">
+              <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-800">{t.student.myNotesLabel}</h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">{isAr ? "ملاحظاتك عند تسجيل التلاوة" : "Your notes when recording the recitation"}</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{t.student.myNotesLabel}</h3>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{isAr ? "ملاحظاتك عند تسجيل التلاوة" : "Your notes when recording the recitation"}</p>
             </div>
           </div>
-
+ 
           <div className="space-y-4">
-            <div className="w-full min-h-[80px] p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm text-slate-700 leading-relaxed">
+            <div className="w-full min-h-[80px] p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 rounded-2xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
               {recitation.student_notes}
             </div>
           </div>
@@ -325,27 +325,27 @@ export default function RecitationDetailPage() {
             </div>
           )}
 
-          {wordMistakes && wordMistakes.length > 0 && (
+           {wordMistakes && wordMistakes.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-bold text-slate-700">الكلمات التي تحتاج إلى تحسين</label>
-                <div className="h-px flex-1 bg-slate-100 mx-4" />
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">الكلمات التي تحتاج إلى تحسين</label>
+                <div className="h-px flex-1 bg-slate-100 dark:bg-white/5 mx-4" />
+                <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-full">
                   {wordMistakes.length} كلمات
                 </span>
               </div>
-              <div className="w-full p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+              <div className="w-full p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-2xl">
                 <div className="flex flex-wrap gap-2">
                   {wordMistakes.map((mistake, index) => (
                     <span 
                       key={index}
-                      className="inline-block bg-white border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-sm font-medium shadow-sm"
+                      className="inline-block bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 px-3 py-2 rounded-lg text-sm font-medium shadow-sm"
                     >
                       {mistake.word}
                     </span>
                   ))}
                 </div>
-                <p className="text-xs text-amber-600 mt-3 text-center">
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 text-center">
                   💡 انتبه لهذه الكلمات وركز على نطقها الصحيح في التلاوات القادمة
                 </p>
               </div>
@@ -354,17 +354,17 @@ export default function RecitationDetailPage() {
         </div>
       )}
 
-      {/* CTA for needs_session */}
+       {/* CTA for needs_session */}
       {recitation.status === "needs_session" && (
-        <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 dark:from-blue-950/20 dark:to-blue-900/10 border border-blue-200 dark:border-blue-800/50 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between flex-wrap gap-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center border border-blue-200">
-                <Calendar className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center border border-blue-200 dark:border-blue-900/50">
+                <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-blue-900">{t.student.detailNeedsSessionTitle}</h3>
-                <p className="text-sm text-blue-700 mt-1 leading-relaxed">{t.student.detailNeedsSessionDesc}</p>
+                <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">{t.student.detailNeedsSessionTitle}</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300/60 mt-1 leading-relaxed">{t.student.detailNeedsSessionDesc}</p>
               </div>
             </div>
             <Link href="/student/booking" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-2xl text-sm transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">

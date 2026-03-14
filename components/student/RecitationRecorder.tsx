@@ -1,0 +1,340 @@
+"use client"
+
+import { useState, useRef, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { Mic, Square, Play, Pause, RotateCcw, Send, Info, Loader2 } from "lucide-react"
+import { useI18n } from "@/lib/i18n/context"
+
+const MAX_SECONDS = 180 // 3 minutes
+
+type RecordingState = "idle" | "recording" | "saved"
+
+interface RecitationRecorderProps {
+  onSuccess?: () => void
+}
+
+export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
+  const router = useRouter()
+  const { t } = useI18n()
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle")
+  const [timer, setTimer] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [qiraah, setQiraah] = useState("hafs")
+  const [holdTimer, setHoldTimer] = useState<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const audioBlobRef = useRef<Blob | null>(null)
+  const audioUrlRef = useRef<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const waveformBars = [
+    3.2, 5.1, 2.8, 6.4, 4.2, 7.8, 3.5, 5.9,
+    2.1, 6.7, 4.5, 3.8, 7.1, 2.9, 5.4, 4.1,
+    6.2, 3.7, 5.8, 2.4, 7.5, 4.8, 3.1, 6.9,
+    5.2, 2.7, 7.3, 4.6, 3.9, 6.1, 2.5, 5.5
+  ]
+
+  useEffect(() => {
+    if (recordingState === "recording") {
+      intervalRef.current = setInterval(() => {
+        setTimer((t) => {
+          if (t + 1 >= MAX_SECONDS) {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+              mediaRecorderRef.current.stop()
+            }
+            setRecordingState("saved")
+            return MAX_SECONDS
+          }
+          return t + 1
+        })
+      }, 1000)
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [recordingState])
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`
+  }
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" })
+        audioBlobRef.current = blob
+        if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
+        audioUrlRef.current = URL.createObjectURL(blob)
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      mediaRecorder.start()
+      setRecordingState("recording")
+      setTimer(0)
+    } catch {
+      alert(t.student.allowMicAlert)
+    }
+  }, [t])
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      mediaRecorderRef.current.stop()
+      setRecordingState("saved")
+    }
+  }, [])
+
+  const handlePointerDown = useCallback(() => {
+    if (recordingState !== "idle") return
+    const t = setTimeout(() => {
+      startRecording()
+    }, 200)
+    setHoldTimer(t)
+  }, [recordingState, startRecording])
+
+  const handlePointerUp = useCallback(() => {
+    if (holdTimer) {
+      clearTimeout(holdTimer)
+      setHoldTimer(null)
+    }
+    if (recordingState === "recording") {
+      stopRecording()
+    }
+  }, [holdTimer, recordingState, stopRecording])
+
+  const resetAll = () => {
+    setRecordingState("idle")
+    setTimer(0)
+    setIsPlaying(false)
+    audioBlobRef.current = null
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
+    audioUrlRef.current = null
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+  }
+
+  const togglePlayback = () => {
+    if (!audioUrlRef.current) return
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+      return
+    }
+    const audio = new Audio(audioUrlRef.current)
+    audioRef.current = audio
+    audio.onended = () => setIsPlaying(false)
+    audio.play()
+    setIsPlaying(true)
+  }
+
+  const handleSubmit = async () => {
+    if (!audioBlobRef.current) return
+    setSubmitting(true)
+    try {
+      const formData = new FormData()
+      const timestamp = Date.now()
+      formData.append("audio", audioBlobRef.current, `recitation_${timestamp}.webm`)
+      formData.append("folder", "recitations")
+
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData })
+      const uploadData = await uploadRes.json()
+
+      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed")
+
+      const recRes = await fetch("/api/recitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audioUrl: uploadData.audioUrl || uploadData.url,
+          audioDuration: timer,
+          qiraah: t.qiraat[qiraah]
+        }),
+      })
+
+      if (!recRes.ok) {
+        const errData = await recRes.json()
+        if (recRes.status === 409) {
+          alert(errData.error)
+          if (onSuccess) onSuccess()
+          else router.push('/student')
+          return
+        }
+        throw new Error(errData.error || "Create recitation failed")
+      }
+
+      setSubmitted(true)
+      if (onSuccess) {
+        setTimeout(onSuccess, 2000)
+      }
+    } catch (err) {
+      console.error("Submit error:", err)
+      alert(t.student.submitError)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="w-full max-w-md mx-auto text-center space-y-6 animate-in fade-in zoom-in duration-500">
+        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+          <Send className="w-10 h-10 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground">{t.student.recitationReceived}</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {t.student.recitationReceivedDesc}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-8 flex flex-col items-center justify-center relative min-h-[450px]">
+        <div className="mb-10 text-center">
+          <div className="text-7xl font-mono font-light tracking-widest text-foreground mb-3">
+            {formatTime(timer)}
+          </div>
+          <span className="text-base text-muted-foreground font-medium">
+            {recordingState === "idle" && t.student.readyToRecord}
+            {recordingState === "recording" && t.student.recordingStatus}
+            {recordingState === "saved" && t.student.recordingSavedStatus}
+          </span>
+        </div>
+
+        <div className="h-16 w-full max-w-sm flex items-center justify-center gap-[4px] mb-14">
+          {waveformBars.map((h, i) => (
+            <div
+              key={i}
+              className={`w-1.5 rounded-full bg-muted-foreground transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"}`}
+              style={{
+                height: recordingState === "recording" ? `${h * 6}px` : `${h * 4}px`,
+                animationDelay: `${i * 40}ms`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-end justify-center gap-12 mb-10">
+          <div className="flex flex-col items-center gap-2">
+            <button
+              disabled={recordingState === "idle"}
+              onClick={resetAll}
+              className={`w-14 h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
+            >
+              <RotateCcw className="w-7 h-7" />
+            </button>
+            <span className="text-sm text-muted-foreground font-bold">{t.student.resetBtn}</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-4 relative -top-6">
+            {recordingState === "idle" && (
+              <button
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                className="w-28 h-28 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl hover:bg-accent/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-accent/20 select-none touch-none"
+              >
+                <Mic className="w-14 h-14" />
+              </button>
+            )}
+            {recordingState === "recording" && (
+              <button
+                onPointerUp={handlePointerUp}
+                className="w-28 h-28 rounded-full bg-destructive text-destructive-foreground shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-destructive/20 select-none touch-none"
+              >
+                <Square className="w-12 h-12" />
+              </button>
+            )}
+            {recordingState === "saved" && (
+              <button
+                disabled
+                className="w-28 h-28 rounded-full bg-muted text-muted-foreground/30 flex items-center justify-center select-none touch-none"
+              >
+                <Mic className="w-14 h-14" />
+              </button>
+            )}
+            <span className="text-base font-bold text-primary dark:text-accent">
+              {recordingState === "recording" ? t.student.releaseToStop : t.student.holdToRecord}
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center gap-2">
+            <button
+              disabled={recordingState !== "saved"}
+              onClick={togglePlayback}
+              className={`w-14 h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
+            >
+              {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
+            </button>
+            <span className="text-sm text-muted-foreground font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
+          </div>
+        </div>
+
+        <div className="w-full max-w-sm">
+          <label className="block text-xs font-bold text-muted-foreground mb-2 mr-1">{t.student.selectedQiraahLabel}</label>
+          <select
+            value={qiraah}
+            onChange={(e) => setQiraah(e.target.value)}
+            disabled={recordingState === "recording"}
+            className="w-full bg-muted/50 border border-border rounded-xl py-4 px-5 text-base font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10 transition-all appearance-none cursor-pointer"
+            style={{ direction: 'rtl' }}
+          >
+            <option value="hafs">{t.qiraat.hafs}</option>
+            <option value="warsh">{t.qiraat.warsh}</option>
+            <option value="qaloon">{t.qiraat.qaloon}</option>
+            <option value="duri_abu_amr">{t.qiraat.duri_abu_amr}</option>
+            <option value="shuba">{t.qiraat.shuba}</option>
+            <option value="bazzi">{t.qiraat.bazzi}</option>
+            <option value="qunbul">{t.qiraat.qunbul}</option>
+            <option value="hisham">{t.qiraat.hisham}</option>
+            <option value="ibn_dhakwan">{t.qiraat.ibn_dhakwan}</option>
+            <option value="khalaf">{t.qiraat.khalaf}</option>
+            <option value="khallad">{t.qiraat.khallad}</option>
+            <option value="abi_al_harith">{t.qiraat.abi_al_harith}</option>
+            <option value="duri_kisai">{t.qiraat.duri_kisai}</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <button
+          disabled={recordingState !== "saved" || submitting}
+          onClick={handleSubmit}
+          className="w-full bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-accent-foreground hover:bg-accent/90 py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+        >
+          {submitting ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <span>{t.student.submitBtn}</span>
+              <Send className="w-5 h-5 rtl:-scale-x-100 transform rotate-180" />
+            </>
+          )}
+        </button>
+      </div>
+
+      <div className="text-center p-6 bg-accent/5 rounded-2xl border border-accent/20">
+        <p className="text-accent font-bold text-sm leading-relaxed flex items-center justify-center gap-2">
+          <Info className="w-4 h-4" />
+          {t.student.recordingNote}
+        </p>
+      </div>
+    </div>
+  )
+}

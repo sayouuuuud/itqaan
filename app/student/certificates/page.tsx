@@ -60,21 +60,21 @@ export default function StudentCertificates() {
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
             <div>
-                <h1 className="text-3xl font-extrabold tracking-tight text-[#1B5E3B] mb-2">{t.student.certificates}</h1>
-                <p className="text-gray-500 font-medium max-w-2xl">{t.student.masteredDesc}</p>
+                <h1 className="text-3xl font-extrabold tracking-tight text-[#1B5E3B] dark:text-emerald-500 mb-2">{t.student.certificates}</h1>
+                <p className="text-gray-500 dark:text-slate-400 font-medium max-w-2xl">{t.student.masteredDesc}</p>
             </div>
 
             {certificates.length === 0 ? (
-                <Card className="border-none shadow-sm shadow-[#1B5E3B]/5 bg-white overflow-hidden rounded-3xl">
+                <Card className="border-none shadow-sm shadow-[#1B5E3B]/5 bg-card overflow-hidden rounded-3xl">
                     <CardContent className="p-12">
                         <div className="text-center space-y-5 max-w-md mx-auto">
-                            <div className="w-24 h-24 bg-[#1B5E3B]/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-24 h-24 bg-[#1B5E3B]/5 dark:bg-[#1B5E3B]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Inbox className="w-12 h-12 text-[#1B5E3B]/40" />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-800">
+                            <h3 className="text-xl font-bold text-gray-800 dark:text-slate-200">
                                 {locale === 'ar' ? 'لا توجد شهادات' : 'No Certificates'}
                             </h3>
-                            <p className="text-gray-500 leading-relaxed">
+                             <p className="text-gray-500 dark:text-slate-400 leading-relaxed">
                                 {locale === 'ar' ? 'لم تقم بتقديم بيانات الشهادة بعد. قم باستكمال بياناتك لإصدار شهادة الإتقان.' : 'You have not submitted certificate data yet. Complete your details to receive your mastery certificate.'}
                             </p>
                             <div className="pt-4">
@@ -91,13 +91,13 @@ export default function StudentCertificates() {
                     <div className="flex-1 space-y-8">
                         {/* Status Alert */}
                         {!certificates[0].certificate_issued && (
-                            <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-200/50 rounded-3xl p-6 shadow-sm flex items-start gap-4">
+                            <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-900/10 border border-amber-200/50 dark:border-amber-800/50 rounded-3xl p-6 shadow-sm flex items-start gap-4">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-[100px] pointer-events-none" />
-                                <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center shrink-0 border border-amber-100">
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl shadow-sm flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/50">
                                     <Clock className="w-6 h-6 text-amber-500" />
                                 </div>
                                 <div className="pt-1">
-                                    <h3 className="font-bold text-amber-900 text-lg mb-1">
+                                    <h3 className="font-bold text-amber-900 dark:text-amber-200 text-lg mb-1">
                                         {locale === 'ar' ? 'جاري مراجعة الطلب' : 'Application Under Review'}
                                     </h3>
                                     <p className="text-amber-700/80 text-sm leading-relaxed max-w-lg">
@@ -109,7 +109,7 @@ export default function StudentCertificates() {
                             </div>
                         )}
 
-                        <Card className="border-none shadow-xl shadow-[#1B5E3B]/5 bg-white overflow-hidden rounded-3xl group transition-all duration-500 hover:shadow-2xl hover:shadow-[#1B5E3B]/10">
+                        <Card className="border-none shadow-xl shadow-[#1B5E3B]/5 bg-card overflow-hidden rounded-3xl group transition-all duration-500 hover:shadow-2xl hover:shadow-[#1B5E3B]/10">
                             <CardContent className="p-0">
                                 {/* Header Banner */}
                                 <div className="bg-gradient-to-br from-[#1B5E3B] to-[#082A1F] h-40 relative px-8 flex items-end pb-8">
@@ -146,24 +146,24 @@ export default function StudentCertificates() {
 
                                         <div className="space-y-6 sm:pe-6">
                                             <div className="group/item">
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B]">{t.student.universityLabel}</p>
-                                                <p className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-2">{certificates[0].university}</p>
+                                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B] dark:group-hover/item:text-emerald-500">{t.student.universityLabel}</p>
+                                                <p className="text-lg font-bold text-gray-800 dark:text-slate-200 border-b border-gray-100 dark:border-white/5 pb-2">{certificates[0].university}</p>
                                             </div>
                                             <div className="group/item">
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B]">{t.common?.city || (locale === 'ar' ? 'المدينة' : 'City')}</p>
-                                                <p className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-2">{certificates[0].city}</p>
+                                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B] dark:group-hover/item:text-emerald-500">{t.common?.city || (locale === 'ar' ? 'المدينة' : 'City')}</p>
+                                                <p className="text-lg font-bold text-gray-800 dark:text-slate-200 border-b border-gray-100 dark:border-white/5 pb-2">{certificates[0].city}</p>
                                             </div>
                                         </div>
 
                                         <div className="space-y-6 sm:ps-6">
                                             <div className="group/item">
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B]">{t.student.collegeLabel}</p>
-                                                <p className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-2">{certificates[0].college}</p>
+                                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B] dark:group-hover/item:text-emerald-500">{t.student.collegeLabel}</p>
+                                                <p className="text-lg font-bold text-gray-800 dark:text-slate-200 border-b border-gray-100 dark:border-white/5 pb-2">{certificates[0].college}</p>
                                             </div>
                                             <div className="group/item">
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B]">{locale === 'ar' ? 'تاريخ التقديم' : 'Submission Date'}</p>
-                                                <p className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-2 flex items-center gap-2">
-                                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 transition-colors group-hover/item:text-[#1B5E3B] dark:group-hover/item:text-emerald-500">{locale === 'ar' ? 'تاريخ التقديم' : 'Submission Date'}</p>
+                                                <p className="text-lg font-bold text-gray-800 dark:text-slate-200 border-b border-gray-100 dark:border-white/5 pb-2 flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4 text-gray-400 dark:text-slate-500" />
                                                     {/* We could use created_at here if added to API, placeholder for now */}
                                                     {new Date().toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US')}
                                                 </p>
@@ -173,7 +173,7 @@ export default function StudentCertificates() {
 
                                     {/* Action Buttons */}
                                     {certificates[0].certificate_issued && (
-                                        <div className="mt-10 pt-8 border-t border-gray-100/80 flex flex-col sm:flex-row gap-4 items-center justify-center">
+                                        <div className="mt-10 pt-8 border-t border-gray-100/80 dark:border-white/5 flex flex-col sm:flex-row gap-4 items-center justify-center">
                                             {certificates[0].certificate_url && (
                                                 <Button asChild variant="outline" className="w-full sm:w-auto border-2 border-[#1B5E3B]/20 text-[#1B5E3B] hover:bg-[#1B5E3B]/5 rounded-xl h-14 px-8 font-bold transition-all duration-300">
                                                     <a href={certificates[0].certificate_url} target="_blank" rel="noopener noreferrer">
@@ -197,10 +197,10 @@ export default function StudentCertificates() {
                         </Card>
                     </div>
 
-                    {/* Right/Top Column: Info Cards */}
+                     {/* Right/Top Column: Info Cards */}
                     <div className="lg:w-80 space-y-6 shrink-0">
                         {/* Ceremony Card */}
-                        <Card className="border-none shadow-lg shadow-[#1B5E3B]/5 bg-gradient-to-b from-white to-gray-50/50 rounded-3xl overflow-hidden relative">
+                        <Card className="border-none shadow-lg shadow-[#1B5E3B]/5 bg-gradient-to-b from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-900/50 rounded-3xl overflow-hidden relative">
                             {/* Decorative top border */}
                             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#C9A227] to-[#FCD34D]" />
 
@@ -210,8 +210,8 @@ export default function StudentCertificates() {
                                         <Calendar className="w-8 h-8 text-[#C9A227]" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-[#1B5E3B]">{t.student.ceremonyTitle}</h3>
-                                        <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                                        <h3 className="text-xl font-bold text-[#1B5E3B] dark:text-emerald-500">{t.student.ceremonyTitle}</h3>
+                                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 leading-relaxed">
                                             {t.student.ceremonyDesc}
                                         </p>
                                     </div>
@@ -219,35 +219,35 @@ export default function StudentCertificates() {
 
                                 <div className="space-y-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                         <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
                                             <Clock className="w-4 h-4 text-blue-500" />
                                         </div>
                                         <div>
-                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{locale === 'ar' ? 'التوقيت المتوقع' : 'Estimated Time'}</p>
-                                            <p className="text-sm font-bold text-gray-800">{locale === 'ar' ? 'سيُعلن عنه قريباً' : 'To be announced'}</p>
+                                            <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{locale === 'ar' ? 'التوقيت المتوقع' : 'Estimated Time'}</p>
+                                            <p className="text-sm font-bold text-gray-800 dark:text-slate-200">{locale === 'ar' ? 'سيُعلن عنه قريباً' : 'To be announced'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                                         <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
                                             <MapPin className="w-4 h-4 text-emerald-500" />
                                         </div>
                                         <div>
-                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{locale === 'ar' ? 'الموقع' : 'Location'}</p>
-                                            <p className="text-sm font-bold text-gray-800">{locale === 'ar' ? 'عن بُعد / سيُحدد' : 'Remote / TBA'}</p>
+                                            <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{locale === 'ar' ? 'الموقع' : 'Location'}</p>
+                                            <p className="text-sm font-bold text-gray-800 dark:text-slate-200">{locale === 'ar' ? 'عن بُعد / سيُحدد' : 'Remote / TBA'}</p>
                                         </div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Help / Support Mini Card */}
-                        <div className="bg-[#1B5E3B]/5 rounded-3xl p-6 border border-[#1B5E3B]/10 flex gap-4">
-                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm">
-                                <Award className="w-5 h-5 text-[#1B5E3B]" />
+                         {/* Help / Support Mini Card */}
+                        <div className="bg-[#1B5E3B]/5 dark:bg-[#1B5E3B]/10 rounded-3xl p-6 border border-[#1B5E3B]/10 dark:border-white/5 flex gap-4">
+                            <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shrink-0 shadow-sm">
+                                <Award className="w-5 h-5 text-[#1B5E3B] dark:text-emerald-500" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-bold text-[#1B5E3B] mb-1">{locale === 'ar' ? 'دعم الشهادات' : 'Certificate Support'}</h4>
-                                <p className="text-xs text-gray-600 leading-relaxed">
+                                <h4 className="text-sm font-bold text-[#1B5E3B] dark:text-emerald-500 mb-1">{locale === 'ar' ? 'دعم الشهادات' : 'Certificate Support'}</h4>
+                                <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
                                     {locale === 'ar'
                                         ? 'إذا واجهت أي مشكلة في بيانات شهادتك أو التأخير في الإصدار، تواصل مع الدعم الفني.'
                                         : 'If you face issues with your certificate data or issuance delay, contact support.'}

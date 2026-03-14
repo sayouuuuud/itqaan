@@ -47,8 +47,8 @@ export default function ScheduleManagementPage() {
   const [submitting, setSubmitting] = useState(false)
 
   // New Slot State
-  const [newSlotStart, setNewSlotStart] = useState("09:00")
-  const [newSlotEnd, setNewSlotEnd] = useState("09:30")
+  const [newSlotPeriods, setNewSlotPeriods] = useState([{ id: 1, start: "09:00", end: "09:30" }])
+  const [newSlotDays, setNewSlotDays] = useState<number[]>([]) // Days for recurring
   const [isRecurring, setIsRecurring] = useState(false)
 
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>()
@@ -73,13 +73,17 @@ export default function ScheduleManagementPage() {
   }, [])
 
   const handleAddSlot = async () => {
+    if (isRecurring && newSlotDays.length === 0) {
+      alert(t.reader.applyOnDays)
+      return
+    }
+
     setSubmitting(true)
     try {
       const payload = {
-        startTime: newSlotStart,
-        endTime: newSlotEnd,
+        periods: newSlotPeriods.map(p => ({ startTime: p.start, endTime: p.end })),
         isRecurring: isRecurring,
-        dayOfWeek: selectedDate.getDay(),
+        daysOfWeek: isRecurring ? newSlotDays : [selectedDate.getDay()],
         specificDate: isRecurring ? undefined : format(selectedDate, "yyyy-MM-dd")
       }
 
@@ -91,12 +95,14 @@ export default function ScheduleManagementPage() {
 
       if (res.ok) {
         const data = await res.json()
-        const newSlots = Array.isArray(data.slots) ? data.slots : [data.slot]
+        const newSlots = data.slots || []
         setSlots([...slots, ...newSlots].sort((a, b) => {
           if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week
           return a.start_time.localeCompare(b.start_time)
         }))
         setDialogOpen(false)
+        setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
+        setNewSlotDays([])
         setShowSuccess(true)
         setTimeout(() => setShowSuccess(false), 3000)
       } else {
@@ -183,6 +189,30 @@ export default function ScheduleManagementPage() {
     }
   }
 
+  const handleDeleteAll = async () => {
+    if (currentDaySlots.length === 0) return
+    if (!confirm(t.reader.deleteAllConfirm || "هل أنت متأكد من حذف جميع مواعيد هذا اليوم؟")) return
+
+    const dateStr = format(selectedDate, "yyyy-MM-dd")
+    const dayOfWeek = selectedDate.getDay()
+
+    try {
+      const res = await fetch(`/api/reader/schedule?type=all&date=${dateStr}&dayOfWeek=${dayOfWeek}`, { method: "DELETE" })
+      if (res.ok) {
+        // Refresh full list
+        const listRes = await fetch("/api/reader/schedule")
+        const listData = await listRes.json()
+        setSlots(listData.slots || [])
+        setShowSuccess(true)
+        setTimeout(() => setShowSuccess(false), 3000)
+      } else {
+        alert(t.student.serverError)
+      }
+    } catch {
+      alert(t.student.serverError)
+    }
+  }
+
   const toggleDay = (day: number) => {
     setSelectedDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
@@ -257,7 +287,7 @@ export default function ScheduleManagementPage() {
                   selected={selectedDate}
                   onSelect={(d) => d && setSelectedDate(d)}
                   locale={dateLocale}
-                  className="w-full"
+                  className="w-full border-none shadow-none bg-transparent"
                   modifiers={{
                     hasSlots: (date) => {
                       const dow = date.getDay()
@@ -276,9 +306,11 @@ export default function ScheduleManagementPage() {
             </Card>
 
             <Button 
-              className="w-full h-12 rounded-xl bg-[#0B3D2E] text-white hover:bg-[#0A3528] font-bold shadow-sm"
+              className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-sm"
               onClick={() => {
                 setIsRecurring(false)
+                setNewSlotDays([selectedDate.getDay()])
+                setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
                 setDialogOpen(true)
               }}
             >
@@ -298,8 +330,8 @@ export default function ScheduleManagementPage() {
 
           {/* Right Column: Time Slots List */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-            <Card className="border-border rounded-2xl shadow-sm min-h-[450px] flex flex-col">
-              <CardHeader className="pb-3 border-b border-border bg-muted/20">
+            <Card className="border-border rounded-2xl shadow-sm min-h-[450px] flex flex-col bg-card">
+              <CardHeader className="pb-3 border-b border-border bg-muted/30 dark:bg-muted/10">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -310,12 +342,39 @@ export default function ScheduleManagementPage() {
                       {t.reader.availableSlots} ({currentDaySlots.length})
                     </p>
                   </div>
-                  <span className={cn(
-                    "text-[10px] sm:text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider",
-                    currentDaySlots.length > 0 ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
-                  )}>
-                    {currentDaySlots.length > 0 ? t.active : t.inactive}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {currentDaySlots.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        onClick={handleDeleteAll}
+                        title={t.reader.deleteAll || "حذف الكل"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                      onClick={() => {
+                        setIsRecurring(false)
+                        setNewSlotDays([selectedDate.getDay()])
+                        setNewSlotPeriods([{ id: Date.now(), start: "09:00", end: "09:30" }])
+                        setDialogOpen(true)
+                      }}
+                      title={t.reader.addSlot || "إضافة موعد"}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    <span className={cn(
+                      "text-[10px] sm:text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider",
+                      currentDaySlots.length > 0 ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                    )}>
+                      {currentDaySlots.length > 0 ? t.active : t.inactive}
+                    </span>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-6 flex-1">
@@ -368,12 +427,12 @@ export default function ScheduleManagementPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-amber-100 bg-amber-50/50 rounded-2xl shadow-sm">
+            <Card className="border-amber-100 dark:border-amber-900/30 bg-amber-50/50 dark:bg-amber-950/10 rounded-2xl shadow-sm">
               <CardContent className="pt-4 pb-4 flex gap-3">
-                <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <Info className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-amber-900">{t.reader.scheduleManagementTips}</p>
-                  <p className="text-sm text-amber-800/70 leading-relaxed text-xs">
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{t.reader.scheduleManagementTips}</p>
+                  <p className="text-sm text-amber-800/70 dark:text-amber-300/60 leading-relaxed text-xs">
                     {t.reader.bulkAddTip}
                   </p>
                 </div>
@@ -385,41 +444,95 @@ export default function ScheduleManagementPage() {
 
       {/* Simplified Add Slot Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
-          <div className="bg-[#0B3D2E] p-6 text-white">
+        <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden border-border bg-card shadow-2xl">
+          <div className="bg-primary p-6 text-primary-foreground">
             <DialogHeader>
-              <DialogTitle className="text-xl text-white">{t.reader.addNewSlotTitle}</DialogTitle>
-              <DialogDescription className="text-emerald-100/70">
+              <DialogTitle className="text-xl text-primary-foreground">{t.reader.addNewSlotTitle}</DialogTitle>
+              <DialogDescription className="text-primary-foreground/70">
                 {t.reader.dayLabel}: {format(selectedDate, "PPPP", { locale: dateLocale })}
               </DialogDescription>
             </DialogHeader>
           </div>
           
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="start-time" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  {t.reader.fromLabel}
-                </Label>
-                <Input 
-                  id="start-time" 
-                  type="time" 
-                  value={newSlotStart} 
-                  onChange={(e) => setNewSlotStart(e.target.value)} 
-                  className="rounded-xl h-12 border-border focus:ring-primary/20 bg-muted/20"
-                />
+          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Multi-day Selection for Recurring */}
+            {isRecurring && (
+              <div className="space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.applyOnDays}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {daysOfWeek.map((dayName: string, idx: number) => {
+                    const isSelected = newSlotDays.includes(idx)
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setNewSlotDays(prev => 
+                            prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx]
+                          )
+                        }}
+                        className={cn(
+                          "px-3 h-10 rounded-xl text-xs font-bold transition-all border shrink-0",
+                          isSelected 
+                            ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
+                            : "bg-muted/50 text-muted-foreground border-border hover:border-primary/30"
+                        )}
+                      >
+                        {dayName}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="end-time" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  {t.reader.toLabel}
-                </Label>
-                <Input 
-                  id="end-time" 
-                  type="time" 
-                  value={newSlotEnd} 
-                  onChange={(e) => setNewSlotEnd(e.target.value)} 
-                  className="rounded-xl h-12 border-border focus:ring-primary/20 bg-muted/20"
-                />
+            )}
+
+            {/* Multi-period Selection */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t.reader.selectTime}</Label>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setNewSlotPeriods([...newSlotPeriods, { id: Date.now(), start: "09:00", end: "09:30" }])}
+                  className="h-7 text-[10px] font-black uppercase text-primary hover:bg-primary/5"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  {t.reader.addPeriod || "إضافة فترة"}
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {newSlotPeriods.map((period, idx) => (
+                  <div key={period.id} className="flex items-center gap-3 group animate-in slide-in-from-top-1 duration-200">
+                    <div className="grid grid-cols-2 gap-2 flex-1">
+                      <Input
+                        type="time"
+                        value={period.start}
+                        onChange={(e) => {
+                          setNewSlotPeriods(prev => prev.map(p => p.id === period.id ? { ...p, start: e.target.value } : p))
+                        }}
+                        className="rounded-xl h-11 border-border focus:ring-primary/20 bg-muted/20"
+                      />
+                      <Input
+                        type="time"
+                        value={period.end}
+                        onChange={(e) => {
+                          setNewSlotPeriods(prev => prev.map(p => p.id === period.id ? { ...p, end: e.target.value } : p))
+                        }}
+                        className="rounded-xl h-11 border-border focus:ring-primary/20 bg-muted/20"
+                      />
+                    </div>
+                    {newSlotPeriods.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setNewSlotPeriods(prev => prev.filter(p => p.id !== period.id))}
+                        className="h-9 w-9 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -437,12 +550,12 @@ export default function ScheduleManagementPage() {
                 className="w-5 h-5 data-[state=checked]:bg-primary rounded-md"
               />
               <div className="grid gap-1.5 leading-none px-2">
-                <label
+                <Label
                   htmlFor="recurring"
                   className="text-sm font-bold leading-none cursor-pointer"
                 >
                   {t.reader.weeklyRecurringTitle}
-                </label>
+                </Label>
                 <p className="text-xs text-muted-foreground">
                   {t.reader.weeklyRecurringExplanation}
                 </p>

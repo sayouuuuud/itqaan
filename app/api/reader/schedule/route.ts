@@ -25,7 +25,7 @@ export async function GET() {
     }
 }
 
-// POST /api/reader/schedule - add a new slot
+// POST /api/reader/schedule - add new slots (bulk support)
 export async function POST(req: NextRequest) {
     try {
         const session = await getSession()
@@ -33,75 +33,68 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
         }
 
-        const { dayOfWeek, startTime, endTime, isRecurring, specificDate } = await req.json()
+        const data = await req.json()
+        const { isRecurring, specificDate, daysOfWeek, periods } = data
+        
+        // Backward compatibility support for single values if needed
+        const targetDays = Array.isArray(daysOfWeek) ? daysOfWeek : [data.dayOfWeek]
+        const targetPeriods = Array.isArray(periods) ? periods : [{ startTime: data.startTime, endTime: data.endTime }]
 
-        if (dayOfWeek === undefined || !startTime || !endTime) {
+        if (targetDays.some(d => d === undefined || d === null) || targetPeriods.some(p => !p.startTime || !p.endTime)) {
             return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 })
         }
 
-        // Check for overlaps
-        // A recurring slot overlaps with any other slot on the same day_of_week
-        // A specific date slot overlaps with recurring on same day_of_week OR same specific_date
-        const overlappingSlots = await query(
-            `SELECT id FROM availability_slots 
-             WHERE reader_id = $1 
-             AND day_of_week = $2 
-             AND (
-                 ($3 = true) OR -- If new is recurring, check all on that day
-                 ($3 = false AND (is_recurring = true OR specific_date = $4)) -- If new is specific, check recurring OR same date
-             )
-             AND (
-                 (start_time <= $5 AND end_time > $5) OR 
-                 (start_time < $6 AND end_time >= $6) OR
-                 (start_time >= $5 AND end_time <= $6)
-             )`,
-            [session.sub, dayOfWeek, isRecurring || false, specificDate || null, startTime, endTime]
-        )
-
-        if (overlappingSlots.length > 0) {
-            return NextResponse.json({ error: "يوجد تعارض مع موعد آخر في نفس الوقت" }, { status: 409 })
-        }
-
-        const [startH, startM] = startTime.split(':').map(Number)
-        const [endH, endM] = endTime.split(':').map(Number)
-        let currentMinutes = startH * 60 + startM
-        const endMinutes = endH * 60 + endM
-
         const insertedSlots = []
 
-        try {
-            while (currentMinutes + 30 <= endMinutes) {
-                const sH = Math.floor(currentMinutes / 60).toString().padStart(2, '0')
-                const sM = (currentMinutes % 60).toString().padStart(2, '0')
-                const eH = Math.floor((currentMinutes + 30) / 60).toString().padStart(2, '0')
-                const eM = ((currentMinutes + 30) % 60).toString().padStart(2, '0')
+        for (const day of targetDays) {
+            for (const period of targetPeriods) {
+                const { startTime, endTime } = period
 
-                const client = await (await import("@/lib/db")).default?.connect()
-                if (client) {
-                    const result = await client.query(
-                        `INSERT INTO availability_slots (reader_id, day_of_week, start_time, end_time, is_available, is_recurring, specific_date)
-                   VALUES ($1, $2, $3, $4, true, $5, $6)
-                   RETURNING id, day_of_week, start_time, end_time, is_available, is_recurring, specific_date`,
-                        [session.sub, dayOfWeek, `${sH}:${sM}`, `${eH}:${eM}`, isRecurring || false, specificDate || null]
-                    )
-                    insertedSlots.push(result.rows[0])
-                    client.release()
-                } else {
-                    return NextResponse.json({ error: "No DB pool available inside loop" }, { status: 500 })
+                // Check for overlapping slots
+                const overlapQuery = isRecurring
+                    ? `SELECT 1 FROM availability_slots 
+                       WHERE reader_id = $1 AND day_of_week = $2 AND is_recurring = true
+                       AND (
+                         (start_time < $4 AND end_time > $3)
+                       ) LIMIT 1`
+                    : `SELECT 1 FROM availability_slots 
+                       WHERE reader_id = $1 AND (
+                           (is_recurring = true AND day_of_week = $2) OR
+                           (specific_date = $5)
+                       )
+                       AND (
+                         (start_time < $4 AND end_time > $3)
+                       ) LIMIT 1`
+
+                const overlapParams = isRecurring
+                    ? [session.sub, day, startTime, endTime]
+                    : [session.sub, day, startTime, endTime, specificDate]
+
+                const overlap = await query(overlapQuery, overlapParams)
+
+                if (overlap.length > 0) {
+                    continue; // Skip overlaps
                 }
 
-                currentMinutes += 30
+                const res = await query(
+                    `INSERT INTO availability_slots 
+                    (reader_id, day_of_week, start_time, end_time, is_recurring, specific_date)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING *`,
+                    [session.sub, day, startTime, endTime, isRecurring || false, specificDate || null]
+                )
+                
+                if (res && res[0]) {
+                    insertedSlots.push(res[0])
+                }
             }
-        } catch (dbErr: any) {
-            console.error("DB Error:", dbErr)
-            return NextResponse.json({ error: `DB Error: ${dbErr.message}` }, { status: 500 })
         }
 
-        if (insertedSlots.length === 0) {
-            return NextResponse.json({ error: "نطاق الوقت المدخل قصير جداً" }, { status: 400 })
+        if (insertedSlots.length === 0 && targetPeriods.length > 0) {
+            return NextResponse.json({ error: "المواعيد المختارة تتعارض مع مواعيد موجودة مسبقاً" }, { status: 409 })
         }
 
-        return NextResponse.json({ slots: insertedSlots, slot: insertedSlots[0] }, { status: 201 })
+        return NextResponse.json({ slots: insertedSlots, success: true }, { status: 201 })
     } catch (error) {
         console.error("Create slot error:", error)
         return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
@@ -120,11 +113,23 @@ export async function DELETE(req: NextRequest) {
         const id = searchParams.get("id")
         const date = searchParams.get("date")
         const dayOfWeek = searchParams.get("dayOfWeek")
+        const type = searchParams.get("type") // 'all' to delete everything on that day
 
         if (id) {
             await query(
                 `DELETE FROM availability_slots WHERE id = $1 AND reader_id = $2`,
                 [id, session.sub]
+            )
+        } else if (type === "all" && dayOfWeek !== null && date) {
+            // Delete both recurring slots for this day of week AND specific slots for this date
+            await query(
+                `DELETE FROM availability_slots 
+                 WHERE reader_id = $1 
+                 AND (
+                     (day_of_week = $2 AND is_recurring = true) OR 
+                     (specific_date = $3)
+                 )`,
+                [session.sub, Number(dayOfWeek), date]
             )
         } else if (date) {
             await query(

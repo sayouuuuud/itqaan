@@ -38,7 +38,7 @@ export default function AdminSettingsPage() {
     const [contactSaved, setContactSaved] = useState(false)
 
     /* ──────────────── Branding ──────────────── */
-    const [branding, setBranding] = useState({ logoUrl: "", faviconUrl: "" })
+    const [branding, setBranding] = useState({ logoUrl: "", faviconUrl: "", dashboardLogoUrl: "" })
     const [brandingSaving, setBrandingSaving] = useState(false)
     const [brandingSaved, setBrandingSaved] = useState(false)
 
@@ -655,15 +655,25 @@ export default function AdminSettingsPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <p className="text-sm font-semibold text-foreground">{t.admin.logoLabel}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{t.admin.logoDesc}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{t.admin.logoDesc || (isAr ? "الشعار الرئيسي للموقع" : "Main Website Logo")}</p>
                             <AvatarUpload
                                 currentUrl={branding.logoUrl}
                                 name="Logo"
                                 size="md"
                                 onUploaded={(url) => setBranding(prev => ({ ...prev, logoUrl: url }))}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-semibold text-foreground">{isAr ? "شعار لوحة التحكم" : "Dashboard Logo"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{isAr ? "يظهر في شريط السايد بار" : "Appears in the sidebar"}</p>
+                            <AvatarUpload
+                                currentUrl={branding.dashboardLogoUrl}
+                                name="Dashboard Logo"
+                                size="md"
+                                onUploaded={(url) => setBranding(prev => ({ ...prev, dashboardLogoUrl: url }))}
                             />
                         </div>
                         <div className="space-y-2">

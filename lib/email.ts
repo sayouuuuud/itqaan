@@ -69,11 +69,11 @@ export async function sendEmail({ to, subject, body, html, attachments }: EmailO
 export function sendVerificationEmail(to: string, userName: string, code: string) {
   return sendEmail({
     to,
-    subject: "كود تفعيل حسابك - إتقان الفاتحة",
+    subject: "كود تفعيل حسابك - إتقان التعليمية",
     body: `كود التفعيل الخاص بك هو: ${code}`,
     html: `
       <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-        <h2 style="color: #0B3D2E;">أهلاً بك يا ${userName} في منصة إتقان الفاتحة</h2>
+        <h2 style="color: #0B3D2E;">أهلاً بك يا ${userName} في منصة إتقان التعليمية</h2>
         <p style="font-size: 16px; color: #475569;">شكراً لتسجيلك معنا. لتفعيل حسابك، يرجى استخدام الكود التالي:</p>
         
         <div style="background-color: #f8fafc; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
@@ -221,7 +221,7 @@ export async function sendCertificateIssuedEmail(
   const html = `
     <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; border: 1px solid #e2e8f0; border-radius: 12px;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #0B3D2E; font-size: 26px; margin-bottom: 4px;">إتقان الفاتحة</h1>
+        <h1 style="color: #0B3D2E; font-size: 26px; margin-bottom: 4px;">إتقان التعليمية</h1>
         <p style="color: #64748b; font-size: 14px;">منصة تحسين التلاوة</p>
       </div>
 
@@ -245,14 +245,14 @@ export async function sendCertificateIssuedEmail(
 
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
       <p style="font-size: 12px; color: #94a3b8; text-align: center;">
-        منصة إتقان الفاتحة — جميع الحقوق محفوظة
+        منصة إتقان التعليمية — جميع الحقوق محفوظة
       </p>
     </div>
   `
 
   return sendEmail({
     to,
-    subject: `🏅 تهانينا يا ${studentName} — صدرت شهادتك في إتقان الفاتحة`,
+    subject: `🏅 تهانينا يا ${studentName} — صدرت شهادتك في إتقان التعليمية`,
     body: `تهانينا يا ${studentName}! صدرت شهادة إتقانك. رابط الشهادة: ${certificateLink}`,
     html,
     attachments: attachments.length > 0 ? attachments : undefined,
@@ -269,7 +269,7 @@ export function sendSessionLinkEmail(
   const html = `
     <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; border: 1px solid #e2e8f0; border-radius: 12px;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #0B3D2E; font-size: 24px; margin-bottom: 4px;">إتقان الفاتحة</h1>
+        <h1 style="color: #0B3D2E; font-size: 24px; margin-bottom: 4px;">إتقان التعليمية</h1>
         <p style="color: #64748b; font-size: 13px;">تفاصيل جلسة التسميع</p>
       </div>
 
@@ -297,12 +297,12 @@ export function sendSessionLinkEmail(
       </p>
 
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-      <p style="font-size: 12px; color: #94a3b8; text-align: center;">منصة إتقان الفاتحة — جميع الحقوق محفوظة</p>
+      <p style="font-size: 12px; color: #94a3b8; text-align: center;">منصة إتقان التعليمية — جميع الحقوق محفوظة</p>
     </div>
   `
   return sendEmail({
     to,
-    subject: `🔗 تم تحديد رابط جلستك مع ${readerName} — إتقان الفاتحة`,
+    subject: `🔗 تم تحديد رابط جلستك مع ${readerName} — إتقان التعليمية`,
     body: `تم تحديد رابط جلسة التسميع. المقرئ: ${readerName}، التاريخ: ${sessionDate}، الوقت: ${sessionTime}. رابط الجلسة: ${meetingLink}`,
     html,
   })
@@ -319,7 +319,7 @@ export function sendSessionReminderEmail(
   const html = `
     <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; border: 1px solid #e2e8f0; border-radius: 12px;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #0B3D2E; font-size: 24px; margin-bottom: 4px;">إتقان الفاتحة</h1>
+        <h1 style="color: #0B3D2E; font-size: 24px; margin-bottom: 4px;">إتقان التعليمية</h1>
         <p style="color: #64748b; font-size: 13px;">تذكير باقتراب موعد الجلسة</p>
       </div>
 
@@ -347,12 +347,12 @@ export function sendSessionReminderEmail(
       </p>
 
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-      <p style="font-size: 12px; color: #94a3b8; text-align: center;">منصة إتقان الفاتحة — جميع الحقوق محفوظة</p>
+      <p style="font-size: 12px; color: #94a3b8; text-align: center;">منصة إتقان التعليمية — جميع الحقوق محفوظة</p>
     </div>
   `
   return sendEmail({
     to,
-    subject: `⏰ تذكير: اقترب موعد جلستك مع ${readerName} — إتقان الفاتحة`,
+    subject: `⏰ تذكير: اقترب موعد جلستك مع ${readerName} — إتقان التعليمية`,
     body: `تذكير بموعد جلسة التسميع خلال 24 ساعة. المقرئ: ${readerName}، التاريخ: ${sessionDate}، الوقت: ${sessionTime}. رابط الجلسة: ${meetingLink}`,
     html,
   })

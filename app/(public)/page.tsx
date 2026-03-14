@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n/context'
 import { Mic, CheckCircle, Calendar, ArrowLeft, ChevronDown, BookOpen, Shield, Award, Star } from 'lucide-react'
+import { usePublicSettings } from '@/lib/hooks/use-public-settings'
 
 export default function LandingPage() {
   const { t } = useI18n()
+  const { branding, contactInfo } = usePublicSettings()
   const [masteredStudents, setMasteredStudents] = useState(0)
 
   useEffect(() => {
@@ -336,7 +338,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center md:items-start gap-4">
             <Link href="/">
               <img 
-                src="/branding/main-logo.png" 
+                src={branding.logoUrl || "/branding/main-logo.png"} 
                 alt={t.appName} 
                 className="h-20 w-auto object-contain" 
               />
@@ -361,11 +363,11 @@ export default function LandingPage() {
 
             <div className="flex flex-col md:flex-row items-center gap-4 text-white/40 text-xs">
               <div className="flex items-center gap-2">
-                <span>{t.landing.address}</span>
+                <span>{contactInfo.address}</span>
               </div>
               <span className="hidden md:block">|</span>
-              <a href={`https://wa.me/${t.landing.phoneVal.replace(/\s/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#25D366] transition-colors">
-                <span>واتساب: {t.landing.phoneVal}</span>
+              <a href={`https://wa.me/${contactInfo.phone.replace(/[\s+]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#25D366] transition-colors">
+                <span>واتساب: {contactInfo.phone}</span>
               </a>
             </div>
           </div>

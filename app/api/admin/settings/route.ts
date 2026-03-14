@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
 import { query } from "@/lib/db"
+import { clearSettingCache } from "@/lib/settings"
 
 // GET /api/admin/settings
 export async function GET() {
@@ -35,15 +36,16 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "بيانات غير صحيحة" }, { status: 400 })
   }
 
+  // Update each setting provided
   for (const [key, value] of Object.entries(settings)) {
-    // setting_value is JSONB, so we need to properly format the value
-    const jsonValue = JSON.stringify(value)
     await query(
-      `INSERT INTO system_settings (setting_key, setting_value, setting_type, description)
-       VALUES ($1, $2::jsonb, 'general', $1)
-       ON CONFLICT (setting_key) DO UPDATE SET setting_value = $2::jsonb, updated_by = $3`,
-      [key, jsonValue, session.sub]
+      `INSERT INTO system_settings (setting_key, setting_value, setting_type)
+       VALUES ($1, $2::jsonb, $3)
+       ON CONFLICT (setting_key) DO UPDATE
+       SET setting_value = $2::jsonb, updated_at = NOW()`,
+      [key, JSON.stringify(value), 'general']
     )
+    clearSettingCache(key)
   }
 
   return NextResponse.json({ success: true })

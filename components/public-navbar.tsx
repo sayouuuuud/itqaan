@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { usePathname } from 'next/navigation'
+import { usePublicSettings } from '@/lib/hooks/use-public-settings'
 
 export function PublicNavbar({ initialUser = null }: { initialUser?: { role: string } | null }) {
   const pathname = usePathname()
@@ -15,6 +16,7 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
   const [user, setUser] = useState<{ role: string } | null>(initialUser)
   const [loading, setLoading] = useState(!initialUser)
   const { t } = useI18n()
+  const { branding } = usePublicSettings()
 
   useEffect(() => {
     async function checkAuth() {
@@ -41,7 +43,7 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
     <nav className={`${isHome ? 'absolute' : 'sticky bg-primary dark:bg-card shadow-md'} top-0 left-0 right-0 z-40 transition-all duration-300`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="hover:opacity-80 transition-opacity">
-          <img src="/branding/main-logo.png" alt={t.appName} className="h-22 w-30 object-contain" />
+          <img src={branding.logoUrl || "/branding/main-logo.png"} alt={t.appName} className="h-22 w-30 object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-4">

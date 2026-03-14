@@ -16,6 +16,7 @@ import {
   MessagesSquare, Megaphone, ScrollText, PieChart, Star, ShieldCheck,
   Globe, Home, Archive, Shield, Phone
 } from 'lucide-react'
+import { usePublicSettings } from '@/lib/hooks/use-public-settings'
 
 type NavItem = { href: string; label: string; icon: React.ElementType; badge?: number | string | null }
 type NavSection = { title?: string; items: NavItem[] }
@@ -151,6 +152,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
   const [unreadCount, setUnreadCount] = useState(0)
   const [unreadMessages, setUnreadMessages] = useState(0)
   const [avatarError, setAvatarError] = useState(false)
+  const { branding } = usePublicSettings()
 
   // Heartbeat to track online presence
   useEffect(() => {
@@ -237,7 +239,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
         <div className={cn('py-1 flex items-center justify-center border-b border-border relative overflow-hidden', isReader ? 'bg-primary/5' : 'bg-card')}>
           <Link href="/" className="w-full block px-4">
             <img 
-              src="/branding/dashboard-logo.png" 
+              src={branding.dashboardLogoUrl || "/branding/dashboard-logo.png"} 
               alt={t.appName} 
               className="w-full h-auto min-h-[40px] max-h-[100px] object-contain dark:brightness-150 dark:contrast-125 transition-all" 
             />

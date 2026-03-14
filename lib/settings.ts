@@ -28,6 +28,15 @@ export async function getSetting<T>(key: string, defaultValue: T): Promise<T> {
     return defaultValue
 }
 
+export function clearSettingCache(key?: string) {
+    if (key) {
+        delete settingsCache[key]
+    } else {
+        // Clear all
+        Object.keys(settingsCache).forEach(k => delete settingsCache[k])
+    }
+}
+
 // Specific helper for SMTP to build the connection string
 export async function getSmtpUrl(): Promise<string | undefined> {
     // First check dynamic settings
@@ -53,7 +62,7 @@ export async function getSmtpFromEmail(): Promise<string> {
             : smtpConfig.fromEmail
     }
 
-    return '"إتقان الفاتحة" <itqaan69@gmail.com>' // New default fallback
+    return '"إتقان التعليمية" <itqaan69@gmail.com>' // New default fallback
 }
 
 // Helper for UploadThing (Replaces Cloudinary)

@@ -18,14 +18,24 @@ const amiri = Amiri({
   variable: '--font-amiri',
 })
 
-export const metadata: Metadata = {
-  title: 'منصة إتقان التعليمية',
-  description: 'منصة متكاملة لتحسين تلاوة القرآن الكريم - سجّل تلاوتك واحصل على تقييم من مقرئين معتمدين',
-  generator: 'v0.app',
-  icons: {
-    icon: '/favicon.png',
-    apple: '/logo.png',
-  },
+import { getSetting } from '@/lib/settings'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getSetting("branding", {
+    logoUrl: "/branding/main-logo.png",
+    dashboardLogoUrl: "/branding/dashboard-logo.png",
+    faviconUrl: "/favicon.png"
+  })
+
+  return {
+    title: 'منصة إتقان التعليمية',
+    description: 'منصة متكاملة لتحسين تلاوة القرآن الكريم - سجّل تلاوتك واحصل على تقييم من مقرئين معتمدين',
+    generator: 'v0.app',
+    icons: {
+      icon: branding.faviconUrl || '/favicon.png',
+      apple: branding.logoUrl || '/logo.png',
+    },
+  }
 }
 
 export const viewport: Viewport = {

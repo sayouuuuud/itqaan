@@ -56,7 +56,25 @@ export async function getSmtpFromEmail(): Promise<string> {
     return '"إتقان الفاتحة" <itqaan69@gmail.com>' // New default fallback
 }
 
-// Helper for Cloudinary
+// Helper for UploadThing (Replaces Cloudinary)
+export async function getStorageConfig() {
+    const config = await getSetting<any>("storage_config", null)
+
+    if (config && config.uploadthingToken) {
+        return {
+            token: config.uploadthingToken,
+        }
+    }
+
+    // Fallback to env
+    return {
+        token: process.env.UPLOADTHING_TOKEN,
+        secret: process.env.UPLOADTHING_SECRET,
+        appId: process.env.UPLOADTHING_APP_ID,
+    }
+}
+
+// Legacy Cloudinary helper (kept for backward compatibility during migration)
 export async function getCloudinaryConfig() {
     const config = await getSetting<any>("cloudinary_config", null)
 
@@ -68,7 +86,6 @@ export async function getCloudinaryConfig() {
         }
     }
 
-    // Fallback to env
     return {
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
+import { uploadToStorage, deleteFromStorage } from "@/lib/storage"
 
-// POST /api/upload - upload audio or image file to Cloudinary
+// POST /api/upload - upload audio or image file to UploadThing
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession()
@@ -27,35 +27,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate file size
-    const maxSizeAudio = 30 * 1024 * 1024 // 30MB for audio
-    const maxSizeImage = 5 * 1024 * 1024  // 5MB for image
+    const maxSizeAudio = 32 * 1024 * 1024 // 32MB for audio (UploadThing limit)
+    const maxSizeImage = 4 * 1024 * 1024  // 4MB for image (UploadThing limit)
     const maxSize = isAudio ? maxSizeAudio : maxSizeImage
 
     if (file.size > maxSize) {
-      const limit = isAudio ? "30MB" : "5MB"
+      const limit = isAudio ? "32MB" : "4MB"
       return NextResponse.json({ error: `حجم الملف يتجاوز ${limit}` }, { status: 400 })
     }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Generate a meaningful public_id: userId_timestamp
-    const ext = file.name.split(".").pop() || (isAudio ? "webm" : "jpg")
-    const timestamp = Date.now()
-    const publicId = `${session.sub}_${timestamp}`
-
-    // Upload to Cloudinary
-    const result = await uploadToCloudinary(buffer, {
-      folder: `itqaan/${folder}`,
-      resource_type: isAudio ? "video" : "image", // Cloudinary uses 'video' for audio files
-      public_id: publicId,
-    })
+    // Upload to UploadThing
+    const result = await uploadToStorage(buffer, file.name, file.type)
 
     return NextResponse.json({
       url: result.url,
       audioUrl: isAudio ? result.url : undefined,
       imageUrl: isImage ? result.url : undefined,
-      public_id: result.public_id,
+      public_id: result.key, // Using 'key' as 'public_id' for backward compatibility
     }, { status: 201 })
   } catch (error) {
     console.error("Upload error:", error)
@@ -63,22 +54,21 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE /api/upload - delete audio or image file from Cloudinary
+// DELETE /api/upload - delete file from UploadThing
 export async function DELETE(req: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
     const { searchParams } = new URL(req.url)
-    const publicId = searchParams.get("publicId")
-    const resourceType = searchParams.get("resourceType") as "image" | "video" | "raw" || "video"
+    const fileKey = searchParams.get("publicId") || searchParams.get("fileKey")
 
-    if (!publicId) {
+    if (!fileKey) {
       return NextResponse.json({ error: "معرف الملف مطلوب" }, { status: 400 })
     }
 
-    // Attempt to delete from Cloudinary
-    await deleteFromCloudinary(publicId, resourceType)
+    // Attempt to delete from UploadThing
+    await deleteFromStorage(fileKey)
 
     return NextResponse.json({ success: true, message: "تم الحذف بنجاح" })
   } catch (error) {

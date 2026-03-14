@@ -1,4 +1,4 @@
-import { uploadToCloudinary } from './cloudinary'
+import { uploadToStorage } from './storage'
 import { getCertificateHtml } from './pdf-html'
 
 export async function generateCertificatePDF(studentId: string): Promise<{ url: string | null, buffer: Buffer | null }> {
@@ -71,14 +71,10 @@ export async function generateCertificatePDF(studentId: string): Promise<{ url: 
     // Ensure it's a proper Node.js Buffer (puppeteer may return Uint8Array)
     const nodeBuffer = Buffer.from(pdfBuffer)
 
-    // Upload to Cloudinary
+    // Upload to Storage (UploadThing)
     const fileName = `certificate-${studentId}-${Date.now()}.pdf`
-    console.log('Uploading to Cloudinary...')
-    const uploadResult = await uploadToCloudinary(nodeBuffer, {
-      folder: 'certificates',
-      resource_type: 'raw', // PDF is raw file
-      public_id: fileName
-    })
+    console.log('Uploading to Storage...')
+    const uploadResult = await uploadToStorage(nodeBuffer, fileName, 'application/pdf')
 
     console.log('Upload result:', uploadResult)
 

@@ -28,9 +28,9 @@ export default function AdminSettingsPage() {
     const [smtpSaving, setSmtpSaving] = useState(false)
     const [smtpSaved, setSmtpSaved] = useState(false)
 
-    const [cloudinary, setCloudinary] = useState({ cloudName: "", apiKey: "", apiSecret: "" })
-    const [cloudinarySaving, setCloudinarySaving] = useState(false)
-    const [cloudinarySaved, setCloudinarySaved] = useState(false)
+    const [storage, setStorage] = useState({ uploadthingToken: "" })
+    const [storageSaving, setStorageSaving] = useState(false)
+    const [storageSaved, setStorageSaved] = useState(false)
 
     /* ──────────────── Contact Information ──────────────── */
     const [contactInfo, setContactInfo] = useState({ email: "", phone: "", address: "" })
@@ -73,12 +73,12 @@ export default function AdminSettingsPage() {
                         } catch (e) { console.error("Could not parse SMTP settings", e) }
                     }
 
-                    // Parse Cloudinary
-                    if (d.settings?.cloudinary_config) {
+                    // Parse Storage (UploadThing)
+                    if (d.settings?.storage_config) {
                         try {
-                            const parsedCloudinary = typeof d.settings.cloudinary_config === 'string' ? JSON.parse(d.settings.cloudinary_config) : d.settings.cloudinary_config;
-                            setCloudinary((prev: any) => ({ ...prev, ...parsedCloudinary }));
-                        } catch (e) { console.error("Could not parse Cloudinary settings", e) }
+                            const parsedStorage = typeof d.settings.storage_config === 'string' ? JSON.parse(d.settings.storage_config) : d.settings.storage_config;
+                            setStorage((prev: any) => ({ ...prev, ...parsedStorage }));
+                        } catch (e) { console.error("Could not parse Storage settings", e) }
                     }
 
                     // Parse Contact Info
@@ -166,20 +166,20 @@ export default function AdminSettingsPage() {
         finally { setSmtpSaving(false) }
     }
 
-    const handleCloudinarySave = async () => {
-        setCloudinarySaving(true)
+    const handleStorageSave = async () => {
+        setStorageSaving(true)
         try {
             const res = await fetch("/api/admin/settings", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ settings: { cloudinary_config: cloudinary } }),
+                body: JSON.stringify({ settings: { storage_config: storage } }),
             })
             if (res.ok) {
-                setCloudinarySaved(true)
-                setTimeout(() => setCloudinarySaved(false), 3000)
+                setStorageSaved(true)
+                setTimeout(() => setStorageSaved(false), 3000)
             } else { alert(t.admin.errorSaving) }
         } catch { alert(t.auth.errorOccurred) }
-        finally { setCloudinarySaving(false) }
+        finally { setStorageSaving(false) }
     }
 
     const handleContactSave = async () => {
@@ -526,7 +526,7 @@ export default function AdminSettingsPage() {
                 </CardContent>
             </Card>
 
-            {/* ── Cloudinary Settings ── */}
+            {/* ── Storage Settings (UploadThing) ── */}
             <Card className="border-border shadow-sm rounded-2xl overflow-hidden bg-card">
                 <CardHeader className="bg-muted/30 border-b border-border px-6 py-5">
                     <div className="flex items-center gap-3">
@@ -544,48 +544,31 @@ export default function AdminSettingsPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
-                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">Cloud Name</Label>
-                            <Input
-                                dir="ltr"
-                                value={cloudinary.cloudName}
-                                onChange={e => setCloudinary({ ...cloudinary, cloudName: e.target.value })}
-                                placeholder="dnaq5..."
-                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">API Key</Label>
-                            <Input
-                                dir="ltr"
-                                value={cloudinary.apiKey}
-                                onChange={e => setCloudinary({ ...cloudinary, apiKey: e.target.value })}
-                                placeholder="8433..."
-                                className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
-                            />
-                        </div>
-                        <div className="space-y-2 sm:col-span-2">
-                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">API Secret</Label>
+                            <Label className="font-bold text-xs text-muted-foreground uppercase tracking-widest">UploadThing Token</Label>
                             <Input
                                 dir="ltr"
                                 type="password"
-                                value={cloudinary.apiSecret}
-                                onChange={e => setCloudinary({ ...cloudinary, apiSecret: e.target.value })}
-                                placeholder="********"
+                                value={storage.uploadthingToken}
+                                onChange={e => setStorage({ ...storage, uploadthingToken: e.target.value })}
+                                placeholder="eyJ..."
                                 className="h-11 border-border bg-muted/50 text-foreground rounded-xl focus:ring-primary/20"
                             />
+                            <p className="text-[10px] text-muted-foreground px-1">
+                                {isAr ? "تحصل على هذا الرمز من لوحة تحكم UploadThing (API Keys -> App Token)" : "Get this from UploadThing Dashboard (API Keys -> App Token)"}
+                            </p>
                         </div>
                     </div>
-
+[diff_chunk_separator]
                     <div className="flex justify-end pt-2">
                         <Button
-                            onClick={handleCloudinarySave}
-                            disabled={cloudinarySaving}
+                            onClick={handleStorageSave}
+                            disabled={storageSaving}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 h-11 rounded-xl shadow-sm transition-all duration-200"
                         >
-                            {cloudinarySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : cloudinarySaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                            <span className="mx-2">{cloudinarySaved ? t.admin.savedSuccess : t.admin.saveStorageSettings}</span>
+                            {storageSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : storageSaved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                            <span className="mx-2">{storageSaved ? t.admin.savedSuccess : t.admin.saveStorageSettings}</span>
                         </Button>
                     </div>
                 </CardContent>

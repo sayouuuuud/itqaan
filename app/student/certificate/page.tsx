@@ -168,15 +168,15 @@ export default function CertificatePage() {
 
         {/* Header Section */}
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-right">
-          <div className="relative p-5 bg-gradient-to-br from-[#C9A227] to-[#A6841E] rounded-3xl shadow-xl shadow-[#C9A227]/20 transform hover:scale-110 transition-transform duration-500">
+          <div className="relative p-5 bg-gradient-to-br from-[#C9A227] to-[#A6841E] rounded-3xl shadow-xl shadow-[#C9A227]/20 transform hover:scale-110 transition-transform duration-500 shrink-0">
             <Award className="w-10 h-10 text-white" />
-            <div className="absolute -inset-1 bg-white/20 rounded-3xl blur-md -z-10 animate-pulse" />
+            <div className="absolute -inset-1 bg-white/20 dark:bg-black/20 rounded-3xl blur-md -z-10 animate-pulse" />
           </div>
           <div className="flex-1">
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-4xl font-extrabold text-foreground tracking-tight leading-tight">
               {t.student.certificateTitle}
             </h1>
-            <p className="text-slate-500 text-lg mt-2 font-medium">
+            <p className="text-muted-foreground text-lg mt-2 font-medium">
               {t.student.issueCertificateDesc}
             </p>
           </div>
@@ -184,17 +184,17 @@ export default function CertificatePage() {
 
         <div className="relative group">
           {/* Glass Card Container */}
-          <div className="absolute -inset-[1px] bg-gradient-to-br from-white/40 to-transparent rounded-[2.5rem] blur-[1px] -z-10" />
-          <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] overflow-hidden">
+          <div className="absolute -inset-[1px] bg-gradient-to-br from-white/40 to-transparent dark:from-white/10 dark:to-transparent rounded-[2.5rem] blur-[1px] -z-10" />
+          <div className="bg-card/70 backdrop-blur-xl rounded-[2.5rem] border border-border shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] overflow-hidden">
 
             {success ? (
               <div className="p-16 text-center animate-in zoom-in-95 duration-500">
                 <div className="relative w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
                   <Award className="w-12 h-12 text-emerald-600 animate-bounce" />
-                  <div className="absolute inset-0 rounded-full border-4 border-emerald-100 animate-ping" />
+                  <div className="absolute inset-0 rounded-full border-4 border-emerald-100 dark:border-emerald-500/20 animate-ping" />
                 </div>
-                <h2 className="text-3xl font-black text-slate-800 mb-4">{t.student.certificateSuccessTitle}</h2>
-                <p className="text-slate-500 text-lg max-w-sm mx-auto leading-relaxed">
+                <h2 className="text-3xl font-black text-foreground mb-4">{t.student.certificateSuccessTitle}</h2>
+                <p className="text-muted-foreground text-lg max-w-sm mx-auto leading-relaxed">
                   {t.student.certificateSuccessDesc}
                 </p>
                 <div className="pt-10">
@@ -214,10 +214,10 @@ export default function CertificatePage() {
                 )}
 
                 <div className="bg-[#1B5E3B]/5 p-5 rounded-2xl border border-[#1B5E3B]/10 flex items-start gap-4">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <div className="p-2 bg-card rounded-lg shadow-sm border border-border">
                     <Info className="w-5 h-5 text-[#1B5E3B]" />
                   </div>
-                  <p className="text-sm text-[#1B5E3B] font-medium leading-relaxed">
+                  <p className="text-sm text-[#1B5E3B] dark:text-[#2D8C5B] font-medium leading-relaxed">
                     {t.student.certificateHint || "يرجى التأكد من صحة البيانات المدخلة، حيث سيتم طباعتها على الشهادة الرسمية الخاصة بك."}
                   </p>
                 </div>
@@ -227,29 +227,29 @@ export default function CertificatePage() {
                   <section className="space-y-6">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
-                      <h2 className="text-xl font-bold text-slate-800">{isAr ? "البيانات الأكاديمية" : "Academic Information"}</h2>
+                      <h2 className="text-xl font-bold text-foreground">{isAr ? "البيانات الأكاديمية" : "Academic Information"}</h2>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
                       {/* University */}
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-slate-600 px-1 uppercase tracking-wide">{t.student.universityLabel}</label>
+                        <label className="block text-sm font-bold text-muted-foreground px-1 uppercase tracking-wide">{t.student.universityLabel}</label>
                         <div className="relative group/field">
-                          <Building className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <Building className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
                           <select
                             name="university"
                             value={formData.university}
                             onChange={handleChange}
                             required
-                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium text-foreground"
                           >
-                            <option value="">{t.student.selectUniversity}</option>
+                            <option value="" className="bg-card">{t.student.selectUniversity}</option>
                             {universities.length > 0 ? universities.map((u) => (
-                              <option key={u} value={u}>{u}</option>
+                              <option key={u} value={u} className="bg-card">{u}</option>
                             )) : t.student.universities.map((u: string) => (
-                              <option key={u} value={u}>{u}</option>
+                              <option key={u} value={u} className="bg-card">{u}</option>
                             ))}
-                            <option value="أخرى">{t.student.other}</option>
+                            <option value="أخرى" className="bg-card">{t.student.other}</option>
                           </select>
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                             <ChevronLeft className="w-4 h-4 -rotate-90" />
@@ -264,7 +264,7 @@ export default function CertificatePage() {
                               onChange={handleChange}
                               placeholder={t.student.otherPlaceholder}
                               required
-                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
                             />
                           </div>
                         )}
@@ -272,22 +272,22 @@ export default function CertificatePage() {
 
                       {/* College / Major */}
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-slate-600 px-1 uppercase tracking-wide">{t.student.collegeLabel}</label>
+                        <label className="block text-sm font-bold text-muted-foreground px-1 uppercase tracking-wide">{t.student.collegeLabel}</label>
                         <div className="relative group/field">
-                          <FileText className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <FileText className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
                           <select
                             name="college"
                             value={formData.college}
                             onChange={handleChange}
                             required
-                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium text-foreground"
                           >
-                            <option value="">{t.student.collegePlaceholder}</option>
-                            <option value="كلية الشريعة">كلية الشريعة</option>
-                            <option value="كلية الطب">كلية الطب</option>
-                            <option value="كلية الهندسة">كلية الهندسة</option>
-                            <option value="كلية علوم الحاسب">كلية علوم الحاسب</option>
-                            <option value="أخرى">{t.student.other}</option>
+                            <option value="" className="bg-card">{t.student.collegePlaceholder}</option>
+                            <option value="كلية الشريعة" className="bg-card">كلية الشريعة</option>
+                            <option value="كلية الطب" className="bg-card">كلية الطب</option>
+                            <option value="كلية الهندسة" className="bg-card">كلية الهندسة</option>
+                            <option value="كلية علوم الحاسب" className="bg-card">كلية علوم الحاسب</option>
+                            <option value="أخرى" className="bg-card">{t.student.other}</option>
                           </select>
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                             <ChevronLeft className="w-4 h-4 -rotate-90" />
@@ -302,7 +302,7 @@ export default function CertificatePage() {
                               onChange={handleChange}
                               placeholder={t.student.otherPlaceholder}
                               required
-                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
                             />
                           </div>
                         )}
@@ -314,29 +314,29 @@ export default function CertificatePage() {
                   <section className="space-y-6">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-1.5 h-6 bg-[#1B5E3B] rounded-full" />
-                      <h2 className="text-xl font-bold text-slate-800">{isAr ? "بيانات السكن والتواصل" : "Residency & Contact"}</h2>
+                      <h2 className="text-xl font-bold text-foreground">{isAr ? "بيانات السكن والتواصل" : "Residency & Contact"}</h2>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
                       {/* City */}
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-slate-600 px-1 uppercase tracking-wide">{t.student.cityLabel}</label>
+                        <label className="block text-sm font-bold text-muted-foreground px-1 uppercase tracking-wide">{t.student.cityLabel}</label>
                         <div className="relative group/field">
-                          <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
                           <select
                             name="city"
                             value={formData.city}
                             onChange={handleChange}
                             required
-                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium text-foreground"
                           >
-                            <option value="">{t.student.cityPlaceholder}</option>
-                            <option value="الرياض">الرياض</option>
-                            <option value="جدة">جدة</option>
-                            <option value="مكة المكرمة">مكة المكرمة</option>
-                            <option value="المدينة المنورة">المدينة المنورة</option>
-                            <option value="الدمام">الدمام</option>
-                            <option value="أخرى">{t.student.other}</option>
+                            <option value="" className="bg-card">{t.student.cityPlaceholder}</option>
+                            <option value="الرياض" className="bg-card">الرياض</option>
+                            <option value="جدة" className="bg-card">جدة</option>
+                            <option value="مكة المكرمة" className="bg-card">مكة المكرمة</option>
+                            <option value="المدينة المنورة" className="bg-card">المدينة المنورة</option>
+                            <option value="الدمام" className="bg-card">الدمام</option>
+                            <option value="أخرى" className="bg-card">{t.student.other}</option>
                           </select>
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                             <ChevronLeft className="w-4 h-4 -rotate-90" />
@@ -351,7 +351,7 @@ export default function CertificatePage() {
                               onChange={handleChange}
                               placeholder={t.student.otherPlaceholder}
                               required
-                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
                             />
                           </div>
                         )}
@@ -360,65 +360,65 @@ export default function CertificatePage() {
                       {/* Mobile Number */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-end px-1">
-                          <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide">{t.student.mobileLabel}</label>
-                          <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
+                          <label className="block text-sm font-bold text-muted-foreground uppercase tracking-wide">{t.student.mobileLabel}</label>
+                          <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
                         </div>
                         <div className="relative group/field">
-                          <User className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <User className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
                           <input
                             type="tel"
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
                             placeholder="05xxxxxxxx"
-                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm text-left font-medium"
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm text-left font-medium text-foreground"
                             dir="ltr"
                           />
                         </div>
-                        <p className="text-[10px] text-slate-400 px-1 font-medium">{t.student.mobilePurpose}</p>
+                        <p className="text-[10px] text-muted-foreground px-1 font-medium">{t.student.mobilePurpose}</p>
                       </div>
 
                       {/* Age */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-end px-1">
-                          <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide">{t.student.ageLabel}</label>
-                          <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
+                          <label className="block text-sm font-bold text-muted-foreground uppercase tracking-wide">{t.student.ageLabel}</label>
+                          <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
                         </div>
                         <div className="relative group/field">
-                          <Info className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <Info className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
                           <input
                             type="number"
                             name="age"
                             value={formData.age}
                             onChange={handleChange}
                             placeholder="25"
-                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm font-medium"
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm font-medium text-foreground"
                           />
                         </div>
-                        <p className="text-[10px] text-slate-400 px-1 font-medium">{t.student.agePurpose}</p>
+                        <p className="text-[10px] text-muted-foreground px-1 font-medium">{t.student.agePurpose}</p>
                       </div>
 
                       {/* Authorized Entity */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-end px-1">
-                          <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide">{isAr ? "الجهة المعتمدة" : "Authorized Entity"}</label>
-                          <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
+                          <label className="block text-sm font-bold text-muted-foreground uppercase tracking-wide">{isAr ? "الجهة المعتمدة" : "Authorized Entity"}</label>
+                          <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
                         </div>
                         <div className="relative group/field">
-                          <Building className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
+                          <Building className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
                           <select
                             name="entity_id"
                             value={formData.entity_id}
                             onChange={handleChange}
-                            className="w-full pl-6 pr-12 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium"
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm appearance-none font-medium text-foreground"
                           >
-                            <option value="">{isAr ? "اختر الجهة" : "Select Entity"}</option>
+                            <option value="" className="bg-card">{isAr ? "اختر الجهة" : "Select Entity"}</option>
                             {entities.map((e) => (
-                              <option key={e.id} value={e.id}>{e.name}</option>
+                              <option key={e.id} value={e.id} className="bg-card">{e.name}</option>
                             ))}
-                            <option value="other">{t.student.other}</option>
+                            <option value="other" className="bg-card">{t.student.other}</option>
                           </select>
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
                             <ChevronLeft className="w-4 h-4 -rotate-90" />
                           </div>
                         </div>
@@ -431,7 +431,7 @@ export default function CertificatePage() {
                               onChange={handleChange}
                               placeholder={t.student.otherPlaceholder}
                               required
-                              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium"
+                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
                             />
                           </div>
                         )}
@@ -441,7 +441,7 @@ export default function CertificatePage() {
                 </div>
 
                 {/* Submit Button Section */}
-                <div className="pt-10 border-t border-slate-100 flex flex-col items-center">
+                <div className="pt-10 border-t border-border flex flex-col items-center">
                   <button
                     type="submit"
                     disabled={submitting}
@@ -454,7 +454,7 @@ export default function CertificatePage() {
                       <>{t.student.saveData} <ArrowLeft className="w-5 h-5 rtl:rotate-180 group-hover:-translate-x-1 transition-transform" /></>
                     )}
                   </button>
-                  <p className="mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                  <p className="mt-4 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                     {isAr ? "جميع البيانات سيتم مراجعتها قبل الإصدار" : "All data will be reviewed before issuance"}
                   </p>
                 </div>
@@ -464,7 +464,7 @@ export default function CertificatePage() {
         </div>
 
         {/* Support Section */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-8 bg-slate-900 rounded-[2rem] text-white overflow-hidden relative">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-8 bg-slate-900 border border-white/5 rounded-[2rem] text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A227]/10 blur-[50px] rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="w-12 h-12 bg-[#C9A227]/20 rounded-xl flex items-center justify-center">
@@ -472,7 +472,7 @@ export default function CertificatePage() {
             </div>
             <div>
               <h4 className="font-bold text-lg">{isAr ? "هل لديك استفسار؟" : "Have a question?"}</h4>
-              <p className="text-slate-400 text-sm">{isAr ? "تواصل مع الدعم الفني للمنصة." : "Contact our support team."}</p>
+              <p className="text-white/60 text-sm">{isAr ? "تواصل مع الدعم الفني للمنصة." : "Contact our support team."}</p>
             </div>
           </div>
           <Link href="/support" className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-all relative z-10 backdrop-blur-md border border-white/10">

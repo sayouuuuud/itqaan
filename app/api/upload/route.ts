@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     const isAudio = file.type.startsWith("audio/") || 
                     file.name.endsWith(".mp4") || 
                     file.name.endsWith(".m4a") ||
+                    file.name.endsWith(".caf") ||
                     file.name.endsWith(".mov") // Some iOS browsers report audio as video/quicktime or similar
     const isImage = file.type.startsWith("image/")
 

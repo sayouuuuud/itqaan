@@ -26,9 +26,17 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
     const updateTime = () => setCurrentTime(audio.currentTime)
     const updateDuration = () => setDuration(audio.duration)
     const onEnded = () => setIsPlaying(false)
-    const onError = () => {
-      console.error("Audio error:", audio.error)
-      if (audio.error?.code === 4) { // MEDIA_ERR_SRC_NOT_SUPPORTED
+    const onError = (e: any) => {
+      const target = e.target as HTMLAudioElement
+      console.error("Audio player error detail:", {
+        code: target.error?.code,
+        message: target.error?.message,
+        src: target.src,
+        networkState: target.networkState,
+        readyState: target.readyState
+      })
+      
+      if (target.error?.code === 4) { // MEDIA_ERR_SRC_NOT_SUPPORTED
         setError("تنسيق الصوت هذا غير مدعوم في متصفحك. يرجى محاولة تحميل الملف للاستماع إليه.")
       } else {
         setError("حدث خطأ أثناء تحميل الملف الصوتي.")
@@ -41,7 +49,8 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
     audio.addEventListener('ended', onEnded)
     audio.addEventListener('error', onError)
 
-    // Reset error when src changes
+    // Force reload when src changes
+    audio.load()
     setError(null)
 
     return () => {
@@ -104,7 +113,11 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
 
   return (
     <div className={`bg-slate-50 dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-4 shadow-sm w-full ${className}`}>
-      <audio ref={audioRef} src={src} />
+      <audio ref={audioRef} playsInline preload="metadata">
+        <source src={src} type={src.endsWith('.webm') ? 'audio/webm' : src.endsWith('.mp4') ? 'audio/mp4' : undefined} />
+        {/* Fallback source without type for general compatibility */}
+        <source src={src} />
+      </audio>
 
       <div className="flex flex-col gap-4">
         {/* Controls and Progress */}

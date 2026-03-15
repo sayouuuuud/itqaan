@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { AudioPlayer } from "@/components/audio-player"
 
 interface Recitation {
   id: string
@@ -35,13 +36,6 @@ export default function RecitationReviewPage() {
   const [submitting, setSubmitting] = useState(false)
   const [mistakeWords, setMistakeWords] = useState<string[]>([])
   const [newMistake, setNewMistake] = useState("")
-  
-  // Audio state
-  const audioRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [playbackRate, setPlaybackRate] = useState(1)
 
   useEffect(() => {
     async function load() {
@@ -63,38 +57,6 @@ export default function RecitationReviewPage() {
     load()
   }, [id, router])
 
-  const togglePlay = () => {
-    if (!audioRef.current) return
-    if (isPlaying) audioRef.current.pause()
-    else audioRef.current.play()
-    setIsPlaying(!isPlaying)
-  }
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime)
-    }
-  }
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration)
-    }
-  }
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value)
-    if (audioRef.current) {
-      audioRef.current.currentTime = time
-      setCurrentTime(time)
-    }
-  }
-
-  const formatTime = (time: number) => {
-    const mins = Math.floor(time / 60)
-    const secs = Math.floor(time % 60)
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
 
   const handleSubmit = async () => {
     if (!verdict) {
@@ -189,67 +151,7 @@ export default function RecitationReviewPage() {
                 </div>
               </div>
 
-              {/* Enhanced Audio Controls */}
-              <div className="space-y-6">
-                <div className="relative group/seeker">
-                  <input
-                    type="range"
-                    min="0"
-                    max={duration || 100}
-                    value={currentTime}
-                    onChange={handleSeek}
-                    className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary group-hover/seeker:h-3 transition-all"
-                  />
-                  <div className="flex justify-between mt-3 px-1">
-                    <span className="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">{formatTime(currentTime)}</span>
-                    <span className="text-xs font-black text-muted-foreground">{formatTime(duration)}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center gap-8">
-                  <button 
-                    onClick={() => { if(audioRef.current) audioRef.current.currentTime -= 5 }}
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-90"
-                  >
-                    <RotateCcw className="w-6 h-6" />
-                  </button>
-
-                  <button
-                    onClick={togglePlay}
-                    className="w-24 h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
-                  >
-                    {isPlaying ? <Pause className="w-10 h-10 fill-current" /> : <Play className="w-10 h-10 fill-current ml-2" />}
-                  </button>
-
-                  <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-2xl border border-border">
-                    {[0.5, 1, 1.5, 2].map(speed => (
-                      <button
-                        key={speed}
-                        onClick={() => {
-                          setPlaybackRate(speed)
-                          if (audioRef.current) audioRef.current.playbackRate = speed
-                        }}
-                        className={cn(
-                          "px-4 py-2 rounded-xl text-xs font-black transition-all",
-                          playbackRate === speed ? "bg-card text-primary shadow-md border border-primary/20 scale-105" : "text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        {speed}x
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <video
-                ref={audioRef as any}
-                src={recitation.audio_url}
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onEnded={() => setIsPlaying(false)}
-                className="hidden"
-                playsInline
-              />
+              <AudioPlayer src={recitation.audio_url} />
             </div>
           </div>
 

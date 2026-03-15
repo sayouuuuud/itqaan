@@ -32,13 +32,25 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
   const mimeTypeRef = useRef<string>("audio/webm")
 
   const getSupportedMimeType = () => {
-    const types = ["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/aac"]
+    // Priority list for compatibility
+    // 1. audio/mp4 (Best for iOS/Safari)
+    // 2. audio/webm;codecs=opus (Best for Android/Chrome)
+    // 3. audio/webm
+    // 4. audio/wav (Universal fallback)
+    
+    // Check if it's likely an iOS device
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    const types = isIOS 
+      ? ["audio/mp4", "audio/mpeg", "audio/wav"] 
+      : ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/wav"];
+
     for (const type of types) {
       if (MediaRecorder.isTypeSupported(type)) {
         return type
       }
     }
-    return "audio/wav" // Fallback
+    return "audio/wav"
   }
 
   const waveformBars = [

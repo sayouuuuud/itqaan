@@ -333,7 +333,7 @@ export default function StudentDashboard() {
                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20 group-hover:scale-110 transition-transform">
                   <Award className="w-6 h-6 text-primary" />
                </div>
-               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2">{t.admin.studentStats.masteryRate}</p>
+               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2">{t.admin?.studentStats?.masteryRate}</p>
                <div className="flex items-baseline gap-2">
                  <p className="text-4xl font-black text-foreground">{stats?.masteryRate || 0}</p>
                  <span className="text-xl font-bold text-primary">%</span>
@@ -345,7 +345,7 @@ export default function StudentDashboard() {
                <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform">
                   <CheckCircle className="w-6 h-6 text-blue-600" />
                </div>
-               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2">{t.admin.studentStats.completedSessions}</p>
+               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2">{t.admin?.studentStats?.completedSessions}</p>
                <div className="flex items-baseline gap-1">
                  <p className="text-4xl font-black text-foreground">{stats?.completedSessions || 0}</p>
                </div>
@@ -357,7 +357,7 @@ export default function StudentDashboard() {
             <div className="flex items-center justify-between mb-8">
                <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  <h3 className="text-sm font-black text-foreground uppercase tracking-[0.15em]">{t.admin.studentStats.progress}</h3>
+                  <h3 className="text-sm font-black text-foreground uppercase tracking-[0.15em]">{t.admin?.studentStats?.progress}</h3>
                </div>
                <Link href="/student/recitations" className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter">
                   {locale === 'ar' ? 'عرض السجل' : 'View History'}
@@ -389,7 +389,8 @@ export default function StudentDashboard() {
                            borderRadius: '16px', 
                            border: '1px solid var(--border)', 
                            backgroundColor: 'rgba(var(--card), 0.8)',
-                           backdropBlur: '12px',
+                           backdropFilter: 'blur(12px)',
+                           WebkitBackdropFilter: 'blur(12px)',
                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                            fontSize: '11px',
                            fontWeight: '800'
@@ -403,7 +404,7 @@ export default function StudentDashboard() {
                     <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center">
                        <BarChart3 className="w-6 h-6 text-muted-foreground/40" />
                     </div>
-                    <p className="text-xs font-bold text-muted-foreground">{t.admin.studentStats.noData}</p>
+                    <p className="text-xs font-bold text-muted-foreground">{t.admin?.studentStats?.noData}</p>
                  </div>
                )}
             </div>

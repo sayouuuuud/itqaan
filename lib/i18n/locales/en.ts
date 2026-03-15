@@ -1237,6 +1237,19 @@ export const en = {
     faviconLabel: 'Favicon',
     faviconDesc: 'Upload or update the favicon',
     saveBranding: 'Save Branding',
+    studentStats: {
+      title: 'My Statistics',
+      masteryRate: 'Mastery Rate',
+      completedSessions: 'Completed Sessions',
+      progress: 'Daily Progress',
+      noData: 'No data available currently',
+    },
+    readerStats: {
+      title: 'Performance Statistics',
+      completionRate: 'Completion Rate',
+      studentCount: 'Students Benefiting',
+      averageRating: 'Average Rating',
+    }
   },
 
   // Profile

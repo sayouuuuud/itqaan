@@ -274,14 +274,14 @@ export default function ReaderDashboard() {
             <div className="p-2 bg-primary/20 rounded-xl border border-primary/20">
               <BarChart3 className="w-5 h-5 text-primary" />
             </div>
-            <h3 className="text-xl font-black text-foreground tracking-tight uppercase tracking-widest text-sm">{t.admin.readerStats.title}</h3>
+            <h3 className="text-xl font-black text-foreground tracking-tight uppercase tracking-widest text-sm">{t.admin?.readerStats?.title}</h3>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { label: t.admin.readerStats.completionRate, value: `${performanceStats.completionRate}%`, icon: CheckCircle, color: "text-primary", bg: "bg-primary/10" },
-              { label: t.admin.readerStats.studentCount, value: performanceStats.studentCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-              { label: t.admin.readerStats.averageRating, value: performanceStats.averageRating, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" }
+              { label: t.admin?.readerStats?.completionRate, value: `${performanceStats.completionRate}%`, icon: CheckCircle, color: "text-primary", bg: "bg-primary/10" },
+              { label: t.admin?.readerStats?.studentCount, value: performanceStats.studentCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+              { label: t.admin?.readerStats?.averageRating, value: performanceStats.averageRating, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" }
             ].map((stat, idx) => (
               <div key={idx} className="bg-card/40 backdrop-blur-md border border-border/50 p-6 rounded-[28px] shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 group">
                 <div className="flex items-center gap-5">

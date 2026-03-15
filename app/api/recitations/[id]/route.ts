@@ -9,6 +9,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
     const { id } = await params
+    
+    // Validate UUID format to prevent DB errors from non-UUID strings (e.g. static path fallthroughs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: "معرف غير صالح" }, { status: 404 })
+    }
 
     const recitation = await queryOne(
       `SELECT r.*, 
@@ -56,6 +62,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
     const { id } = await params
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: "معرف غير صالح" }, { status: 404 })
+    }
+
     const body = await req.json()
 
     const updates: string[] = []
@@ -95,6 +108,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
     const { id } = await params
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: "معرف غير صالح" }, { status: 404 })
+    }
 
     // Fetch the recitation first to determine if the user owns it and get the audio_url
     const recitation = await queryOne<{ student_id: string, audio_url: string, status: string }>(

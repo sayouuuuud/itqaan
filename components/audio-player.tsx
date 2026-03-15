@@ -17,6 +17,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const audio = audioRef.current
@@ -25,15 +26,29 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
     const updateTime = () => setCurrentTime(audio.currentTime)
     const updateDuration = () => setDuration(audio.duration)
     const onEnded = () => setIsPlaying(false)
+    const onError = () => {
+      console.error("Audio error:", audio.error)
+      if (audio.error?.code === 4) { // MEDIA_ERR_SRC_NOT_SUPPORTED
+        setError("تنسيق الصوت هذا غير مدعوم في متصفحك. يرجى محاولة تحميل الملف للاستماع إليه.")
+      } else {
+        setError("حدث خطأ أثناء تحميل الملف الصوتي.")
+      }
+      setIsPlaying(false)
+    }
 
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('loadedmetadata', updateDuration)
     audio.addEventListener('ended', onEnded)
+    audio.addEventListener('error', onError)
+
+    // Reset error when src changes
+    setError(null)
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime)
       audio.removeEventListener('loadedmetadata', updateDuration)
       audio.removeEventListener('ended', onEnded)
+      audio.removeEventListener('error', onError)
     }
   }, [src])
 
@@ -146,6 +161,19 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
             <RotateCcw className="w-4 h-4" />
           </Button>
         </div>
+
+        {error && (
+          <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1">
+             <span className="font-bold flex-1">{error}</span>
+             <a 
+               href={src} 
+               download 
+               className="px-3 py-1 bg-destructive text-destructive-foreground rounded-lg font-bold hover:bg-destructive/90 transition-colors whitespace-nowrap"
+             >
+               تحميل الملف
+             </a>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -42,8 +42,8 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
   return (
     <nav className={`${isHome ? 'absolute' : 'sticky bg-primary dark:bg-card shadow-md'} top-0 left-0 right-0 z-40 transition-all duration-300`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="hover:opacity-80 transition-opacity">
-          <img src={branding.logoUrl || "/branding/main-logo.png"} alt={t.appName} className="h-22 w-30 object-contain" />
+        <Link href="/" className="hover:opacity-80 transition-opacity flex-shrink-0">
+          <img src={branding.logoUrl || "/branding/main-logo.png"} alt={t.appName} className="h-12 md:h-14 w-auto object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-4">
@@ -70,11 +70,11 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
 
         </div>
 
-        <div className="md:hidden flex items-center gap-2">
-          {!mobileOpen && <LanguageSwitcher variant="ghost" className="text-white" />}
+        <div className="md:hidden flex items-center gap-3">
+          <ThemeToggle className="text-white bg-white/10 hover:bg-white/20" />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-white"
+            className="p-2 text-white bg-white/10 rounded-full hover:bg-white/20 transition-colors"
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -102,9 +102,8 @@ export function PublicNavbar({ initialUser = null }: { initialUser?: { role: str
                   </>
                 )
               )}
-              <div className="flex justify-center items-center gap-4 pt-2 border-t border-white/5">
-                <ThemeToggle className="text-white hover:text-white/80" />
-                <LanguageSwitcher variant="ghost" className="text-white border border-white/10 hover:bg-white/5 rounded-full px-6 h-10" />
+              <div className="flex justify-center items-center gap-4 pt-4 border-t border-white/10">
+                <LanguageSwitcher variant="ghost" className="text-white border border-white/20 hover:bg-white/10 rounded-full px-8 h-12 w-full justify-center" />
               </div>
             </div>
           </div>

@@ -29,6 +29,17 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
   const audioBlobRef = useRef<Blob | null>(null)
   const audioUrlRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const mimeTypeRef = useRef<string>("audio/webm")
+
+  const getSupportedMimeType = () => {
+    const types = ["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/aac"]
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        return type
+      }
+    }
+    return "audio/wav" // Fallback
+  }
 
   const waveformBars = [
     3.2, 5.1, 2.8, 6.4, 4.2, 7.8, 3.5, 5.9,
@@ -66,7 +77,12 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
+      
+      // Determine MIME type
+      const mimeType = getSupportedMimeType()
+      mimeTypeRef.current = mimeType
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
 
@@ -75,7 +91,7 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
       }
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" })
+        const blob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current })
         audioBlobRef.current = blob
         if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
         audioUrlRef.current = URL.createObjectURL(blob)
@@ -97,12 +113,11 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
     }
   }, [])
 
-  const handlePointerDown = useCallback(() => {
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (recordingState !== "idle") return
-    const t = setTimeout(() => {
-      startRecording()
-    }, 200)
-    setHoldTimer(t)
+    // On iOS, we need to ensure the action is considered user-initiated.
+    // Calling startRecording directly or within the same tick is best.
+    startRecording()
   }, [recordingState, startRecording])
 
   const handlePointerUp = useCallback(() => {
@@ -148,7 +163,15 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
     try {
       const formData = new FormData()
       const timestamp = Date.now()
-      formData.append("audio", audioBlobRef.current, `recitation_${timestamp}.webm`)
+      
+      // Determine extension based on current mime type
+      let extension = "webm"
+      if (mimeTypeRef.current.includes("mp4")) extension = "mp4"
+      else if (mimeTypeRef.current.includes("mpeg")) extension = "mp3"
+      else if (mimeTypeRef.current.includes("wav")) extension = "wav"
+      else if (mimeTypeRef.current.includes("aac")) extension = "aac"
+
+      formData.append("audio", audioBlobRef.current, `recitation_${timestamp}.${extension}`)
       formData.append("folder", "recitations")
 
       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData })

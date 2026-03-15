@@ -282,7 +282,7 @@ export default function CertificatesDashExtendedPage() {
                                                     {t.admin.certificates.issueCertificate}
                                                 </button>
                                             )}
-                                            <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                                          <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                                         </div>
                                     </div>
                                     {isExpanded && (
@@ -339,30 +339,30 @@ export default function CertificatesDashExtendedPage() {
             {/* TAB: Entities */}
             {activeTab === "entities" && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <div className="lg:col-span-1 bg-card p-6 rounded-2xl border border-border shadow-sm h-fit space-y-4">
+                        <h3 className="font-bold text-foreground flex items-center gap-2">
                             <Plus className="w-5 h-5 text-[#C9A227]" />
                             {isAr ? "إضافة جهة جديدة" : "Add New Entity"}
                         </h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wider">{isAr ? "اسم الجهة" : "Entity Name"}</label>
+                                <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">{isAr ? "اسم الجهة" : "Entity Name"}</label>
                                 <input
                                     type="text"
                                     value={newEntity.name}
                                     onChange={e => setNewEntity({ ...newEntity, name: e.target.value })}
                                     placeholder={isAr ? "مثال: مؤسسة مكة المكرمة" : "e.g. Makkah Foundation"}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] text-sm"
+                                    className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wider">{isAr ? "الختم الخاص" : "Custom Seal"}</label>
+                                <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">{isAr ? "الختم الخاص" : "Custom Seal"}</label>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0">
+                                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-border bg-muted/30 overflow-hidden flex items-center justify-center shrink-0">
                                         {newEntity.seal_url ? (
                                             <img src={newEntity.seal_url} className="w-full h-full object-cover" />
                                         ) : (
-                                            <ImageIcon className="w-6 h-6 text-slate-300" />
+                                            <ImageIcon className="w-6 h-6 text-muted-foreground/30" />
                                         )}
                                     </div>
                                     <input
@@ -375,7 +375,7 @@ export default function CertificatesDashExtendedPage() {
                                             if (file) handleUploadSeal(file, url => setNewEntity({ ...newEntity, seal_url: url }))
                                         }}
                                     />
-                                    <label htmlFor="seal-upload" className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold cursor-pointer transition-colors">
+                                    <label htmlFor="seal-upload" className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg text-xs font-bold cursor-pointer transition-colors border border-border text-foreground">
                                         {isAr ? "رفع ختم" : "Upload Seal"}
                                     </label>
                                 </div>
@@ -383,7 +383,7 @@ export default function CertificatesDashExtendedPage() {
                             <button
                                 onClick={handleAddEntity}
                                 disabled={isSubmitting || !newEntity.name}
-                                className="w-full py-3 bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-slate-300 text-white rounded-xl font-bold shadow-lg shadow-[#1B5E3B]/10 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-muted text-white rounded-xl font-bold shadow-lg shadow-[#1B5E3B]/10 transition-all flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                                 {isAr ? "حفظ الجهة" : "Save Entity"}
@@ -393,9 +393,9 @@ export default function CertificatesDashExtendedPage() {
 
                     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {entities.map(entity => (
-                            <div key={entity.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group">
+                            <div key={entity.id} className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-muted/30 border border-border overflow-hidden flex items-center justify-center">
                                         {entity.seal_url ? (
                                             <img src={entity.seal_url} className="w-full h-full object-cover" />
                                         ) : (
@@ -403,13 +403,13 @@ export default function CertificatesDashExtendedPage() {
                                         )}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-800 text-sm">{entity.name}</h4>
-                                        <p className="text-[10px] text-slate-400 font-medium">{entity.seal_url ? (isAr ? "ختم مفعل" : "Seal Active") : (isAr ? "ختم المنصة" : "Platform Seal")}</p>
+                                        <h4 className="font-bold text-foreground text-sm">{entity.name}</h4>
+                                        <p className="text-[10px] text-muted-foreground font-medium">{entity.seal_url ? (isAr ? "ختم مفعل" : "Seal Active") : (isAr ? "ختم المنصة" : "Platform Seal")}</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => handleDeleteEntity(entity.id)}
-                                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                    className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -422,8 +422,8 @@ export default function CertificatesDashExtendedPage() {
             {/* TAB: Universities */}
             {activeTab === "universities" && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <div className="lg:col-span-1 bg-card p-6 rounded-2xl border border-border shadow-sm h-fit space-y-4">
+                        <h3 className="font-bold text-foreground flex items-center gap-2">
                             <GraduationCap className="w-5 h-5 text-[#C9A227]" />
                             {isAr ? "إضافة جامعة جديدة" : "Add New University"}
                         </h3>
@@ -433,27 +433,27 @@ export default function CertificatesDashExtendedPage() {
                                 value={newUniName}
                                 onChange={e => setNewUniName(e.target.value)}
                                 placeholder={isAr ? "اسم الجامعة..." : "University name..."}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] text-sm"
+                                className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                             />
                         </div>
                         <button
                             onClick={handleAddUniversity}
                             disabled={isSubmitting || !newUniName}
-                            className="w-full py-3 bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-slate-300 text-white rounded-xl font-bold shadow-lg shadow-[#1B5E3B]/10 transition-all flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-muted text-white rounded-xl font-bold shadow-lg shadow-[#1B5E3B]/10 transition-all flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                             {isAr ? "إضافة" : "Add"}
                         </button>
                     </div>
 
-                    <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="lg:col-span-2 bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                             {universities.map((uni, idx) => (
-                                <div key={uni.id} className={`p-4 flex items-center justify-between group border-slate-100 ${idx % 2 === 0 ? "md:border-e" : ""} ${idx < universities.length - 2 ? "border-b" : ""}`}>
-                                    <span className="text-sm font-bold text-slate-700">{uni.name}</span>
+                                <div key={uni.id} className={`p-4 flex items-center justify-between group border-border ${idx % 2 === 0 ? "md:border-e" : ""} ${idx < universities.length - 2 ? "border-b" : ""}`}>
+                                    <span className="text-sm font-bold text-foreground">{uni.name}</span>
                                     <button
                                         onClick={() => handleDeleteUniversity(uni.id)}
-                                        className="p-1 px-2 text-[10px] bg-red-50 text-red-500 rounded-md font-bold transition-opacity flex items-center gap-1"
+                                        className="p-1 px-2 text-[10px] bg-destructive/10 text-destructive rounded-md font-bold transition-opacity flex items-center gap-1"
                                     >
                                         <Trash2 className="w-3 h-3" /> {isAr ? "حذف" : "Del"}
                                     </button>
@@ -468,18 +468,18 @@ export default function CertificatesDashExtendedPage() {
             {activeTab === "settings" && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-6 max-w-2xl mx-auto">
                     {/* Platform Seal */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
+                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                             <ImageIcon className="w-5 h-5 text-[#C9A227]" />
                             {t.admin.certificates.platformSeal}
                         </h2>
                         <div className="flex items-center gap-6">
                             <div className="relative group">
-                                <div className="w-24 h-24 border-2 border-dashed border-slate-200 rounded-full flex items-center justify-center overflow-hidden bg-slate-50">
+                                <div className="w-24 h-24 border-2 border-dashed border-border rounded-full flex items-center justify-center overflow-hidden bg-muted/30">
                                     {platformSealUrl ? (
                                         <img src={platformSealUrl} className="w-full h-full object-cover" />
                                     ) : (
-                                        <Award className="w-8 h-8 text-slate-200" />
+                                        <Award className="w-8 h-8 text-muted-foreground/30" />
                                     )}
                                 </div>
                                 <input
@@ -496,8 +496,8 @@ export default function CertificatesDashExtendedPage() {
                                 </label>
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-slate-700">{isAr ? "الختم الافتراضي" : "Default Seal"}</p>
-                                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                <p className="text-sm font-bold text-foreground">{isAr ? "الختم الافتراضي" : "Default Seal"}</p>
+                                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                                     {isAr ? "يستخدم هذا الختم لجميع الشهادات التي لا تنتمي لجهة محددة بختم خاص." : "This seal is used for all certificates that do not belong to a specific entity with a custom seal."}
                                 </p>
                             </div>
@@ -505,35 +505,35 @@ export default function CertificatesDashExtendedPage() {
                     </div>
 
                     {/* Ceremony Settings */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
+                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                             <Clock className="w-5 h-5 text-[#C9A227]" />
                             {t.admin.certificates.unifiedCeremony}
                         </h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wider">{t.admin.certificates.ceremonyDate}</label>
+                                <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">{t.admin.certificates.ceremonyDate}</label>
                                 <input
                                     type="datetime-local"
                                     value={globalCeremony.date || ""}
                                     onChange={(e) => setGlobalCeremony(prev => ({ ...prev, date: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] text-sm"
+                                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-foreground transition-all"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wider">{t.admin.certificates.additionalMessage}</label>
+                                <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wider">{t.admin.certificates.additionalMessage}</label>
                                 <input
                                     type="text"
                                     value={globalCeremony.message}
                                     onChange={(e) => setGlobalCeremony(prev => ({ ...prev, message: e.target.value }))}
                                     placeholder={t.admin.certificates.ceremonyPlaceholder}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#1B5E3B] text-sm"
+                                    className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-foreground transition-all"
                                 />
                             </div>
                             <button
                                 onClick={() => handleAction("set_global_ceremony", globalCeremony)}
                                 disabled={isSubmitting}
-                                className="w-full py-3 bg-[#1B5E3B] hover:bg-[#124028] text-white rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-[#1B5E3B] hover:bg-[#124028] disabled:bg-muted text-white rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2"
                             >
                                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                 {t.admin.certificates.saveUnifiedDate}

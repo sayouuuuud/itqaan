@@ -194,10 +194,10 @@ export default function ReaderSessionsPage() {
   }
 
   const avatarColors = [
-    "bg-sky-100 text-sky-600",
-    "bg-emerald-100 text-emerald-600",
-    "bg-amber-100 text-amber-600",
-    "bg-purple-100 text-purple-600",
+    "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
+    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
   ]
 
   const filterButtons = [
@@ -208,11 +208,11 @@ export default function ReaderSessionsPage() {
   ]
 
   const STATUS = {
-    confirmed: { label: isAr ? "مؤكد" : "Confirmed", color: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100" },
-    completed: { label: isAr ? "مكتمل" : "Completed", color: "bg-slate-100 text-slate-600 border-slate-200 ring-slate-100" },
-    cancelled: { label: isAr ? "ملغي" : "Cancelled", color: "bg-red-50 text-red-600 border-red-200 ring-red-100" },
+    confirmed: { label: isAr ? "مؤكد" : "Confirmed", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 ring-emerald-500/10" },
+    completed: { label: isAr ? "مكتمل" : "Completed", color: "bg-muted text-muted-foreground border-border ring-muted/50" },
+    cancelled: { label: isAr ? "ملغي" : "Cancelled", color: "bg-destructive/10 text-destructive border-destructive/20 ring-destructive/10" },
     pending: { label: isAr ? "قيد الانتظار" : "Pending", color: "bg-[#D4A843]/10 text-[#D4A843] border-[#D4A843]/30 ring-[#D4A843]/10" },
-    rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100" },
+    rescheduled: { label: isAr ? "مُعاد جدولته" : "Rescheduled", color: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 ring-sky-500/10" },
   }
 
   return (
@@ -272,21 +272,21 @@ export default function ReaderSessionsPage() {
                   <div className={`absolute top-0 bottom-0 left-0 w-1.5 ${st.color.split(' ')[0]}`} />
 
                   <div className="flex items-center gap-5 z-10">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border font-bold text-xl
-                      ${isActive ? avatarColors[idx % avatarColors.length] : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-border font-bold text-xl
+                      ${isActive ? avatarColors[idx % avatarColors.length] : 'bg-muted border-border text-muted-foreground'}`}>
                       {(session.student_name || "ط").charAt(0)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-bold text-slate-800">{session.student_name}</h3>
+                        <h3 className="text-lg font-bold text-foreground">{session.student_name}</h3>
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-500 font-medium">
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-muted-foreground font-medium">
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-muted/50 rounded-lg">
                           <Calendar className="w-4 h-4 text-[#D4A843]" />
                           {new Date(session.slot_start).toLocaleDateString(isAr ? "ar-SA" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                         </span>
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-lg">
-                          <Clock className="w-4 h-4 text-[#0B3D2E]/60" />
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-muted/50 rounded-lg">
+                          <Clock className="w-4 h-4 text-[#0B3D2E] dark:text-[#D4A843]/60" />
                           {new Date(session.slot_start).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                           {" - "}
                           {new Date(session.slot_end).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
@@ -294,17 +294,17 @@ export default function ReaderSessionsPage() {
                       </div>
                     </div>
                   </div>
-                  <span className={`px-4 py-1.5 rounded-xl text-xs font-bold border ring-4 z-10 inline-flex items-center justify-center self-start md:self-auto ${st.color}`}>
+                  <span className={`px-4 py-1.5 rounded-xl text-xs font-bold border ring-4 ring-black/5 z-10 inline-flex items-center justify-center self-start md:self-auto ${st.color}`}>
                     {st.label}
                   </span>
                 </div>
 
                 {/* Pending Reschedule Request from Student */}
                 {pendingReqs.length > 0 && (
-                  <div className="mx-6 md:mx-8 mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl p-5 shadow-inner">
+                  <div className="mx-6 md:mx-8 mb-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-5 shadow-inner">
                     <div className="flex items-center gap-2 mb-3">
-                      <Calendar className="w-5 h-5 text-amber-600" />
-                      <p className="text-sm font-bold text-amber-900">{isAr ? "طلب تعديل موعد من الطالب:" : "Reschedule request from student:"}</p>
+                      <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+                      <p className="text-sm font-bold text-amber-900 dark:text-amber-100">{isAr ? "طلب تعديل موعد من الطالب:" : "Reschedule request from student:"}</p>
                     </div>
                     {pendingReqs.map(req => (
                       <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/60 p-4 rounded-xl border border-border">
@@ -335,7 +335,7 @@ export default function ReaderSessionsPage() {
 
                 {/* Expanded Content Details */}
                 {isExpanded && (
-                  <div className="border-t border-slate-100 bg-slate-50/50 p-6 md:p-8 space-y-8 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <div className="border-t border-border bg-muted/20 p-6 md:p-8 space-y-8 animate-in slide-in-from-top-2 fade-in duration-200">
 
                     {/* Grid for Actions */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -345,15 +345,15 @@ export default function ReaderSessionsPage() {
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t.reader.meetingLinkLabel}</h4>
                         {isCompleted ? (
                           <div className="flex items-center gap-3 bg-muted rounded-xl p-4 border border-border">
-                            <VideoOff className="w-5 h-5 text-slate-400 shrink-0" />
-                            <p className="text-sm font-medium text-slate-500">{t.reader.linkExpired}</p>
+                            <VideoOff className="w-5 h-5 text-muted-foreground shrink-0" />
+                            <p className="text-sm font-medium text-muted-foreground">{t.reader.linkExpired}</p>
                           </div>
                         ) : hasLink ? (
                           <div className="space-y-3">
-                            <div className="flex items-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                              <Video className="w-5 h-5 text-emerald-600 shrink-0 mr-3 rtl:mr-0 rtl:ml-3" />
+                            <div className="flex items-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+                              <Video className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mr-3 rtl:mr-0 rtl:ml-3" />
                               <input
-                                className="w-full border-none bg-transparent p-0 text-sm font-bold text-emerald-700 focus:ring-0 focus:outline-none"
+                                className="w-full border-none bg-transparent p-0 text-sm font-bold text-emerald-700 dark:text-emerald-400 focus:ring-0 focus:outline-none"
                                 readOnly
                                 value={session.meeting_link || ""}
                               />
@@ -424,13 +424,13 @@ export default function ReaderSessionsPage() {
                               </button>
                             )}
                           </div>
-                          <div className="flex items-center justify-between mt-2 p-3 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
-                            <span className="text-sm font-bold text-slate-700">{isAr ? "اكتمال الجلسة" : "Session Completed"}</span>
-                            <Switch
-                              checked={isCompleted}
-                              onCheckedChange={() => handleToggleStatus(session.id, isCompleted)}
-                            />
-                          </div>
+                            <div className="flex items-center justify-between mt-2 p-3 bg-muted/50 rounded-xl border border-border shadow-sm">
+                              <span className="text-sm font-bold text-foreground">{isAr ? "اكتمال الجلسة" : "Session Completed"}</span>
+                              <Switch
+                                checked={isCompleted}
+                                onCheckedChange={() => handleToggleStatus(session.id, isCompleted)}
+                              />
+                            </div>
                         </div>
                       </div>
                     </div>
@@ -438,10 +438,10 @@ export default function ReaderSessionsPage() {
                     {/* Integrated Comment Box */}
                     <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-primary/5 dark:bg-primary/20 flex items-center justify-center">
                           <MessageSquare className="w-4 h-4 text-primary" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800">{isAr ? "التعليقات والملاحظات" : "Comments & Notes"}</h4>
+                        <h4 className="text-sm font-bold text-foreground">{isAr ? "التعليقات والملاحظات" : "Comments & Notes"}</h4>
                       </div>
                       <CommentBox bookingId={session.id} locale={locale} />
                     </div>
@@ -548,15 +548,15 @@ function CommentBox({ bookingId, locale }: { bookingId: string, locale: string }
       {comments.length > 0 && (
         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
           {comments.map((c, i) => (
-            <div key={c.id} className="bg-muted border border-border rounded-2xl p-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 50}ms` }}>
+            <div key={c.id} className="bg-muted/50 border border-border rounded-2xl p-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-foreground bg-card px-2.5 py-1 rounded-lg border border-border shadow-sm">{c.author_name}</span>
-                <span className="text-[10px] font-medium text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-medium text-muted-foreground font-mono bg-muted/80 px-2 py-0.5 rounded-md">
                   <Clock className="w-3 h-3 inline-block mr-1 rtl:ml-1 rtl:mr-0 opacity-50" />
                   {new Date(c.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
                 </span>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed font-medium mt-1">{c.comment_text}</p>
+              <p className="text-sm text-foreground/90 leading-relaxed font-medium mt-1">{c.comment_text}</p>
             </div>
           ))}
         </div>

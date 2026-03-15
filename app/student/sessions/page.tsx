@@ -272,7 +272,7 @@ export default function StudentSessionsPage() {
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t.student.sessionLinkLabel}</h4>
                         {b.meeting_link ? (
                           <div className="space-y-3">
-                            <p className="text-sm font-medium text-slate-600">
+                            <p className="text-sm font-medium text-muted-foreground">
                               {isAr ? "رابط الجلسة جاهز. الرجاء الانضمام في الموعد المحدد." : "The session link is ready. Please join at the scheduled time."}
                             </p>
                             <a
@@ -455,7 +455,7 @@ function CommentBox({ bookingId }: { bookingId: string }) {
                   {new Date(c.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
                 </span>
               </div>
-              <p className="text-sm text-foreground/80 leading-relaxed font-medium mt-1">{c.comment_text}</p>
+              <p className="text-sm text-foreground mb-2 leading-relaxed font-medium mt-1">{c.comment_text}</p>
             </div>
           ))}
         </div>

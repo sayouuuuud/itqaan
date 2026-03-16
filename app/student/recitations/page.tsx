@@ -64,13 +64,6 @@ export default function StudentRecitationsPage() {
           <h1 className="text-2xl font-bold text-foreground">{t.student.myRecitations}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t.student.myRecitationsDesc}</p>
         </div>
-        <Link
-          href="/student/submit"
-          className="flex items-center gap-2 bg-[#C9A227] hover:bg-[#A6841E] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-md shadow-[#C9A227]/20"
-        >
-          <Mic className="w-4 h-4" />
-          {t.student.newRecording}
-        </Link>
       </div>
 
       {/* Filters */}
@@ -100,9 +93,6 @@ export default function StudentRecitationsPage() {
           </div>
           <p className="text-muted-foreground font-medium">{t.noResults}</p>
           <p className="text-muted-foreground/60 text-sm mt-1">{t.student.noRecitationDesc}</p>
-          <Link href="/student/submit" className="inline-flex items-center gap-2 mt-5 bg-[#C9A227] text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-[#A6841E] transition-colors">
-            <Mic className="w-4 h-4" /> {t.student.recordNowBtn}
-          </Link>
         </div>
       ) : (
         <div className="space-y-4">

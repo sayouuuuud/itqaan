@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react'
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Copy, Download } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface AudioPlayerProps {
   src: string
@@ -18,6 +19,9 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isLegacyWebM, setIsLegacyWebM] = useState(false)
+  const [ogvPlayer, setOgvPlayer] = useState<any>(null)
+  const [useOgv, setUseOgv] = useState(false)
 
   useEffect(() => {
     const audio = audioRef.current
@@ -49,8 +53,63 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
     audio.addEventListener('ended', onEnded)
     audio.addEventListener('error', onError)
 
-    // Force reload when src changes
-    audio.load()
+    // Check for legacy WebM on Safari
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+    
+    // ✅ Detect WebM from URL correctly even if it has query params
+    const urlPath = src.split('?')[0].toLowerCase()
+    const isWebM = urlPath.endsWith('.webm')
+    
+    const needsOgv = isSafari && isWebM
+    setIsLegacyWebM(needsOgv)
+    setUseOgv(needsOgv)
+
+    if (needsOgv) {
+      // Load ogv.js dynamically
+      const scriptId = 'ogv-script'
+      const existingScript = document.getElementById(scriptId)
+
+      if (!existingScript) {
+        const script = document.createElement('script')
+        script.id = scriptId
+        script.src = 'https://cdn.jsdelivr.net/npm/ogv@1.9.0/dist/ogv.js'
+        script.async = true
+        script.onload = () => initOgv()
+        document.head.appendChild(script)
+      } else {
+        // ✅ Wait for OGVPlayer to be ready if script is already present but still loading
+        const waitForOgv = setInterval(() => {
+          if ((window as any).OGVPlayer) {
+            clearInterval(waitForOgv)
+            initOgv()
+          }
+        }, 50)
+        // Safety timeout for interval
+        setTimeout(() => clearInterval(waitForOgv), 5000)
+      }
+    } else {
+      // Force reload when src changes for native audio
+      audio.load()
+    }
+
+    function initOgv() {
+      if (!(window as any).OGVPlayer) return
+      
+      const player = new (window as any).OGVPlayer()
+      player.src = src
+      setOgvPlayer(player)
+
+      player.onplay = () => setIsPlaying(true)
+      player.onpause = () => setIsPlaying(false)
+      player.onended = () => setIsPlaying(false)
+      player.onloadedmetadata = () => setDuration(player.duration)
+      player.ontimeupdate = () => setCurrentTime(player.currentTime)
+      player.onerror = () => {
+        console.error("OGV Player error")
+        setError("فشل تشغيل الملف الصوتي عبر المشغل البديل.")
+      }
+    }
+
     setError(null)
 
     return () => {
@@ -58,10 +117,24 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
       audio.removeEventListener('loadedmetadata', updateDuration)
       audio.removeEventListener('ended', onEnded)
       audio.removeEventListener('error', onError)
+      if (ogvPlayer) {
+        ogvPlayer.pause()
+        setOgvPlayer(null)
+      }
     }
-  }, [src])
+  }, [src, ogvPlayer])
 
   const togglePlay = () => {
+    if (useOgv && ogvPlayer) {
+      if (isPlaying) {
+        ogvPlayer.pause()
+      } else {
+        ogvPlayer.play()
+      }
+      setIsPlaying(!isPlaying)
+      return
+    }
+
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
@@ -73,6 +146,12 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   }
 
   const handleSeek = (value: number[]) => {
+    if (useOgv && ogvPlayer) {
+      ogvPlayer.currentTime = value[0]
+      setCurrentTime(value[0])
+      return
+    }
+
     if (audioRef.current) {
       audioRef.current.currentTime = value[0]
       setCurrentTime(value[0])
@@ -82,6 +161,11 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0]
     setVolume(newVolume)
+    
+    if (useOgv && ogvPlayer) {
+      ogvPlayer.volume = newVolume
+    }
+
     if (audioRef.current) {
       audioRef.current.volume = newVolume
     }
@@ -89,14 +173,26 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   }
 
   const toggleMute = () => {
+    const newMuted = !isMuted
+    setIsMuted(newMuted)
+
+    if (useOgv && ogvPlayer) {
+      ogvPlayer.muted = newMuted
+    }
+
     if (audioRef.current) {
-      const newMuted = !isMuted
-      setIsMuted(newMuted)
       audioRef.current.muted = newMuted
     }
   }
 
   const reset = () => {
+    if (useOgv && ogvPlayer) {
+      ogvPlayer.currentTime = 0
+      ogvPlayer.pause()
+      setIsPlaying(false)
+      return
+    }
+
     if (audioRef.current) {
       audioRef.current.currentTime = 0
       audioRef.current.pause()
@@ -105,10 +201,15 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   }
 
   const formatTime = (time: number) => {
-    if (isNaN(time)) return "00:00"
+    if (isNaN(time) || !isFinite(time)) return "00:00"
     const mins = Math.floor(time / 60)
     const secs = Math.floor(time % 60)
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(src)
+    toast.success("تم نسخ رابط التلاوة")
   }
 
   return (
@@ -176,15 +277,32 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
         </div>
 
         {error && (
-          <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1">
-             <span className="font-bold flex-1">{error}</span>
-             <a 
-               href={src} 
-               download 
-               className="px-3 py-1 bg-destructive text-destructive-foreground rounded-lg font-bold hover:bg-destructive/90 transition-colors whitespace-nowrap"
-             >
-               تحميل الملف
-             </a>
+          <div className="mt-2 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-xl text-xs space-y-3 animate-in fade-in slide-in-from-top-1">
+             <div className="flex items-start gap-2 text-amber-800 dark:text-amber-200">
+               <span className="font-bold flex-1 leading-relaxed">
+                 {error}
+               </span>
+             </div>
+             
+             <div className="flex gap-2">
+               <a 
+                 href={src} 
+                 download 
+                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-700 transition-colors"
+               >
+                 <Download className="w-3.5 h-3.5" />
+                 تحميل الملف
+               </a>
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={copyLink}
+                 className="flex-1 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 font-bold"
+               >
+                 <Copy className="w-3.5 h-3.5 ml-1" />
+                 نسخ الرابط
+               </Button>
+             </div>
           </div>
         )}
       </div>

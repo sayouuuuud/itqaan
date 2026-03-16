@@ -20,7 +20,14 @@ export async function generateCertificatePDF(studentId: string): Promise<{ url: 
       console.log('Using local puppeteer...')
       const puppeteer = (await import('puppeteer')).default
       browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage', // Critical for shared hosting (Hostinger)
+          '--disable-gpu',           // Save overhead
+          '--no-zygote',             // Minimize process fork memory
+          '--single-process'         // Run in one process if possible (some environments)
+        ],
         headless: true
       })
     } else {

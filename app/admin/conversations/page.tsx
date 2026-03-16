@@ -933,9 +933,15 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
     )
 }
 
-function AdminConversationsContent() {
+const AdminConversationsContent = () => {
     const { t, locale } = useI18n()
+    const searchParams = useSearchParams()
     const isAr = locale === "ar"
+
+    // Initialize tab based on URL parameters
+    const [activeTab, setActiveTab] = useState<"supervision" | "direct-chat" | "tickets">(() => {
+        return searchParams.get('userId') ? "direct-chat" : "supervision"
+    })
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-8" dir={isAr ? "rtl" : "ltr"}>
@@ -949,7 +955,7 @@ function AdminConversationsContent() {
                 </div>
             </div>
 
-            <Tabs defaultValue="supervision" className="w-full" onValueChange={() => { }}>
+            <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
                 <TabsList className="bg-card border border-border p-1 rounded-2xl mb-8 flex w-fit gap-1">
                     <TabsTrigger value="supervision" className="rounded-xl px-8 font-black text-xs uppercase transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         {t.admin.supervision}

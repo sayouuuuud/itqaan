@@ -16,199 +16,140 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const { locale } = useI18n()
   const isAr = locale === 'ar'
   const audioRef = useRef<HTMLAudioElement>(null)
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isLegacyWebM, setIsLegacyWebM] = useState(false)
-  const [ogvPlayer, setOgvPlayer] = useState<any>(null)
-  const [useOgv, setUseOgv] = useState(false)
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
     const updateTime = () => setCurrentTime(audio.currentTime)
-    const updateDuration = () => setDuration(audio.duration)
-    const onEnded = () => setIsPlaying(false)
-    const onError = (e: any) => {
-      const target = e.target as HTMLAudioElement
-      console.error("Audio player error detail:", {
-        code: target.error?.code,
-        message: target.error?.message,
-        src: target.src,
-        networkState: target.networkState,
-        readyState: target.readyState
-      })
-      
-      if (target.error?.code === 4) { // MEDIA_ERR_SRC_NOT_SUPPORTED
-        setError("تنسيق الصوت هذا غير مدعوم في متصفحك. يرجى محاولة تحميل الملف للاستماع إليه.")
-      } else {
-        setError("حدث خطأ أثناء تحميل الملف الصوتي.")
+    const updateDuration = () => {
+      if (Number.isFinite(audio.duration)) {
+        setDuration(audio.duration)
       }
+    }
+    const onEnded = () => setIsPlaying(false)
+
+    const onLoadedMetadata = () => {
+      console.log('[Audio] loadedmetadata', {
+        src: audio.currentSrc,
+        duration: audio.duration
+      })
+      updateDuration()
+    }
+
+    const onCanPlay = () => {
+      console.log('[Audio] canplay', {
+        src: audio.currentSrc
+      })
+    }
+
+    const onError = () => {
+      console.error('[Audio] error', {
+        src: audio.currentSrc,
+        networkState: audio.networkState,
+        readyState: audio.readyState,
+        code: audio.error?.code,
+        message: audio.error?.message
+      })
+
+      setError(isAr ? 'فشل تشغيل الملف الصوتي' : 'Failed to play audio')
       setIsPlaying(false)
     }
 
     audio.addEventListener('timeupdate', updateTime)
-    audio.addEventListener('loadedmetadata', updateDuration)
+    audio.addEventListener('loadedmetadata', onLoadedMetadata)
+    audio.addEventListener('durationchange', updateDuration)
+    audio.addEventListener('canplay', onCanPlay)
     audio.addEventListener('ended', onEnded)
     audio.addEventListener('error', onError)
 
-    // Check for legacy WebM on Safari
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-    
-    // ✅ Detect WebM from URL correctly even if it has query params
-    const urlPath = src.split('?')[0].toLowerCase()
-    const isWebM = urlPath.endsWith('.webm')
-    
-    const needsOgv = isSafari && isWebM
-    setIsLegacyWebM(needsOgv)
-    setUseOgv(needsOgv)
-
-    if (needsOgv) {
-      // Load ogv.js dynamically
-      const scriptId = 'ogv-script'
-      const existingScript = document.getElementById(scriptId)
-
-      if (!existingScript) {
-        const script = document.createElement('script')
-        script.id = scriptId
-        script.src = 'https://cdn.jsdelivr.net/npm/ogv@1.9.0/dist/ogv.js'
-        script.async = true
-        script.onload = () => initOgv()
-        document.head.appendChild(script)
-      } else {
-        // ✅ Wait for OGVPlayer to be ready if script is already present but still loading
-        const waitForOgv = setInterval(() => {
-          if ((window as any).OGVPlayer) {
-            clearInterval(waitForOgv)
-            initOgv()
-          }
-        }, 50)
-        // Safety timeout for interval
-        setTimeout(() => clearInterval(waitForOgv), 5000)
-      }
-    } else {
-      // Force reload when src changes for native audio
-      audio.load()
-    }
-
-    function initOgv() {
-      if (!(window as any).OGVPlayer) return
-      
-      const player = new (window as any).OGVPlayer()
-      player.src = src
-      setOgvPlayer(player)
-
-      player.onplay = () => setIsPlaying(true)
-      player.onpause = () => setIsPlaying(false)
-      player.onended = () => setIsPlaying(false)
-      player.onloadedmetadata = () => setDuration(player.duration)
-      player.ontimeupdate = () => setCurrentTime(player.currentTime)
-      player.onerror = () => {
-        console.error("OGV Player error")
-        setError("فشل تشغيل الملف الصوتي عبر المشغل البديل.")
-      }
-    }
-
     setError(null)
+    setIsPlaying(false)
+    setCurrentTime(0)
+    setDuration(0)
+
+    audio.load()
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime)
-      audio.removeEventListener('loadedmetadata', updateDuration)
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata)
+      audio.removeEventListener('durationchange', updateDuration)
+      audio.removeEventListener('canplay', onCanPlay)
       audio.removeEventListener('ended', onEnded)
       audio.removeEventListener('error', onError)
-      if (ogvPlayer) {
-        ogvPlayer.pause()
-        setOgvPlayer(null)
-      }
     }
-  }, [src, ogvPlayer])
+  }, [src, isAr])
 
-  const togglePlay = () => {
-    if (useOgv && ogvPlayer) {
-      if (isPlaying) {
-        ogvPlayer.pause()
-      } else {
-        ogvPlayer.play()
-      }
-      setIsPlaying(!isPlaying)
-      return
-    }
+  const togglePlay = async () => {
+    const audio = audioRef.current
+    if (!audio) return
 
-    if (audioRef.current) {
+    try {
       if (isPlaying) {
-        audioRef.current.pause()
+        audio.pause()
+        setIsPlaying(false)
       } else {
-        audioRef.current.play().catch(err => {
-          console.error("[AudioPlayer] Native play failed:", err)
-          setError(isAr ? "فشل تشغيل الملف الصوتي" : "Failed to play audio")
-          setIsPlaying(false)
-        })
+        setError(null)
+        await audio.play()
+        setIsPlaying(true)
       }
-      setIsPlaying(!isPlaying)
+    } catch (err: any) {
+      console.error('[Audio] play failed', {
+        name: err?.name,
+        message: err?.message,
+        src: audio.currentSrc
+      })
+      setError(isAr ? 'فشل تشغيل الملف الصوتي' : 'Failed to play audio')
+      setIsPlaying(false)
     }
   }
 
   const handleSeek = (value: number[]) => {
-    if (useOgv && ogvPlayer) {
-      ogvPlayer.currentTime = value[0]
-      setCurrentTime(value[0])
-      return
-    }
+    const audio = audioRef.current
+    if (!audio) return
 
-    if (audioRef.current) {
-      audioRef.current.currentTime = value[0]
-      setCurrentTime(value[0])
-    }
+    audio.currentTime = value[0]
+    setCurrentTime(value[0])
   }
 
   const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0]
-    setVolume(newVolume)
-    
-    if (useOgv && ogvPlayer) {
-      ogvPlayer.volume = newVolume
-    }
+    const audio = audioRef.current
+    if (!audio) return
 
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume
-    }
+    const newVolume = value[0]
+    audio.volume = newVolume
+    setVolume(newVolume)
     setIsMuted(newVolume === 0)
   }
 
   const toggleMute = () => {
+    const audio = audioRef.current
+    if (!audio) return
+
     const newMuted = !isMuted
+    audio.muted = newMuted
     setIsMuted(newMuted)
-
-    if (useOgv && ogvPlayer) {
-      ogvPlayer.muted = newMuted
-    }
-
-    if (audioRef.current) {
-      audioRef.current.muted = newMuted
-    }
   }
 
   const reset = () => {
-    if (useOgv && ogvPlayer) {
-      ogvPlayer.currentTime = 0
-      ogvPlayer.pause()
-      setIsPlaying(false)
-      return
-    }
+    const audio = audioRef.current
+    if (!audio) return
 
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0
-      audioRef.current.pause()
-      setIsPlaying(false)
-    }
+    audio.currentTime = 0
+    audio.pause()
+    setCurrentTime(0)
+    setIsPlaying(false)
   }
 
   const formatTime = (time: number) => {
-    if (isNaN(time) || !isFinite(time)) return "00:00"
+    if (isNaN(time) || !isFinite(time)) return '00:00'
     const mins = Math.floor(time / 60)
     const secs = Math.floor(time % 60)
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
@@ -216,19 +157,20 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
 
   const copyLink = () => {
     navigator.clipboard.writeText(src)
-    toast.success("تم نسخ رابط التلاوة")
+    toast.success('تم نسخ رابط التلاوة')
   }
 
   return (
     <div className={`bg-slate-50 dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-4 shadow-sm w-full ${className}`}>
-      <audio ref={audioRef} playsInline preload="metadata">
-        <source src={src} type={src.endsWith('.webm') ? 'audio/webm' : src.endsWith('.mp4') ? 'audio/mp4' : undefined} />
-        {/* Fallback source without type for general compatibility */}
-        <source src={src} />
-      </audio>
+      <audio
+        key={src}
+        ref={audioRef}
+        src={src}
+        playsInline
+        preload="metadata"
+      />
 
       <div className="flex flex-col gap-4">
-        {/* Controls and Progress */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -262,6 +204,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
             >
               {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
+
             <div className="w-20 hidden group-hover:block absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-card p-2 rounded-lg shadow-xl border border-slate-100 dark:border-border transition-all">
               <Slider
                 value={[isMuted ? 0 : volume]}

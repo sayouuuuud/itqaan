@@ -23,28 +23,50 @@ export async function POST(req: NextRequest) {
                     file.name.endsWith(".mp4") || 
                     file.name.endsWith(".m4a") ||
                     file.name.endsWith(".caf") ||
-                    file.name.endsWith(".mov") // Some iOS browsers report audio as video/quicktime or similar
+                    file.name.endsWith(".mov") ||
+                    file.name.endsWith(".webm")
+
     const isImage = file.type.startsWith("image/")
 
     if (!isAudio && !isImage) {
       return NextResponse.json({ error: "نوع الملف غير مدعوم (صوت أو صورة فقط)" }, { status: 400 })
     }
 
-    // Validate file size
-    const maxSizeAudio = 32 * 1024 * 1024 // 32MB for audio (UploadThing limit)
-    const maxSizeImage = 4 * 1024 * 1024  // 4MB for image (UploadThing limit)
-    const maxSize = isAudio ? maxSizeAudio : maxSizeImage
-
-    if (file.size > maxSize) {
-      const limit = isAudio ? "32MB" : "4MB"
-      return NextResponse.json({ error: `حجم الملف يتجاوز ${limit}` }, { status: 400 })
-    }
+    let finalBuffer: Buffer
+    let finalFileName = file.name
+    let finalContentType = file.type
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
+    // Convert WebM to MP4 if needed
+    if (isAudio && (file.type === "audio/webm" || file.name.endsWith(".webm"))) {
+      try {
+        const { convertWebMToMP4 } = await import("@/lib/audio-converter")
+        finalBuffer = await convertWebMToMP4(buffer)
+        finalFileName = file.name.replace(/\.[^/.]+$/, "") + ".mp4"
+        finalContentType = "audio/mp4"
+        console.log(`[Upload] Converted ${file.name} to MP4`)
+      } catch (convErr) {
+        console.error("[Upload] Audio conversion failed, using original:", convErr)
+        finalBuffer = buffer
+      }
+    } else {
+      finalBuffer = buffer
+    }
+
+    // Validate file size (check after conversion just in case)
+    const maxSizeAudio = 32 * 1024 * 1024 
+    const maxSizeImage = 4 * 1024 * 1024  
+    const maxSize = isAudio ? maxSizeAudio : maxSizeImage
+
+    if (finalBuffer.length > maxSize) {
+      const limit = isAudio ? "32MB" : "4MB"
+      return NextResponse.json({ error: `حجم الملف يتجاوز ${limit}` }, { status: 400 })
+    }
+
     // Upload to UploadThing
-    const result = await uploadToStorage(buffer, file.name, file.type)
+    const result = await uploadToStorage(finalBuffer, finalFileName, finalContentType)
 
     return NextResponse.json({
       url: result.url,

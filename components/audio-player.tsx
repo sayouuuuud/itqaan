@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Copy, Download } from 'lucide-react'
+import { useI18n } from '@/lib/i18n/context'
 import { toast } from 'sonner'
 
 interface AudioPlayerProps {
@@ -12,6 +13,8 @@ interface AudioPlayerProps {
 }
 
 export function AudioPlayer({ src, className }: AudioPlayerProps) {
+  const { locale } = useI18n()
+  const isAr = locale === 'ar'
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -139,7 +142,11 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
       if (isPlaying) {
         audioRef.current.pause()
       } else {
-        audioRef.current.play()
+        audioRef.current.play().catch(err => {
+          console.error("[AudioPlayer] Native play failed:", err)
+          setError(isAr ? "فشل تشغيل الملف الصوتي" : "Failed to play audio")
+          setIsPlaying(false)
+        })
       }
       setIsPlaying(!isPlaying)
     }

@@ -106,10 +106,12 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
         stream.getTracks().forEach(track => track.stop())
       }
 
+      console.log(`[Recorder] Starting with MIME type: ${mimeType}`)
       mediaRecorder.start()
       setRecordingState("recording")
       setTimer(0)
-    } catch {
+    } catch (err) {
+      console.error("[Recorder] Error starting media recorder:", err)
       alert(t.student.allowMicAlert)
     }
   }, [t])
@@ -161,7 +163,12 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
     const audio = new Audio(audioUrlRef.current)
     audioRef.current = audio
     audio.onended = () => setIsPlaying(false)
-    audio.play()
+    audio.onerror = (e) => console.error("[Recorder] Audio preview error:", e)
+    
+    audio.play().catch(err => {
+      console.error("[Recorder] Playback failed:", err)
+      setIsPlaying(false)
+    })
     setIsPlaying(true)
   }
 

@@ -1,12 +1,14 @@
 import ffmpeg from 'fluent-ffmpeg';
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
 import { Readable, Writable } from 'stream';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
 // Set ffmpeg path
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+if (ffmpegStatic) {
+  ffmpeg.setFfmpegPath(ffmpegStatic);
+}
 
 /**
  * Converts a WebM audio buffer to an MP4 (AAC) audio buffer.

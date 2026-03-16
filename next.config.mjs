@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium', 'puppeteer'],
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium', 'puppeteer', 'fluent-ffmpeg', 'ffmpeg-static'],
   typescript: {
     ignoreBuildErrors: true,
   },

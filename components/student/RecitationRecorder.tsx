@@ -85,18 +85,36 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
     writeStr(36, 'data')
     view.setUint32(40, dataSize, true)
 
-    // Write mono PCM samples (average all source channels into one)
-    let offset = 44
-    for (let i = 0; i < numFrames; i++) {
-      let sum = 0
-      for (let ch = 0; ch < srcChannels; ch++) sum += audioBuffer.getChannelData(ch)[i]
-      const sample = sum / srcChannels
-      const clamped = Math.max(-1, Math.min(1, sample))
-      view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF, true)
-      offset += 2
-    }
+    // Write mono PCM samples in chunks to avoid blocking the UI thread (browser freeze)
+    return new Promise((resolve) => {
+      let offset = 44
+      let i = 0
+      const chunkSize = 4096 * 4 // Process frames in batches
 
-    return new Blob([wavBuffer], { type: 'audio/wav' })
+      const processChunk = () => {
+        const end = Math.min(i + chunkSize, numFrames)
+        for (; i < end; i++) {
+          let sum = 0
+          for (let ch = 0; ch < srcChannels; ch++) {
+            sum += audioBuffer.getChannelData(ch)[i]
+          }
+          const sample = sum / srcChannels
+          const clamped = Math.max(-1, Math.min(1, sample))
+          view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF, true)
+          offset += 2
+        }
+
+        if (i < numFrames) {
+          // Yield to main thread, then continue
+          setTimeout(processChunk, 0)
+        } else {
+          // Done
+          resolve(new Blob([wavBuffer], { type: 'audio/wav' }))
+        }
+      }
+
+      processChunk()
+    })
   }
 
   const waveformBars = [
@@ -259,7 +277,7 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
       const uploaded = await startUpload([audioFile])
       if (!uploaded || uploaded.length === 0) throw new Error("Upload failed")
 
-      const audioUrl = uploaded[0].upr?.url ?? uploaded[0].url
+      const audioUrl = uploaded[0].url
 
       const recRes = await fetch("/api/recitations", {
         method: "POST",

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import {
   Search, Users, BookOpen, UserCheck,
   UserX, Edit, Trash2, UserPlus, Filter, TrendingUp, Loader2,
-  Mail, Shield, User as UserIcon
+  Mail, Shield, User as UserIcon, ChevronLeft, ChevronRight
 } from "lucide-react"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -26,6 +26,8 @@ export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<"students" | "readers" | "admins" | "supervisors">("students")
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState<any>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Modals state
   const [isAddUserOpen, setIsAddUserOpen] = useState(false)
@@ -55,17 +57,24 @@ export default function AdminUsersPage() {
 
   // Fetch users based on activeTab
   useEffect(() => {
-    fetchUsers()
+    setCurrentPage(1) // Reset to first page when changing tabs
+    fetchUsers(1)
   }, [activeTab])
 
-  const fetchUsers = async () => {
+  useEffect(() => {
+    fetchUsers(currentPage, searchQuery)
+  }, [currentPage])
+
+  const fetchUsers = async (page: number = 1, search: string = "") => {
     setLoading(true)
     try {
       const role = activeTab === "students" ? "student" : activeTab === "readers" ? "reader" : activeTab === "supervisors" ? "supervisors" : "admin"
-      const res = await fetch(`/api/admin/users?role=${role}`)
+      const searchParam = search ? `&search=${encodeURIComponent(search)}` : ""
+      const res = await fetch(`/api/admin/users?role=${role}&page=${page}&limit=10${searchParam}`)
       if (res.ok) {
         const data = await res.json()
         setUsers(data.users || [])
+        setPagination(data.pagination)
       }
     } catch (err) {
       console.error(err)
@@ -74,10 +83,13 @@ export default function AdminUsersPage() {
     }
   }
 
-  const filteredUsers = users.filter(
-    (u) => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    setCurrentPage(1) // Reset to first page when searching
+    fetchUsers(1, query) // Fetch with search
+  }
 
+  
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     try {
       const res = await fetch("/api/admin/users", {
@@ -104,7 +116,7 @@ export default function AdminUsersPage() {
       })
       if (res.ok) {
         setIsAddUserOpen(false)
-        fetchUsers()
+        fetchUsers(currentPage, searchQuery)
       } else {
         const err = await res.json()
         alert(err.error || t.admin.errorCreatingUser)
@@ -137,7 +149,7 @@ export default function AdminUsersPage() {
       })
       if (res.ok) {
         setIsEditUserOpen(false)
-        fetchUsers()
+        fetchUsers(currentPage, searchQuery)
       } else {
         const err = await res.json()
         alert(err.error || t.admin.errorUpdatingUser)
@@ -215,7 +227,7 @@ export default function AdminUsersPage() {
             placeholder={t.search}
             className="pr-12 h-12 border-border bg-card rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all font-bold"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
       </div>
@@ -243,7 +255,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center text-muted-foreground">
@@ -253,7 +265,7 @@ export default function AdminUsersPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((user, idx) => (
+                  users.map((user: any, idx: number) => (
                     <tr
                       key={user.id}
                       onClick={() => router.push(`/admin/users/${user.id}`)}
@@ -372,11 +384,70 @@ export default function AdminUsersPage() {
           )}
         </div>
 
-        {/* Footer info using semantic classes */}
-        <div className="bg-muted/30 px-6 py-5 border-t border-border flex items-center justify-between">
+        {/* Footer info and pagination */}
+        <div className="bg-muted/30 px-6 py-5 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
-            {t.admin.totalUsersCount}: <span className="text-foreground">{filteredUsers.length}</span>
+            {isAr ? "إجمالي المستخدمين" : "Total users"}: <span className="text-foreground">{pagination?.totalUsers || 0}</span>
+            {pagination && (
+              <span className="mr-4">
+                {isAr ? "صفحة" : "Page"} {pagination.currentPage} {isAr ? "من" : "of"} {pagination.totalPages}
+              </span>
+            )}
           </div>
+          
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={!pagination.hasPreviousPage || loading}
+                className="rounded-xl font-black text-xs h-8 px-3"
+              >
+                <ChevronRight className={`w-4 h-4 ${isAr ? "ml-1" : "mr-1"}`} />
+                {isAr ? "السابق" : "Previous"}
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (pagination.currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                    pageNum = pagination.totalPages - 4 + i
+                  } else {
+                    pageNum = pagination.currentPage - 2 + i
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      disabled={loading}
+                      className="rounded-xl font-black text-xs h-8 w-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                disabled={!pagination.hasNextPage || loading}
+                className="rounded-xl font-black text-xs h-8 px-3"
+              >
+                {isAr ? "التالي" : "Next"}
+                <ChevronLeft className={`w-4 h-4 ${isAr ? "mr-1" : "ml-1"}`} />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

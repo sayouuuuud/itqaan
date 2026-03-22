@@ -16,6 +16,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const role = searchParams.get("role")
     const search = searchParams.get("search")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "10")
+    const offset = (page - 1) * limit
 
     let whereClause = "WHERE 1=1"
     const params: unknown[] = []
@@ -41,6 +44,17 @@ export async function GET(req: NextRequest) {
       whereClause += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`
     }
 
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM users u
+      LEFT JOIN reader_profiles rp ON u.id = rp.user_id
+      ${whereClause}
+    `
+    const countResult = await query(countQuery, params)
+    const totalUsers = parseInt((countResult[0] as any).total)
+
+    // Get paginated users
     const users = await query(
       `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url, u.is_accepting_recitations,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
@@ -53,11 +67,24 @@ export async function GET(req: NextRequest) {
        FROM users u
        LEFT JOIN reader_profiles rp ON u.id = rp.user_id
        ${whereClause}
-       ORDER BY u.created_at DESC`,
-      params
+       ORDER BY u.created_at DESC
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset]
     )
 
-    return NextResponse.json({ users })
+    const totalPages = Math.ceil(totalUsers / limit)
+
+    return NextResponse.json({ 
+      users,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalUsers,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
+    })
   } catch (error) {
     console.error("Admin users error:", error)
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })

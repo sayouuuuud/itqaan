@@ -17,6 +17,9 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const isAr = locale === 'ar'
   const audioRef = useRef<HTMLAudioElement>(null)
 
+  // Route audio through our proxy to ensure Safari/iOS Range Request support
+  const proxiedSrc = src ? `/api/audio-proxy?url=${encodeURIComponent(src)}` : src
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -163,9 +166,9 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   return (
     <div className={`bg-slate-50 dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-4 shadow-sm w-full ${className}`}>
       <audio
-        key={src}
+        key={proxiedSrc}
         ref={audioRef}
-        src={src}
+        src={proxiedSrc}
         playsInline
         preload="metadata"
       />

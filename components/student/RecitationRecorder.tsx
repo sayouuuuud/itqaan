@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Mic, Square, Play, Pause, RotateCcw, Send, Info, Loader2 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
+import { useUploadThing } from "@/lib/uploadthing-client"
 
 const MAX_SECONDS = 180 // 3 minutes
 
@@ -32,21 +33,70 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
   const mimeTypeRef = useRef<string>("audio/webm")
 
   const getSupportedMimeType = () => {
-    // ✅ Detect Safari on both macOS and iOS
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    const types = (isSafari || isIOS)
-      ? ["audio/mp4", "audio/mpeg", "audio/wav"] 
-      : ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/wav"];
-
+    // Prefer mp4 (Safari/iOS compatible) then webm (Android/Desktop)
+    // Note: audio/wav is NOT supported by MediaRecorder on any browser —
+    // WAV conversion happens client-side in handleSubmit if needed.
+    const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"]
     for (const type of types) {
       if (MediaRecorder.isTypeSupported(type)) {
         return type
       }
     }
-    return "audio/wav"
+    return "audio/webm" // safe universal fallback
+  }
+
+  /**
+   * Converts any audio Blob to WAV format using Web Audio API.
+   * WAV is universally supported by Safari/iOS and all browsers.
+   * This runs entirely in the browser - no server needed.
+   */
+  const convertToWav = async (blob: Blob): Promise<Blob> => {
+    const arrayBuffer = await blob.arrayBuffer()
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer)
+    await audioCtx.close()
+
+    // Downmix to mono to keep file size manageable:
+    // 3 min × 44100 Hz × 1 ch × 2 bytes = ~15.9 MB (safely under 32MB)
+    const numChannels = 1
+    const sampleRate = Math.min(audioBuffer.sampleRate, 44100)
+    const srcChannels = audioBuffer.numberOfChannels
+    const numFrames = audioBuffer.length
+    const bytesPerSample = 2 // 16-bit PCM
+    const dataSize = numFrames * numChannels * bytesPerSample
+    const wavBuffer = new ArrayBuffer(44 + dataSize)
+    const view = new DataView(wavBuffer)
+
+    // Write WAV header (RIFF format)
+    const writeStr = (offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i))
+    }
+    writeStr(0, 'RIFF')
+    view.setUint32(4, 36 + dataSize, true)
+    writeStr(8, 'WAVE')
+    writeStr(12, 'fmt ')
+    view.setUint32(16, 16, true)           // PCM chunk size
+    view.setUint16(20, 1, true)            // PCM format
+    view.setUint16(22, numChannels, true)
+    view.setUint32(24, sampleRate, true)
+    view.setUint32(28, sampleRate * numChannels * bytesPerSample, true)
+    view.setUint16(32, numChannels * bytesPerSample, true)
+    view.setUint16(34, 16, true)           // bits per sample
+    writeStr(36, 'data')
+    view.setUint32(40, dataSize, true)
+
+    // Write mono PCM samples (average all source channels into one)
+    let offset = 44
+    for (let i = 0; i < numFrames; i++) {
+      let sum = 0
+      for (let ch = 0; ch < srcChannels; ch++) sum += audioBuffer.getChannelData(ch)[i]
+      const sample = sum / srcChannels
+      const clamped = Math.max(-1, Math.min(1, sample))
+      view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF, true)
+      offset += 2
+    }
+
+    return new Blob([wavBuffer], { type: 'audio/wav' })
   }
 
   const waveformBars = [
@@ -172,33 +222,50 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
     setIsPlaying(true)
   }
 
+  const { startUpload } = useUploadThing("audioUploader")
+
   const handleSubmit = async () => {
     if (!audioBlobRef.current) return
     setSubmitting(true)
     try {
-      const formData = new FormData()
       const timestamp = Date.now()
-      
-      // Determine extension based on current mime type
-      let extension = "webm"
-      if (mimeTypeRef.current.includes("mp4")) extension = "mp4"
-      else if (mimeTypeRef.current.includes("mpeg")) extension = "mp3"
-      else if (mimeTypeRef.current.includes("wav")) extension = "wav"
-      else if (mimeTypeRef.current.includes("aac")) extension = "aac"
 
-      formData.append("audio", audioBlobRef.current, `recitation_${timestamp}.${extension}`)
-      formData.append("folder", "recitations")
+      let audioBlob = audioBlobRef.current
+      let extension = "wav"
 
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData })
-      const uploadData = await uploadRes.json()
+      if (mimeTypeRef.current.includes("mp4") || mimeTypeRef.current.includes("aac")) {
+        extension = "mp4"
+      } else if (mimeTypeRef.current.includes("wav")) {
+        extension = "wav"
+      } else {
+        // WebM or unknown → convert to WAV (Safari/iOS compatible)
+        console.log('[Recorder] Converting WebM to WAV...')
+        try {
+          audioBlob = await convertToWav(audioBlobRef.current)
+          extension = "wav"
+          console.log('[Recorder] Conversion OK, size:', audioBlob.size)
+        } catch (convErr) {
+          console.warn('[Recorder] WAV conversion failed, using original:', convErr)
+          audioBlob = audioBlobRef.current
+          extension = "webm"
+        }
+      }
 
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed")
+      // رفع مباشر من المتصفح لـ UploadThing - لا يمر على Hostinger
+      const audioFile = new File([audioBlob], `recitation_${timestamp}.${extension}`, {
+        type: audioBlob.type || `audio/${extension}`,
+      })
+
+      const uploaded = await startUpload([audioFile])
+      if (!uploaded || uploaded.length === 0) throw new Error("Upload failed")
+
+      const audioUrl = uploaded[0].upr?.url ?? uploaded[0].url
 
       const recRes = await fetch("/api/recitations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          audioUrl: uploadData.audioUrl || uploadData.url,
+          audioUrl,
           audioDuration: timer,
           qiraah: t.qiraat[qiraah]
         }),
@@ -242,24 +309,24 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="bg-card rounded-2xl shadow-sm border border-border p-8 flex flex-col items-center justify-center relative min-h-[450px]">
-        <div className="mb-10 text-center">
-          <div className="text-7xl font-mono font-light tracking-widest text-foreground mb-3">
+    <div className="w-full max-w-3xl mx-auto space-y-4 md:space-y-8 animate-in fade-in duration-500">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-4 md:p-8 flex flex-col items-center justify-center relative min-h-[400px] md:min-h-[450px]">
+        <div className="mb-6 md:mb-10 text-center">
+          <div className="text-5xl md:text-7xl font-mono font-light tracking-widest text-foreground mb-3">
             {formatTime(timer)}
           </div>
-          <span className="text-base text-muted-foreground font-medium">
+          <span className="text-sm md:text-base text-muted-foreground font-medium px-4 block">
             {recordingState === "idle" && t.student.readyToRecord}
             {recordingState === "recording" && t.student.recordingStatus}
             {recordingState === "saved" && t.student.recordingSavedStatus}
           </span>
         </div>
 
-        <div className="h-16 w-full max-w-sm flex items-center justify-center gap-[4px] mb-14">
+        <div className="h-12 md:h-16 w-full max-w-[280px] md:max-w-sm flex items-center justify-center gap-[3px] md:gap-[4px] mb-8 md:mb-14 overflow-hidden">
           {waveformBars.map((h, i) => (
             <div
               key={i}
-              className={`w-1.5 rounded-full bg-muted-foreground transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"}`}
+              className={`w-1 md:w-1.5 rounded-full bg-muted-foreground transition-all duration-300 ${recordingState === "recording" ? "animate-pulse opacity-100" : "opacity-40"} ${i > 20 ? "hidden xs:block" : ""}`}
               style={{
                 height: recordingState === "recording" ? `${h * 6}px` : `${h * 4}px`,
                 animationDelay: `${i * 40}ms`,
@@ -268,46 +335,46 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
           ))}
         </div>
 
-        <div className="flex items-end justify-center gap-12 mb-10">
+        <div className="flex items-end justify-center gap-6 md:gap-12 mb-8 md:mb-10">
           <div className="flex flex-col items-center gap-2">
             <button
               disabled={recordingState === "idle"}
               onClick={resetAll}
-              className={`w-14 h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
+              className={`w-12 h-12 md:w-14 md:h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState === "idle" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
             >
-              <RotateCcw className="w-7 h-7" />
+              <RotateCcw className="w-6 h-6 md:w-7 md:h-7" />
             </button>
-            <span className="text-sm text-muted-foreground font-bold">{t.student.resetBtn}</span>
+            <span className="text-[10px] md:text-sm text-muted-foreground font-bold">{t.student.resetBtn}</span>
           </div>
 
-          <div className="flex flex-col items-center gap-4 relative -top-6">
+          <div className="flex flex-col items-center gap-4 relative -top-4 md:-top-6">
             {recordingState === "idle" && (
               <button
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 onPointerLeave={handlePointerUp}
-                className="w-28 h-28 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl hover:bg-accent/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-accent/20 select-none touch-none"
+                className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl hover:bg-accent/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center ring-4 ring-accent/20 select-none touch-none"
               >
-                <Mic className="w-14 h-14" />
+                <Mic className="w-10 h-10 md:w-14 md:h-14" />
               </button>
             )}
             {recordingState === "recording" && (
               <button
                 onPointerUp={handlePointerUp}
-                className="w-28 h-28 rounded-full bg-destructive text-destructive-foreground shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-destructive/20 select-none touch-none"
+                className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-destructive text-destructive-foreground shadow-lg animate-pulse hover:shadow-xl flex items-center justify-center ring-4 ring-destructive/20 select-none touch-none"
               >
-                <Square className="w-12 h-12" />
+                <Square className="w-8 h-8 md:w-12 md:h-12" />
               </button>
             )}
             {recordingState === "saved" && (
               <button
                 disabled
-                className="w-28 h-28 rounded-full bg-muted text-muted-foreground/30 flex items-center justify-center select-none touch-none"
+                className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-muted text-muted-foreground/30 flex items-center justify-center select-none touch-none"
               >
-                <Mic className="w-14 h-14" />
+                <Mic className="w-10 h-10 md:w-14 md:h-14" />
               </button>
             )}
-            <span className="text-base font-bold text-primary dark:text-accent">
+            <span className="text-xs md:text-base font-bold text-primary dark:text-accent whitespace-nowrap">
               {recordingState === "recording" ? t.student.releaseToStop : t.student.holdToRecord}
             </span>
           </div>
@@ -316,21 +383,21 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
             <button
               disabled={recordingState !== "saved"}
               onClick={togglePlayback}
-              className={`w-14 h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
+              className={`w-12 h-12 md:w-14 md:h-14 rounded-full border border-border text-muted-foreground flex items-center justify-center transition-all ${recordingState !== "saved" ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground cursor-pointer"}`}
             >
-              {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
+              {isPlaying ? <Pause className="w-6 h-6 md:w-7 md:h-7" /> : <Play className="w-6 h-6 md:w-7 md:h-7 ml-1" />}
             </button>
-            <span className="text-sm text-muted-foreground font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
+            <span className="text-[10px] md:text-sm text-muted-foreground font-bold">{isPlaying ? t.student.stopBtn : t.student.playBtn}</span>
           </div>
         </div>
 
-        <div className="w-full max-w-sm">
-          <label className="block text-xs font-bold text-muted-foreground mb-2 mr-1">{t.student.selectedQiraahLabel}</label>
+        <div className="w-full max-w-xs md:max-w-sm">
+          <label className="block text-[10px] md:text-xs font-bold text-muted-foreground mb-1 md:mb-2 mr-1">{t.student.selectedQiraahLabel}</label>
           <select
             value={qiraah}
             onChange={(e) => setQiraah(e.target.value)}
             disabled={recordingState === "recording"}
-            className="w-full bg-muted/50 border border-border rounded-xl py-4 px-5 text-base font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10 transition-all appearance-none cursor-pointer"
+            className="w-full bg-muted/50 border border-border rounded-xl py-3 md:py-4 px-4 md:px-5 text-sm md:text-base font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10 transition-all appearance-none cursor-pointer"
             style={{ direction: 'rtl' }}
           >
             <option value="hafs">{t.qiraat.hafs}</option>
@@ -354,22 +421,22 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
         <button
           disabled={recordingState !== "saved" || submitting}
           onClick={handleSubmit}
-          className="w-full bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-accent-foreground hover:bg-accent/90 py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-accent-foreground hover:bg-accent/90 py-3 md:py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
         >
           {submitting ? (
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             <>
-              <span>{t.student.submitBtn}</span>
-              <Send className="w-5 h-5 rtl:-scale-x-100 transform rotate-180" />
+              <span className="text-sm md:text-base">{t.student.submitBtn}</span>
+              <Send className="w-4 h-4 md:w-5 md:h-5 rtl:-scale-x-100 transform rotate-180" />
             </>
           )}
         </button>
       </div>
 
-      <div className="text-center p-6 bg-accent/5 rounded-2xl border border-accent/20">
-        <p className="text-accent font-bold text-sm leading-relaxed flex items-center justify-center gap-2">
-          <Info className="w-4 h-4" />
+      <div className="text-center p-4 md:p-6 bg-accent/5 rounded-2xl border border-accent/20">
+        <p className="text-accent font-bold text-xs md:text-sm leading-relaxed flex items-center justify-center gap-2">
+          <Info className="w-3 h-3 md:w-4 md:h-4" />
           {t.student.recordingNote}
         </p>
       </div>

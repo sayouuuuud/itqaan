@@ -11,6 +11,10 @@ dns.setDefaultResultOrder("ipv4first")
 const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+  // Optimization for shared hosting (Hostinger)
+  max: 6, // Limit total concurrent connections to prevent reaching process limits
+  idleTimeoutMillis: 15000, // Close idle connections after 15 seconds
+  connectionTimeoutMillis: 5000, // Give up on connection after 5 seconds
 }) : null
 
 export async function query<T = Record<string, unknown>>(

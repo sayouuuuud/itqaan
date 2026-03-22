@@ -95,7 +95,15 @@ export async function generateCertificatePDF(studentId: string): Promise<{ url: 
     return { url: null, buffer: null }
   } finally {
     if (browser) {
-      await browser.close()
+      try {
+        // Use a timeout for closing the browser too
+        await Promise.race([
+          browser.close(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Browser close timeout')), 5000))
+        ])
+      } catch (e) {
+        console.warn('Error/Timeout closing browser:', e)
+      }
     }
   }
 }

@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
           </p>
         </div>
         <Button 
-          className="rounded-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 h-12 px-6 gap-2" 
+          className="w-full sm:w-auto rounded-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 h-12 px-6 gap-2" 
           onClick={() => {
             const defaultRole = currentUserRole === 'reciter_supervisor' ? 'reader' : 'student'
             setFormData({ name: "", email: "", password: "", role: defaultRole, gender: "" })
@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
 
       {/* Tabs and Search Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex p-1 bg-muted/50 border border-border rounded-2xl w-fit gap-1">
+        <div className="flex p-1 bg-muted/50 border border-border rounded-2xl w-full overflow-x-auto overflow-y-hidden hide-scrollbar gap-1 shrink-0">
           {[
             { id: "students", label: t.admin.students },
             { id: "readers", label: t.admin.readers },
@@ -212,7 +212,7 @@ export default function AdminUsersPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+              className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
                 ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
@@ -221,11 +221,11 @@ export default function AdminUsersPage() {
             </button>
           ))}
         </div>
-        <div className="relative max-w-sm w-full">
+        <div className="relative w-full lg:max-w-sm shrink-0">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder={t.search}
-            className="pr-12 h-12 border-border bg-card rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+            className="pr-12 h-12 border-border bg-card rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all font-bold w-full"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
           />
@@ -243,15 +243,15 @@ export default function AdminUsersPage() {
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className="bg-muted/50 text-muted-foreground text-[11px] font-black uppercase tracking-widest border-b border-border">
-                  <th className="px-6 py-5 font-black">{t.auth.fullName}</th>
-                  <th className="px-6 py-5 font-black">{t.auth.email}</th>
-                  <th className="px-6 py-5 font-black">{t.admin.joinDate}</th>
-                  <th className="px-6 py-5 font-black">{t.auth.role}</th>
+                  <th className="px-6 py-5 font-black whitespace-nowrap">{t.auth.fullName}</th>
+                  <th className="px-6 py-5 font-black whitespace-nowrap">{t.auth.email}</th>
+                  <th className="px-6 py-5 font-black whitespace-nowrap">{t.admin.joinDate}</th>
+                  <th className="px-6 py-5 font-black whitespace-nowrap">{t.auth.role}</th>
                   {activeTab === 'readers' && (
-                    <th className="px-6 py-5 font-black">{t.readerRegister.nationality}</th>
+                    <th className="px-6 py-5 font-black whitespace-nowrap">{t.readerRegister.nationality}</th>
                   )}
-                  <th className="px-6 py-5 font-black">{t.reader.status}</th>
-                  <th className="px-6 py-5 text-center font-black">{t.admin.action}</th>
+                  <th className="px-6 py-5 font-black whitespace-nowrap">{t.reader.status}</th>
+                  <th className="px-6 py-5 text-center font-black whitespace-nowrap">{t.admin.action}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -269,7 +269,7 @@ export default function AdminUsersPage() {
                     <tr
                       key={user.id}
                       onClick={() => router.push(`/admin/users/${user.id}`)}
-                      className="hover:bg-muted/30 transition-colors group cursor-pointer"
+                      className="hover:bg-muted/30 transition-colors group cursor-pointer whitespace-nowrap"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">

@@ -121,7 +121,7 @@ export default function AdminActivityLogsPage() {
                         <option value="">{t.admin.allActions}</option>
                         {availableActions.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Input type="date" className="w-40 h-10 border-border rounded-xl bg-muted/30 text-foreground" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} />
                         <span className="text-muted-foreground">{t.admin.dateTo}</span>
                         <Input type="date" className="w-40 h-10 border-border rounded-xl bg-muted/30 text-foreground" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
@@ -157,13 +157,13 @@ export default function AdminActivityLogsPage() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-border text-muted-foreground bg-muted/30">
-                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold`}>{t.admin.logDate}</th>
-                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold`}>{t.admin.logUser}</th>
-                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold`}>{t.admin.logAction}</th>
-                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold`}>{t.admin.logType}</th>
-                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold`}>{t.admin.logDescription}</th>
-                                    <th className="py-4 px-5 font-bold text-center">{t.admin.logStatus}</th>
-                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold`}>{t.admin.logIp}</th>
+                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold whitespace-nowrap`}>{t.admin.logDate}</th>
+                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold whitespace-nowrap`}>{t.admin.logUser}</th>
+                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold whitespace-nowrap`}>{t.admin.logAction}</th>
+                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold whitespace-nowrap`}>{t.admin.logType}</th>
+                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold whitespace-nowrap`}>{t.admin.logDescription}</th>
+                                    <th className="py-4 px-5 font-bold text-center whitespace-nowrap">{t.admin.logStatus}</th>
+                                    <th className={`${isAr ? 'text-right' : 'text-left'} py-4 px-5 font-bold whitespace-nowrap`}>{t.admin.logIp}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -179,7 +179,7 @@ export default function AdminActivityLogsPage() {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-5">
+                                        <td className="py-4 px-5 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-primary border border-border">
                                                     {l.user_name?.[0] || '?'}
@@ -194,14 +194,14 @@ export default function AdminActivityLogsPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-5">
+                                        <td className="py-4 px-5 whitespace-nowrap">
                                             <span className="text-xs bg-muted text-foreground px-2 py-1 rounded-md font-mono border border-border">
                                                 {l.action}
                                             </span>
                                         </td>
-                                        <td className="py-4 px-5 text-xs font-medium text-muted-foreground capitalize">{l.entity_type || '—'}</td>
+                                        <td className="py-4 px-5 text-xs font-medium text-muted-foreground capitalize whitespace-nowrap">{l.entity_type || '—'}</td>
                                         <td className="py-4 px-5 text-xs text-gray-500 max-w-[250px] truncate" title={l.description}>{l.description || '—'}</td>
-                                        <td className="py-4 px-5 text-center">
+                                        <td className="py-4 px-5 text-center whitespace-nowrap">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter ${l.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' :
                                                 l.status === 'failed' ? 'bg-rose-500/10 text-rose-400' :
                                                     'bg-amber-500/10 text-amber-400'

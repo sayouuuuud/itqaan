@@ -171,7 +171,7 @@ export default function CertificatesDashExtendedPage() {
                         {isAr ? "إدارة طلبات إصدار الشهادات والجهات المعتمدة والجامعات" : "Manage certificate requests, entities, and universities"}
                     </p>
                 </div>
-                <div className="flex gap-2 bg-muted p-1 rounded-xl">
+                <div className="flex flex-wrap gap-2 bg-muted p-1 rounded-xl">
                     <button
                         onClick={() => setActiveTab("applications")}
                         className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "applications" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}

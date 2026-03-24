@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Mic, Square, Play, Pause, RotateCcw, Send, Info, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n/context"
 import { useUploadThing } from "@/lib/uploadthing-client"
 
@@ -85,19 +86,17 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
     writeStr(36, 'data')
     view.setUint32(40, dataSize, true)
 
-    // Write mono PCM samples in chunks to avoid blocking the UI thread (browser freeze)
+    // Process in chunks to avoid freezing the UI on mobile devices
     return new Promise((resolve) => {
       let offset = 44
       let i = 0
-      const chunkSize = 4096 * 4 // Process frames in batches
+      const CHUNK_SIZE = 44100 // Process 1 second of audio at a time
 
       const processChunk = () => {
-        const end = Math.min(i + chunkSize, numFrames)
+        const end = Math.min(i + CHUNK_SIZE, numFrames)
         for (; i < end; i++) {
           let sum = 0
-          for (let ch = 0; ch < srcChannels; ch++) {
-            sum += audioBuffer.getChannelData(ch)[i]
-          }
+          for (let ch = 0; ch < srcChannels; ch++) sum += audioBuffer.getChannelData(ch)[i]
           const sample = sum / srcChannels
           const clamped = Math.max(-1, Math.min(1, sample))
           view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF, true)
@@ -105,7 +104,7 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
         }
 
         if (i < numFrames) {
-          // Yield to main thread, then continue
+          // Yield to main thread
           setTimeout(processChunk, 0)
         } else {
           // Done
@@ -113,6 +112,7 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
         }
       }
 
+      // Start processing
       processChunk()
     })
   }
@@ -436,20 +436,24 @@ export function RecitationRecorder({ onSuccess }: RecitationRecorderProps) {
       </div>
 
       <div className="flex gap-4">
-        <button
-          disabled={recordingState !== "saved" || submitting}
-          onClick={handleSubmit}
-          className="w-full bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-accent-foreground hover:bg-accent/90 py-3 md:py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
-        >
-          {submitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <>
-              <span className="text-sm md:text-base">{t.student.submitBtn}</span>
-              <Send className="w-4 h-4 md:w-5 md:h-5 rtl:-scale-x-100 transform rotate-180" />
-            </>
-          )}
-        </button>
+              <Button
+                size="lg"
+                onClick={handleSubmit}
+                disabled={submitting || !audioBlobRef.current || recordingState !== "saved"}
+                className="w-full sm:w-auto px-8 font-tajawal bg-teal-600 hover:bg-teal-700 h-12 text-lg shadow-md hover:shadow-lg transition-all"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                    {mimeTypeRef.current.includes("webm") && !mimeTypeRef.current.includes("wav") ? "جاري التجهيز للرفع..." : t.common.submitting}
+                  </>
+                ) : (
+                  <>
+                    <Send className="ml-2 h-5 w-5" />
+                    {t.student.submitBtn}
+                  </>
+                )}
+              </Button>
       </div>
 
       <div className="text-center p-4 md:p-6 bg-accent/5 rounded-2xl border border-accent/20">

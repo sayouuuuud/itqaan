@@ -4,13 +4,13 @@ import { query } from "@/lib/db"
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getSession()
         if (!session) return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
 
-        const { id } = params
+        const { id } = await params
 
         // Verify the user has access to delete it (participant or admin)
         const conversations = await query(

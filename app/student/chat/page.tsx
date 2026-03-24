@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 
 type Conversation = {
     id: string
@@ -48,6 +49,7 @@ export default function StudentChatPage() {
 
 function StudentChatInner() {
     const { t, locale } = useI18n()
+    const { toast } = useToast()
     const isAr = locale === "ar"
     const searchParams = useSearchParams()
     const withReaderId = searchParams.get("with")
@@ -79,7 +81,7 @@ function StudentChatInner() {
         setLoadingMsgs(true)
         if (pollRef.current) clearInterval(pollRef.current)
         try {
-            const res = await fetch(`/api/conversations/${conv.id}/messages`)
+            const res = await fetch(`/api/conversations/${conv.id}/messages?_t=${Date.now()}`, { cache: "no-store" })
             if (res.ok) {
                 const d = await res.json()
                 setMessages(d.messages || [])
@@ -91,9 +93,8 @@ function StudentChatInner() {
             }
         } finally { setLoadingMsgs(false); scrollToBottom() }
 
-        // Poll every 5 seconds
         pollRef.current = setInterval(async () => {
-            const res = await fetch(`/api/conversations/${conv.id}/messages`)
+            const res = await fetch(`/api/conversations/${conv.id}/messages?_t=${Date.now()}`, { cache: "no-store" })
             if (res.ok) {
                 const d = await res.json()
                 setMessages(d.messages || [])
@@ -221,20 +222,57 @@ function StudentChatInner() {
             })
         })
 
-        setMessageText("")
+        const previousText = messageText;
         scrollToBottom()
 
         try {
-            await fetch(`/api/conversations/${activeConv.id}/messages`, {
+            const postRes = await fetch(`/api/conversations/${activeConv.id}/messages`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text: fullMessage }),
             })
-            const res = await fetch(`/api/conversations/${activeConv.id}/messages`)
-            if (res.ok) {
-                const d = await res.json()
-                setMessages(d.messages || [])
+
+            if (!postRes.ok) {
+                const errorData = await postRes.json().catch(() => ({}))
+                toast({
+                    variant: "destructive",
+                    title: isAr ? "تنبيه" : "Alert",
+                    description: errorData.error || (isAr ? "فشل إرسال الرسالة" : "Failed to send message")
+                })
+                
+                // Revert optimistic update
+                const res = await fetch(`/api/conversations/${activeConv.id}/messages?_t=${Date.now()}`, { cache: "no-store" })
+                if (res.ok) {
+                    const d = await res.json()
+                    setMessages(d.messages || [])
+                }
+                return
             }
+
+            const successData = await postRes.json().catch(() => ({}))
+            setMessageText("") // Clear upon successful response
+            
+            if (successData.message) {
+                // Replace tmp message with real message from DB, preserving UI metadata
+                setMessages(p => p.map(m => m.id === optimisticMsg.id ? { 
+                    ...successData.message, 
+                    sender_name: optimisticMsg.sender_name, 
+                    sender_role: optimisticMsg.sender_role,
+                    sender_avatar: optimisticMsg.sender_avatar 
+                } : m))
+            } else {
+                const res = await fetch(`/api/conversations/${activeConv.id}/messages?_t=${Date.now()}`, { cache: "no-store" })
+                if (res.ok) {
+                    const d = await res.json()
+                    setMessages(d.messages || [])
+                }
+            }
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: isAr ? "خطأ" : "Error",
+                description: isAr ? "حدث خطأ في الإتصال" : "Connection error occurred"
+            })
         } finally { setSending(false) }
     }
 
@@ -304,20 +342,35 @@ function StudentChatInner() {
                         if (target) {
                             openConversation(target);
                             // Show success message
-                            alert(isAr ? "تم إرسال التذكرة بنجاح." : "Ticket sent successfully.");
+                            toast({
+                                title: isAr ? "نجاح" : "Success",
+                                description: isAr ? "تم إرسال التذكرة بنجاح." : "Ticket sent successfully."
+                            });
                         }
                     }
                 } else {
                     const errorData = await msgRes.json();
-                    alert(errorData.error || (isAr ? "حدث خطأ أثناء إرسال الرسالة" : "Error sending message"));
+                    toast({
+                        variant: "destructive",
+                        title: isAr ? "خطأ" : "Error",
+                        description: errorData.error || (isAr ? "حدث خطأ أثناء إرسال الرسالة" : "Error sending message")
+                    });
                 }
             } else {
                 const errorData = await res.json();
-                alert(errorData.error || (isAr ? "حدث خطأ أثناء إنشاء التذكرة" : "Error creating ticket"));
+                toast({
+                    variant: "destructive",
+                    title: isAr ? "خطأ" : "Error",
+                    description: errorData.error || (isAr ? "حدث خطأ أثناء إنشاء التذكرة" : "Error creating ticket")
+                });
             }
         } catch (e) {
             console.error(e);
-            alert(isAr ? "حدث خطأ" : "An error occurred");
+            toast({
+                variant: "destructive",
+                title: isAr ? "خطأ" : "Error",
+                description: isAr ? "حدث خطأ" : "An error occurred"
+            });
         } finally {
             setCreatingTicket(false);
         }
@@ -471,16 +524,18 @@ function StudentChatInner() {
                                             {currentConv.is_ticket ? (isAr ? "دعم المستفيدين والمساعدة" : "Help and Support") : (currentConv.admin_id ? "إدارة المنصة" : t.student.certifiedReaderFallback)}
                                         </p>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        onClick={handleDeleteConversation}
-                                        disabled={deletingConvId === currentConv.id}
-                                        title={isAr ? "حذف المحادثة" : "Delete Conversation"}
-                                    >
-                                        {deletingConvId === currentConv.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                                    </Button>
+                                    {!currentConv.is_ticket && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={handleDeleteConversation}
+                                            disabled={deletingConvId === currentConv.id}
+                                            title={isAr ? "حذف المحادثة" : "Delete Conversation"}
+                                        >
+                                            {deletingConvId === currentConv.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                                        </Button>
+                                    )}
                                 </CardHeader>
 
                                 <CardContent className="flex-1 overflow-y-auto p-5 space-y-6">
@@ -547,16 +602,6 @@ function StudentChatInner() {
                                                             )}
                                                             <div className="space-y-2.5">
                                                                 <p className="whitespace-pre-wrap leading-relaxed text-[14px]">{msg.message_text}</p>
-                                                                {!isMe && activeTab === "messages" && (
-                                                                    <div className="pt-2 border-t border-border/50">
-                                                                        <h4 className="text-[9px] font-bold uppercase tracking-wider text-primary mb-0.5">
-                                                                            {isAr ? "ملاحظات المقرئ" : "Reciter Notes"}
-                                                                        </h4>
-                                                                        <div className="bg-emerald-500/10 p-1.5 rounded-lg italic text-muted-foreground text-[13px]">
-                                                                            {isAr ? "تأكد من تطبيق التجويد في المواضع المذكورة." : "Make sure to apply Tajweed in the mentioned places."}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
                                                             </div>
                                                             <div className={`text-[9px] mt-2 flex items-center justify-between ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"
                                                                 }`}>
@@ -586,13 +631,9 @@ function StudentChatInner() {
 
                                 {/* Input */}
                                 <div className="p-4 border-t border-border bg-card">
-                                    {currentConv.is_ticket && currentConv.ticket_status === 'closed' ? (
+                                    {currentConv.is_ticket && (currentConv.ticket_status === 'closed' || currentConv.ticket_status === 'resolved') ? (
                                         <div className="text-center p-3 bg-muted text-muted-foreground rounded-xl text-sm border border-border">
                                             {isAr ? "تم إغلاق هذه التذكرة. يمكنك إنشاء تذكرة جديدة إذا كان لديك استفسار آخر." : "This ticket is closed. You can create a new ticket if you have another inquiry."}
-                                        </div>
-                                    ) : currentConv.is_ticket && currentConv.ticket_status !== 'closed' && messages.length > 0 && messages[messages.length - 1].sender_id === currentUserId ? (
-                                        <div className="text-center p-3 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-xl text-sm border border-blue-500/20">
-                                            {isAr ? "جاري انتظار رد الإدارة على تذكرتك" : "Waiting for admin to respond to your ticket"}
                                         </div>
                                     ) : (
                                         <>
@@ -613,6 +654,7 @@ function StudentChatInner() {
                                                     value={messageText}
                                                     onChange={(e) => setMessageText(e.target.value)}
                                                     rows={1}
+                                                    disabled={sending}
                                                     className="resize-none border-border bg-muted focus-visible:ring-primary min-h-[44px] py-2.5"
                                                     onKeyDown={(e) => {
                                                         if (e.key === "Enter" && !e.shiftKey) {

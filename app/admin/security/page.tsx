@@ -94,7 +94,7 @@ export default function AdminSecurityPage() {
                         <thead className="bg-muted/50 text-muted-foreground border-b border-border">
                             <tr>
                                 {[t.admin.logUser, t.auth.role, t.admin.lockedAt, t.admin.attempts, t.admin.action]
-                                    .map(h => <th key={h} className="px-5 py-4 font-bold text-start">{h}</th>)}
+                                    .map(h => <th key={h} className="px-5 py-4 font-bold text-start whitespace-nowrap">{h}</th>)}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -121,16 +121,16 @@ export default function AdminSecurityPage() {
                                                     (t.student?.studentLabel || t.auth.student)}
                                         </span>
                                     </td>
-                                    <td className="px-5 py-4 text-xs text-muted-foreground">
+                                    <td className="px-5 py-4 whitespace-nowrap text-xs text-muted-foreground">
                                         <div className="flex items-center gap-1.5">
                                             <Clock className="w-3.5 h-3.5" />
                                             {new Date(acc.locked_at).toLocaleString(isAr ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}
                                         </div>
                                     </td>
-                                    <td className="px-5 py-4">
+                                    <td className="px-5 py-4 whitespace-nowrap">
                                         <span className="font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-lg border border-red-100 dark:border-red-500/20">{acc.failed_attempts}</span>
                                     </td>
-                                    <td className="px-5 py-4">
+                                    <td className="px-5 py-4 whitespace-nowrap">
                                         <Button
                                             size="sm"
                                             variant="outline"
@@ -160,7 +160,7 @@ export default function AdminSecurityPage() {
                         <thead className="bg-muted/50">
                             <tr>
                                 {[t.admin.logUser, t.admin.detailsLabel, t.admin.ipAddressLabel, t.admin.timeLabel]
-                                    .map(h => <th key={h} className="px-4 py-3 text-muted-foreground font-medium text-start">{h}</th>)}
+                                    .map(h => <th key={h} className="px-4 py-3 text-muted-foreground font-medium text-start whitespace-nowrap">{h}</th>)}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -191,7 +191,7 @@ export default function AdminSecurityPage() {
                         <thead className="bg-muted/50">
                             <tr>
                                 {[t.admin.logUser, t.auth.role, t.admin.ipAddressLabel, t.admin.timeLabel]
-                                    .map(h => <th key={h} className="px-4 py-3 text-muted-foreground font-medium text-start">{h}</th>)}
+                                    .map(h => <th key={h} className="px-4 py-3 text-muted-foreground font-medium text-start whitespace-nowrap">{h}</th>)}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">

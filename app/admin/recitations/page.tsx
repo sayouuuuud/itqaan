@@ -125,7 +125,7 @@ export default function AdminRecitationsPage() {
         </div>
         <Button 
           variant="outline" 
-          className="rounded-2xl font-black border-border hover:bg-muted h-11 px-6 gap-2"
+          className="w-full md:w-auto rounded-2xl font-black border-border hover:bg-muted h-11 px-6 gap-2 shrink-0"
         >
           <Download className="w-4 h-4 ml-1" />
           {t.admin.exportReport}
@@ -217,21 +217,21 @@ export default function AdminRecitationsPage() {
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className="bg-muted/50 text-muted-foreground text-[11px] font-black uppercase tracking-widest border-b border-border">
-                  <th className="px-6 py-5">ID</th>
-                  <th className="px-6 py-5">{t.auth.student}</th>
-                  <th className="px-6 py-5">{t.admin.surahAyahs}</th>
-                  <th className="px-6 py-5">{t.admin.assignedReader}</th>
-                  <th className="px-6 py-5">{t.admin.sessionReader}</th>
-                  <th className="px-6 py-5">{t.reader.status}</th>
-                  <th className="px-6 py-5">{t.admin.submissionDate}</th>
-                  <th className="px-6 py-5 text-center">{t.admin.action}</th>
+                  <th className="px-6 py-5 whitespace-nowrap">ID</th>
+                  <th className="px-6 py-5 whitespace-nowrap">{t.auth.student}</th>
+                  <th className="px-6 py-5 whitespace-nowrap">{t.admin.surahAyahs}</th>
+                  <th className="px-6 py-5 whitespace-nowrap">{t.admin.assignedReader}</th>
+                  <th className="px-6 py-5 whitespace-nowrap">{t.admin.sessionReader}</th>
+                  <th className="px-6 py-5 whitespace-nowrap">{t.reader.status}</th>
+                  <th className="px-6 py-5 whitespace-nowrap">{t.admin.submissionDate}</th>
+                  <th className="px-6 py-5 text-center whitespace-nowrap">{t.admin.action}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {recitations.length > 0 ? recitations.map((rec, idx) => (
                   <tr
                     key={rec.id}
-                    className="hover:bg-muted/30 transition-all group border-transparent"
+                    className="hover:bg-muted/30 transition-all group border-transparent whitespace-nowrap"
                   >
                     <td className="px-6 py-5">
                       <Link href={`/admin/recitations/${rec.id}`} className="text-[10px] font-black text-muted-foreground hover:text-primary transition-colors bg-muted/50 px-2 py-1 rounded-lg border border-border">

@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n/context"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog"
@@ -13,12 +14,13 @@ import { Badge } from "@/components/ui/badge"
 import {
     BookOpen, Search, Edit, CheckCircle, XCircle,
     TrendingUp, Star, Users, Loader2, Phone, MapPin, ChevronRight, User, Mail, Shield, ShieldAlert,
-    Clock, AlertCircle
+    Clock, AlertCircle, MessageSquare
 } from "lucide-react"
 
 export default function AdminReadersPage() {
     const { t, locale } = useI18n()
     const isAr = locale === 'ar'
+    const router = useRouter()
 
     const [readers, setReaders] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -197,7 +199,17 @@ export default function AdminReadersPage() {
                                         variant="outline" 
                                         size="icon" 
                                         className="rounded-xl border-border hover:bg-primary hover:text-white hover:border-primary transition-all w-9 h-9" 
+                                        onClick={() => router.push(`/admin/conversations?userId=${r.id}&userRole=reader`)}
+                                        title={t.admin.messageUser || "Message"}
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="rounded-xl border-border hover:bg-primary hover:text-white hover:border-primary transition-all w-9 h-9" 
                                         onClick={() => openEdit(r)}
+                                        title={t.admin.adminReaders.editReader || "Edit"}
                                     >
                                         <Edit className="w-4 h-4" />
                                     </Button>

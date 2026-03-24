@@ -123,12 +123,12 @@ export default function AdminAnnouncementsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">{t.admin.announcements}</h1>
                     <p className="text-sm text-muted-foreground mt-1">{t.admin.announcementsDesc}</p>
                 </div>
-                <Button onClick={openCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button onClick={openCreate} className="bg-primary w-full sm:w-auto text-primary-foreground hover:bg-primary/90">
                     <Plus className="w-4 h-4 ml-2" /> {t.admin.newAnnouncement}
                 </Button>
             </div>

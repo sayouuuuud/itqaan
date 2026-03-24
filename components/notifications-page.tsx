@@ -206,7 +206,7 @@ export default function NotificationsPage() {
                                     <Icon className="w-6 h-6" />
                                 </div>
                                 <div className="flex-1 min-w-0 py-1 text-right">
-                                    <div className="flex items-center justify-between gap-4 mb-2">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 mb-2">
                                         <h4 className={`text-lg font-black tracking-tight group-hover:text-primary transition-colors ${isUnread ? "text-foreground" : "text-muted-foreground"}`}>
                                             {n.title}
                                         </h4>

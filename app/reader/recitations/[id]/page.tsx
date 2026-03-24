@@ -14,6 +14,7 @@ import { AudioPlayer } from "@/components/audio-player"
 
 interface Recitation {
   id: string
+  student_id: string
   student_name: string
   surah_name: string
   ayah_from: number
@@ -122,13 +123,23 @@ export default function RecitationReviewPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-card/40 backdrop-blur-md border border-border p-4 rounded-2xl shadow-sm">
-          <Clock className="w-5 h-5 text-primary" />
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{isAr ? "تاريخ التقديم" : "Submitted On"}</span>
-            <span className="text-sm font-black text-foreground">
-              {new Date(recitation.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </span>
+        <div className="flex items-center flex-wrap justify-end gap-3">
+          <button
+            onClick={() => router.push(`/reader/chat?userId=${recitation.student_id}&userRole=student`)}
+            className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-4 py-3 rounded-2xl transition-all font-black text-sm shadow-sm"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">{isAr ? "مراسلة الطالب" : "Message Student"}</span>
+          </button>
+          
+          <div className="flex items-center gap-3 bg-card/40 backdrop-blur-md border border-border p-4 rounded-2xl shadow-sm">
+            <Clock className="w-5 h-5 text-primary" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{isAr ? "تاريخ التقديم" : "Submitted On"}</span>
+              <span className="text-sm font-black text-foreground">
+                {new Date(recitation.created_at).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            </div>
           </div>
         </div>
       </div>

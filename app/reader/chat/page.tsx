@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { Send, Link2, MessageSquare, Loader2, Trash2, Edit2 } from "lucide-react"
+import { Send, Link2, MessageSquare, Loader2, Trash2, Edit2, PlusCircle, Search, ShieldAlert } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useSearchParams, useRouter } from "next/navigation"
 
 type Conversation = {
   id: string
@@ -15,8 +17,10 @@ type Conversation = {
   last_message_preview: string | null
   last_message_at: string | null
   unread_count_reader: number
-  student_name: string
+  student_name: string | null
   student_avatar?: string | null
+  admin_name?: string | null
+  admin_avatar?: string | null
 }
 
 type Message = {
@@ -27,9 +31,14 @@ type Message = {
   updated_at?: string
 }
 
-export default function ReaderChatPage() {
+function ReaderChatContent() {
   const { t } = useI18n()
   const isAr = t.locale === "ar"
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const urlUserId = searchParams.get('userId')
+  const urlUserRole = searchParams.get('userRole')
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loadingConvs, setLoadingConvs] = useState(true)
@@ -44,6 +53,13 @@ export default function ReaderChatPage() {
 
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [deletingConvId, setDeletingConvId] = useState<string | null>(null)
+
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [chatType, setChatType] = useState<"student" | "admin">("student")
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
@@ -66,6 +82,18 @@ export default function ReaderChatPage() {
     const interval = setInterval(() => loadConversations(false), 5000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (!loadingConvs && urlUserId && urlUserRole === "student") {
+      const existingConv = conversations.find(c => c.student_id === urlUserId)
+      if (existingConv) {
+        setSelectedConvId(existingConv.id)
+      } else {
+        startConversation(urlUserId, false)
+      }
+      router.replace("/reader/chat")
+    }
+  }, [loadingConvs, urlUserId, urlUserRole, conversations, router])
 
   useEffect(() => {
     if (!selectedConvId) return
@@ -109,6 +137,10 @@ export default function ReaderChatPage() {
   }
 
   const currentConv = conversations.find(c => c.id === selectedConvId)
+
+  const getOtherPartyName = (c: Conversation) => c.student_name || c.admin_name || (isAr ? "الدعم الفني" : "Support")
+  const getOtherPartyAvatar = (c: Conversation) => c.student_avatar || c.admin_avatar
+  const getOtherPartyRole = (c: Conversation) => c.student_id ? (isAr ? "طالب" : "Student") : (isAr ? "الدعم الفني" : "Support")
 
   const handleSend = async () => {
     if ((!messageText.trim() && !linkText.trim()) || !selectedConvId) return
@@ -169,9 +201,12 @@ export default function ReaderChatPage() {
         setMessageText("")
         setLinkText("")
         scrollToBottom()
+      } else {
+        const errorData = await res.json().catch(() => ({}))
+        alert(errorData.error || (isAr ? "فشل إرسال الرسالة" : "Failed to send message"))
       }
     } catch {
-      alert("فشل إرسال الرسالة")
+      alert(isAr ? "حدث خطأ في الإتصال" : "Connection error occurred")
     } finally {
       setSending(false)
     }
@@ -198,6 +233,63 @@ export default function ReaderChatPage() {
     }
   }
 
+  // Handle Search internally
+  useEffect(() => {
+    if (chatType !== "student") return
+    const delayDebounceFn = setTimeout(async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([])
+        return
+      }
+      setSearching(true)
+      try {
+        const res = await fetch(`/api/reader/search?q=${encodeURIComponent(searchQuery)}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSearchResults(data.students || [])
+        }
+      } catch (err) { }
+      finally { setSearching(false) }
+    }, 500)
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchQuery, chatType])
+
+  const startConversation = async (participantId?: string, isTicket: boolean = false) => {
+    setCreating(true)
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(isTicket ? {
+          otherRole: "admin",
+          is_ticket: true
+        } : {
+          participantId,
+          otherRole: "student",
+          is_ticket: false
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const newConv = data.conversation
+        setConversations(prev => {
+          const exists = prev.find(c => c.id === newConv.id)
+          if (exists) return prev
+          return [newConv, ...prev]
+        })
+        setSelectedConvId(newConv.id)
+        setIsNewChatOpen(false)
+      } else {
+        alert(isAr ? "فشل إنشاء المحادثة" : "Failed to create conversation")
+      }
+    } catch {
+      alert(isAr ? "حدث خطأ" : "Error occurred")
+    } finally {
+      setCreating(false)
+    }
+  }
+
   const avatarColors = [
     "bg-sky-100 text-sky-600",
     "bg-emerald-100 text-emerald-600",
@@ -219,10 +311,104 @@ export default function ReaderChatPage() {
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Conversations List */}
         <Card className="border-border lg:col-span-1 flex flex-col h-full overflow-hidden shadow-sm">
-          <CardHeader className="pb-3 border-b border-border bg-muted">
+          <CardHeader className="pb-3 border-b border-border bg-muted flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base font-bold text-foreground">
               {isAr ? "قائمة المحادثات" : "Conversations"}
             </CardTitle>
+            <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 gap-2 bg-background">
+                  <PlusCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isAr ? "محادثة جديدة" : "New"}</span>
+                </Button>
+              </DialogTrigger>
+              {isNewChatOpen && (
+                <DialogContent className="max-w-md" dir={isAr ? "rtl" : "ltr"}>
+                  <DialogHeader>
+                    <DialogTitle>{isAr ? "بدء محادثة جديدة" : "Start New Conversation"}</DialogTitle>
+                  </DialogHeader>
+
+                  <div className="flex bg-muted p-1 rounded-xl mb-4 mt-2">
+                    <button
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${chatType === "student" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:bg-muted-foreground/10"}`}
+                      onClick={() => setChatType("student")}
+                    >
+                      {isAr ? "مع طالب" : "With Student"}
+                    </button>
+                    <button
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${chatType === "admin" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:bg-muted-foreground/10"}`}
+                      onClick={() => setChatType("admin")}
+                    >
+                      <ShieldAlert className="w-4 h-4" />
+                      {isAr ? "تذكرة دعم فني" : "Support Ticket"}
+                    </button>
+                  </div>
+
+                  {chatType === "student" && (
+                    <div className="space-y-4 min-h-[300px]">
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-muted-foreground absolute right-3 top-3 rtl:right-3 ltr:left-3 rtl:translate-x-0 ltr:-translate-x-0" />
+                        <Input
+                          placeholder={isAr ? "ابحث عن طالب بالاسم أو الإيميل..." : "Search for a student..."}
+                          className="pl-9 rtl:pr-9 rtl:pl-3 bg-muted/50 border-border"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        {searching ? (
+                          <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                        ) : searchResults.length === 0 ? (
+                          <div className="text-center p-4 text-sm text-muted-foreground">
+                            {searchQuery ? (isAr ? "لا توجد نتائج" : "No results found") : (isAr ? "يرجى البحث باسم الطالب للبدء" : "Please search for a student")}
+                          </div>
+                        ) : (
+                          searchResults.map(s => (
+                            <button
+                              key={s.id}
+                              onClick={() => startConversation(s.id, false)}
+                              disabled={creating}
+                              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-primary/5 transition-all text-right disabled:opacity-50"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                                {s.avatar_url ? <img src={s.avatar_url} alt="" className="w-full h-full rounded-full object-cover" /> : s.name[0]}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-foreground truncate">{s.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{s.email}</p>
+                              </div>
+                              <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {chatType === "admin" && (
+                    <div className="space-y-4 py-6 text-center">
+                      <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ShieldAlert className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-bold text-foreground mb-2">
+                        {isAr ? "تواصل مع الإدارة" : "Contact Administration"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6 leading-relaxed">
+                        {isAr ? "سيتم فتح تذكرة دعم فني جديدة للتواصل مع مشرفي الموقع حول أي استفسارات أو مشاكل تقنية." : "A new support ticket will be opened to communicate with the site admins regarding any issues or inquiries."}
+                      </p>
+                      <Button 
+                        onClick={() => startConversation(undefined, true)}
+                        disabled={creating}
+                        className="w-full max-w-xs mx-auto bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-12"
+                      >
+                        {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : (isAr ? "فتح تذكرة الدعم المحادثة" : "Open Support Ticket")}
+                      </Button>
+                    </div>
+                  )}
+                </DialogContent>
+              )}
+            </Dialog>
           </CardHeader>
           <CardContent className="p-0 flex-1 overflow-y-auto">
             {loadingConvs ? (
@@ -249,14 +435,14 @@ export default function ReaderChatPage() {
                         }`}
                     >
                       <div className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${colorClass}`}>
-                        {conv.student_avatar ? (
-                          <img src={conv.student_avatar} alt={conv.student_name} className="w-full h-full rounded-full object-cover" />
-                        ) : (conv.student_name || "ط").charAt(0)}
+                        {getOtherPartyAvatar(conv) ? (
+                          <img src={getOtherPartyAvatar(conv)!} alt={getOtherPartyName(conv)} className="w-full h-full rounded-full object-cover" />
+                        ) : (getOtherPartyName(conv)[0] || "م")}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex justify-between items-baseline mb-1">
                           <p className={`text-sm truncate ${hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
-                            {conv.student_name}
+                            {getOtherPartyName(conv)}
                           </p>
                           {conv.last_message_at && (
                             <span className="text-[10px] text-slate-400 shrink-0 whitespace-nowrap ml-2">
@@ -285,13 +471,13 @@ export default function ReaderChatPage() {
             <>
               <CardHeader className="border-b border-border pb-4 bg-card flex flex-row items-center gap-3 space-y-0">
                 <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-sm bg-emerald-100 text-emerald-600`}>
-                  {currentConv.student_avatar ? (
-                    <img src={currentConv.student_avatar} alt={currentConv.student_name} className="w-full h-full rounded-full object-cover" />
-                  ) : (currentConv.student_name || "ط").charAt(0)}
+                  {getOtherPartyAvatar(currentConv) ? (
+                    <img src={getOtherPartyAvatar(currentConv)!} alt={getOtherPartyName(currentConv)} className="w-full h-full rounded-full object-cover" />
+                  ) : (getOtherPartyName(currentConv)[0] || "م")}
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-base text-slate-800">{currentConv.student_name}</CardTitle>
-                  <p className="text-xs text-slate-500">طالب</p>
+                  <CardTitle className="text-base text-slate-800">{getOtherPartyName(currentConv)}</CardTitle>
+                  <p className="text-xs text-slate-500">{getOtherPartyRole(currentConv)}</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -389,7 +575,7 @@ export default function ReaderChatPage() {
                       placeholder={isAr ? "أضف رابطًا (ميت، زوم، إلخ) - اختياري" : "Add a link (optional)"}
                       value={linkText}
                       onChange={(e) => setLinkText(e.target.value)}
-                      className="h-9 text-xs bg-muted border-border"
+                      className="h-9 text-xs bg-muted border-border flex-1"
                       dir="ltr"
                     />
                   </div>
@@ -429,5 +615,13 @@ export default function ReaderChatPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function ReaderChatPage() {
+  return (
+    <Suspense fallback={<div className="p-8 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+      <ReaderChatContent />
+    </Suspense>
   )
 }

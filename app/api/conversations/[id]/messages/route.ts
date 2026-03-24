@@ -75,12 +75,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
         if (c.is_ticket) {
             if (session.role === "student" && session.sub === c.student_id) {
-                if (c.ticket_status === 'open') {
-                    const existingMsg = await query(`SELECT id FROM messages WHERE conversation_id = $1 AND sender_id = $2`, [id, session.sub]);
-                    if (existingMsg.length > 0) {
-                        return NextResponse.json({ error: "الرجاء الانتظار حتى يتم الرد على تذكرتك" }, { status: 403 });
-                    }
+                if (c.ticket_status === 'closed' || c.ticket_status === 'resolved') {
+                    return NextResponse.json({ error: "لا يمكنك إرسال رسائل لأن التذكرة مغلقة" }, { status: 403 });
                 }
+                
                 // Send to assigned admin, or find a default admin
                 if (c.admin_id) {
                     recipientId = c.admin_id;

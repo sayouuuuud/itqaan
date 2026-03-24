@@ -196,21 +196,21 @@ export default function AdminDashboard() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground bg-card">
-                <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.student}</th>
-                <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.surah}</th>
-                <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.reader}</th>
-                <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.status}</th>
-                <th className={`py-4 px-6 font-medium ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.date}</th>
+                <th className={`py-4 px-6 font-medium whitespace-nowrap ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.student}</th>
+                <th className={`py-4 px-6 font-medium whitespace-nowrap ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.surah}</th>
+                <th className={`py-4 px-6 font-medium whitespace-nowrap ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.reader}</th>
+                <th className={`py-4 px-6 font-medium whitespace-nowrap ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.status}</th>
+                <th className={`py-4 px-6 font-medium whitespace-nowrap ${isAr ? 'text-right' : 'text-left'}`}>{t.admin.date}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {latestRecitations.length > 0 ? latestRecitations.map((rec: any) => (
                 <tr key={rec.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="py-4 px-6 font-medium text-foreground">{rec.studentName}</td>
-                  <td className="py-4 px-6 text-muted-foreground font-medium">{t.reader.surah} {rec.surah} <span className="text-muted-foreground/60 font-normal">({rec.fromAyah}-{rec.toAyah})</span></td>
-                  <td className="py-4 px-6 text-muted-foreground">{rec.assignedReaderName || "---"}</td>
-                  <td className="py-4 px-6"><StatusBadge status={rec.status as any} /></td>
-                  <td className="py-4 px-6 text-muted-foreground/60 text-xs">{new Date(rec.createdAt).toLocaleDateString(t.locale === 'ar' ? "ar-SA" : "en-US")}</td>
+                  <td className="py-4 px-6 font-medium whitespace-nowrap text-foreground">{rec.studentName}</td>
+                  <td className="py-4 px-6 text-muted-foreground whitespace-nowrap font-medium">{t.reader.surah} {rec.surah} <span className="text-muted-foreground/60 font-normal">({rec.fromAyah}-{rec.toAyah})</span></td>
+                  <td className="py-4 px-6 text-muted-foreground whitespace-nowrap">{rec.assignedReaderName || "---"}</td>
+                  <td className="py-4 px-6 whitespace-nowrap"><StatusBadge status={rec.status as any} /></td>
+                  <td className="py-4 px-6 text-muted-foreground/60 whitespace-nowrap text-xs">{new Date(rec.createdAt).toLocaleDateString(t.locale === 'ar' ? "ar-SA" : "en-US")}</td>
                 </tr>
               )) : (
                 <tr>

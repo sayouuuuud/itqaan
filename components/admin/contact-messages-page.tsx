@@ -83,17 +83,28 @@ export default function ContactMessagesPage() {
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-8" dir={isAr ? "rtl" : "ltr"}>
-            <div className="mb-0">
-                <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
-                    <Mail className="w-8 h-8 text-primary" />
-                    {isAr ? "رسائل التواصل" : "Contact Messages"}
-                </h1>
-                <p className="text-muted-foreground font-bold tracking-wide">{isAr ? "إدارة الرسائل الواردة من نموذج التواصل" : "Manage incoming messages from the contact form"}</p>
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-black text-foreground mb-2 flex items-center gap-3">
+                        <Mail className="w-8 h-8 text-primary" />
+                        {isAr ? "رسائل التواصل" : "Contact Messages"}
+                    </h1>
+                    <p className="text-muted-foreground font-bold tracking-wide">{isAr ? "إدارة الرسائل الواردة من نموذج التواصل" : "Manage incoming messages from the contact form"}</p>
+                </div>
+                {selectedMessage && (
+                    <Button 
+                        variant="outline" 
+                        onClick={() => setSelectedMessage(null)}
+                        className="lg:hidden rounded-2xl font-black border-border hover:bg-muted"
+                    >
+                        {isAr ? "العودة للقائمة" : "Back to List"}
+                    </Button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Messages List */}
-                <div className="lg:col-span-1">
+                <div className={`lg:col-span-1 ${selectedMessage ? 'hidden lg:block' : 'block'}`}>
                     <Card className="bg-card border-border rounded-3xl shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border p-5">
                             <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground flex items-center gap-3">
@@ -146,7 +157,7 @@ export default function ContactMessagesPage() {
                 </div>
 
                 {/* Message Details */}
-                <div className="lg:col-span-2">
+                <div className={`lg:col-span-2 ${!selectedMessage ? 'hidden lg:block' : 'block'}`}>
                     {selectedMessage ? (
                         <Card className="bg-card border-border rounded-3xl shadow-sm overflow-hidden sticky top-6">
                             <CardHeader className="bg-muted/20 border-b border-border p-6">

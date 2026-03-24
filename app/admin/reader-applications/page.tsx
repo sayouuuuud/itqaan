@@ -169,7 +169,7 @@ export default function ReaderApplicationsPage() {
   }
 
   return (
-    <div className="bg-card min-h-full flex flex-col h-[calc(100vh-120px)] overflow-hidden -m-6 lg:-m-8 p-0" dir={isAr ? "rtl" : "ltr"}>
+    <div className="bg-card min-h-full flex flex-col lg:h-[calc(100vh-120px)] overflow-y-auto lg:overflow-hidden -m-6 lg:-m-8 p-0" dir={isAr ? "rtl" : "ltr"}>
       {/* Header Bar */}
       <div className="bg-card border-b border-border p-5 md:p-8 flex flex-col lg:flex-row justify-between lg:items-center gap-6 z-10 shrink-0">
         <div>
@@ -200,9 +200,9 @@ export default function ReaderApplicationsPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-visible lg:overflow-hidden relative">
         {/* Sidebar List */}
-        <div className="w-full lg:w-96 border-l border-border bg-card/50 backdrop-blur-sm flex flex-col shrink-0 overflow-hidden relative">
+        <div className="w-full lg:w-96 border-b lg:border-b-0 lg:border-l border-border bg-card/50 backdrop-blur-sm flex flex-col shrink-0 lg:overflow-hidden relative min-h-[400px] lg:min-h-0">
           {/* Filter Tabs */}
           <div className="p-4 border-b border-border flex gap-2 overflow-x-auto no-scrollbar shrink-0 bg-muted/30">
             {["all", "pending_approval", "approved", "rejected"].map((k) => (
@@ -281,7 +281,7 @@ export default function ReaderApplicationsPage() {
         </div>
 
         {/* Detail Content */}
-        <div className="flex-1 overflow-y-auto no-scrollbar bg-card/20 p-6 md:p-10">
+        <div className="flex-1 lg:overflow-y-auto no-scrollbar bg-card/20 p-6 md:p-10 min-h-[500px] lg:min-h-0">
           {selectedApp ? (
             <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
               {/* Hero Card */}

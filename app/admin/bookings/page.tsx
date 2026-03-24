@@ -184,18 +184,18 @@ export default function AdminBookingsPage() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-border text-muted-foreground bg-muted/50 text-[11px] font-black uppercase tracking-widest">
-                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'الطالب' : 'Student'}</th>
-                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'المقرئ' : 'Reader'}</th>
-                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'التاريخ والوقت' : 'Date & Time'}</th>
-                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'المدة' : 'Duration'}</th>
-                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'الحالة' : 'Status'}</th>
-                                    <th className="text-right py-4 px-6 font-black">{isAr ? 'رابط الجلسة' : 'Session Link'}</th>
-                                    <th className="text-center py-4 px-6 font-black">{isAr ? 'إجراء' : 'Action'}</th>
+                                    <th className="text-right py-4 px-6 font-black whitespace-nowrap">{isAr ? 'الطالب' : 'Student'}</th>
+                                    <th className="text-right py-4 px-6 font-black whitespace-nowrap">{isAr ? 'المقرئ' : 'Reader'}</th>
+                                    <th className="text-right py-4 px-6 font-black whitespace-nowrap">{isAr ? 'التاريخ والوقت' : 'Date & Time'}</th>
+                                    <th className="text-right py-4 px-6 font-black whitespace-nowrap">{isAr ? 'المدة' : 'Duration'}</th>
+                                    <th className="text-right py-4 px-6 font-black whitespace-nowrap">{isAr ? 'الحالة' : 'Status'}</th>
+                                    <th className="text-right py-4 px-6 font-black whitespace-nowrap">{isAr ? 'رابط الجلسة' : 'Session Link'}</th>
+                                    <th className="text-center py-4 px-6 font-black whitespace-nowrap">{isAr ? 'إجراء' : 'Action'}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border">
+                            <tbody className="divide-y divide-border border-b border-border">
                                 {bookings.map(b => (
-                                    <tr key={b.id} className="hover:bg-muted/30 transition-colors">
+                                    <tr key={b.id} className="hover:bg-muted/30 transition-colors whitespace-nowrap border-b border-border/50">
                                         <td className="py-4 px-6 font-bold text-foreground">{b.student_name}</td>
                                         <td className="py-4 px-6 text-muted-foreground font-medium">{b.reader_name}</td>
                                         <td className="py-4 px-6 text-muted-foreground text-xs font-bold">

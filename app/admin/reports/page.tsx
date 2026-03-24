@@ -565,11 +565,11 @@ export default function AdminReportsPage() {
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-muted/50 text-muted-foreground text-[10px] font-black uppercase tracking-widest border-b border-border">
-                <th className="py-4 px-6 text-center w-20">{t.admin.reportsPage.rank}</th>
-                <th className="py-4 px-6 text-start">{t.admin.reportsPage.reader}</th>
-                <th className="py-4 px-6">{t.admin.reportsPage.reviews}</th>
-                <th className="py-4 px-6">{t.admin.reportsPage.sessionsLabel}</th>
-                <th className="py-4 px-6">{t.admin.reportsPage.total}</th>
+                <th className="py-4 px-6 text-center w-20 whitespace-nowrap">{t.admin.reportsPage.rank}</th>
+                <th className="py-4 px-6 text-start whitespace-nowrap">{t.admin.reportsPage.reader}</th>
+                <th className="py-4 px-6 whitespace-nowrap">{t.admin.reportsPage.reviews}</th>
+                <th className="py-4 px-6 whitespace-nowrap">{t.admin.reportsPage.sessionsLabel}</th>
+                <th className="py-4 px-6 whitespace-nowrap">{t.admin.reportsPage.total}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -602,13 +602,13 @@ export default function AdminReportsPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-6 whitespace-nowrap">
                     <span className="font-black text-sm text-blue-500 bg-blue-500/10 px-3 py-1 rounded-lg">{r.reviews}</span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-6 whitespace-nowrap">
                     <span className="font-black text-sm text-purple-500 bg-purple-500/10 px-3 py-1 rounded-lg">{r.sessions}</span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-6 whitespace-nowrap">
                     <div className="flex items-center justify-end">
                       <span className="font-black text-2xl text-primary tracking-tighter flex items-center gap-2">
                         {r.total_contribution}

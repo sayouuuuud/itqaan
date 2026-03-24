@@ -54,7 +54,7 @@ export default function AdminSeoPage() {
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-6" dir={isAr ? 'rtl' : 'ltr'}>
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <Globe className="w-8 h-8 text-[#1B5E3B]" />
                     <div>
@@ -62,7 +62,7 @@ export default function AdminSeoPage() {
                         <p className="text-muted-foreground text-sm">{t.admin.seoSettingsDesc}</p>
                     </div>
                 </div>
-                <Button onClick={handleSave} disabled={saving} className="bg-[#1B5E3B] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200 font-bold">
+                <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto bg-[#1B5E3B] hover:bg-[#0A3527] text-white gap-2 h-11 px-6 rounded-xl shadow-sm transition-all duration-200 font-bold">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                     {saved ? t.admin.savedSuccess : t.admin.saveSettings}
                 </Button>

@@ -363,7 +363,7 @@ export default function AdminEmailTemplatesPage() {
                         )}
                     </div>
 
-                    <DialogFooter className="px-6 py-4 border-t border-border bg-muted/40 flex-row gap-3 sm:justify-end rtl:sm:justify-start">
+                    <DialogFooter className="px-6 py-4 border-t border-border bg-muted/40 flex-col sm:flex-row gap-3 sm:justify-end rtl:sm:justify-start">
                         <Button
                             variant="outline"
                             onClick={() => setEditTemplate(null)}

@@ -302,12 +302,12 @@ function ContactMessagesTab({ isAr, t }: { isAr: boolean, t: any }) {
                         <table className="w-full border-collapse">
                             <thead>
                                 <tr className="bg-muted/50 text-muted-foreground text-[11px] font-black uppercase tracking-widest border-b border-border">
-                                    <th className="px-6 py-4 font-black">{t.admin.senderName}</th>
-                                    <th className="px-6 py-4 font-black">{t.admin.contactSubject}</th>
-                                    <th className="px-6 py-4 font-black">{t.admin.contactMessage}</th>
-                                    <th className="px-6 py-4 font-black">{t.admin.date}</th>
-                                    <th className="px-6 py-4 font-black text-center">{t.admin.status}</th>
-                                    <th className="px-6 py-4 font-black text-center">{t.admin.action}</th>
+                                    <th className="px-6 py-4 font-black whitespace-nowrap">{t.admin.senderName}</th>
+                                    <th className="px-6 py-4 font-black whitespace-nowrap">{t.admin.contactSubject}</th>
+                                    <th className="px-6 py-4 font-black whitespace-nowrap">{t.admin.contactMessage}</th>
+                                    <th className="px-6 py-4 font-black whitespace-nowrap">{t.admin.date}</th>
+                                    <th className="px-6 py-4 font-black text-center whitespace-nowrap">{t.admin.status}</th>
+                                    <th className="px-6 py-4 font-black text-center whitespace-nowrap">{t.admin.action}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -417,8 +417,10 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
                 if (!didInit.current && initialUserId && initialUserRole) {
                     didInit.current = true
                     const existing = convs.find(c =>
-                        (initialUserRole === "student" && c.student_id === initialUserId) ||
-                        (initialUserRole === "reader" && c.reader_id === initialUserId)
+                        !c.is_ticket && (
+                            (initialUserRole === "student" && c.student_id === initialUserId) ||
+                            (initialUserRole === "reader" && c.reader_id === initialUserId)
+                        )
                     )
                     if (existing) {
                         openConversation(existing)
@@ -493,9 +495,9 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
     )
 
     return (
-        <div className="flex flex-col lg:flex-row-reverse gap-6 h-[650px]">
+        <div className="flex flex-col lg:flex-row-reverse gap-6 lg:h-[650px]">
             {/* Sidebar */}
-            <div className="w-full lg:w-72 shrink-0 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
+            <div className="w-full lg:w-72 shrink-0 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm h-[350px] lg:h-full">
                 <div className="px-5 py-4 border-b border-border bg-muted/30">
                     <p className="font-black text-sm text-foreground tracking-wide uppercase">
                         {t.admin.directChat} <span className="text-muted-foreground font-bold ml-1">({conversations.filter(c => !c.is_ticket).length})</span>
@@ -543,7 +545,7 @@ function DirectChatTab({ isAr, t }: { isAr: boolean, t: any }) {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
+            <div className="flex-1 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm h-[500px] lg:h-auto">
                 {!activeConv || activeConv.is_ticket ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4">
                         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border border-border shadow-inner">
@@ -768,9 +770,9 @@ function TicketsTab({ isAr, t }: { isAr: boolean, t: any }) {
     )
 
     return (
-        <div className="flex flex-col lg:flex-row-reverse gap-6 h-[650px]">
+        <div className="flex flex-col lg:flex-row-reverse gap-6 lg:h-[650px]">
             {/* Sidebar */}
-            <div className="w-full lg:w-72 shrink-0 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm">
+            <div className="w-full lg:w-72 shrink-0 bg-card border border-border rounded-3xl overflow-hidden flex flex-col shadow-sm h-[350px] lg:h-full">
                 <div className="px-5 py-4 border-b border-border bg-muted/30">
                     <p className="font-black text-sm text-foreground tracking-wide uppercase">
                         {isAr ? "تذاكر الدعم" : "Support Tickets"} <span className="text-muted-foreground font-bold ml-1">({conversations.length})</span>
@@ -956,7 +958,7 @@ const AdminConversationsContent = () => {
             </div>
 
             <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-                <TabsList className="bg-card border border-border p-1 rounded-2xl mb-8 flex w-fit gap-1">
+                <TabsList className="bg-card border border-border p-1 rounded-2xl mb-8 flex w-full overflow-x-auto justify-start no-scrollbar gap-1">
                     <TabsTrigger value="supervision" className="rounded-xl px-8 font-black text-xs uppercase transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         {t.admin.supervision}
                     </TabsTrigger>

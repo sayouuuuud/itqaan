@@ -59,7 +59,7 @@ export default function AdminHomepagePage() {
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6" dir={isAr ? 'rtl' : 'ltr'}>
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <Home className="w-8 h-8 text-[#1B5E3B]" />
                     <div>
@@ -91,7 +91,7 @@ export default function AdminHomepagePage() {
                     <h2 className="font-semibold text-foreground text-lg">{t.admin.adminHomepage.maintenanceMode}</h2>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
+                <div className="flex items-center justify-between gap-4 p-4 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
                     <div>
                         <p className="font-medium text-foreground">{t.admin.adminHomepage.enableMaintenance}</p>
                         <p className="text-sm text-muted-foreground">{t.admin.adminHomepage.enableMaintenanceDesc}</p>
@@ -113,7 +113,7 @@ export default function AdminHomepagePage() {
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label>{t.admin.adminHomepage.bannerColor}</Label>
                         <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ export default function AdminHomepagePage() {
                             <Input value={settings.maintenance_banner_color} onChange={e => set('maintenance_banner_color', e.target.value)} className="flex-1 font-mono text-sm bg-muted/30 border-border text-foreground" />
                         </div>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border">
+                    <div className="flex items-center justify-between gap-4 p-4 bg-muted/30 rounded-lg border border-border">
                         <div>
                             <p className="font-medium text-foreground text-sm">{t.admin.adminHomepage.fullMaintenancePage}</p>
                             <p className="text-xs text-muted-foreground">{t.admin.adminHomepage.fullMaintenancePageDesc}</p>
@@ -148,7 +148,7 @@ export default function AdminHomepagePage() {
                     <textarea value={settings.homepage_hero_subtitle} onChange={e => set('homepage_hero_subtitle', e.target.value)} rows={3} className="w-full border border-border bg-muted/30 text-foreground rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1B5E3B]/30" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label>{t.admin.adminHomepage.primaryCtaText}</Label>
                         <Input value={settings.homepage_cta_primary_text} onChange={e => set('homepage_cta_primary_text', e.target.value)} className="bg-muted/30 border-border text-foreground" />
@@ -177,7 +177,7 @@ export default function AdminHomepagePage() {
                     { key: 'homepage_show_features', label: t.admin.adminHomepage.featuresSection, desc: t.admin.adminHomepage.featuresSectionDesc },
                     { key: 'homepage_show_testimonials', label: t.admin.adminHomepage.testimonialsSection, desc: t.admin.adminHomepage.testimonialsSectionDesc },
                 ].map(item => (
-                    <div key={item.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                    <div key={item.key} className="flex items-center justify-between gap-4 py-3 border-b border-border last:border-0">
                         <div>
                             <p className="font-medium text-foreground">{item.label}</p>
                             <p className="text-sm text-muted-foreground">{item.desc}</p>

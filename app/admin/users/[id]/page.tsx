@@ -125,7 +125,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                     <ChevronRight className="w-4 h-4 rtl:rotate-180" />
                     <span className="font-bold text-foreground">{user.name}</span>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <Badge variant={user.is_active ? "default" : "destructive"} className="px-3 py-1 font-bold">
                         {user.is_active ? t.active : t.blocked}
                     </Badge>
@@ -209,21 +209,21 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
             {/* TABS Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="bg-muted/50 p-1.5 rounded-2xl inline-flex flex-wrap w-full sm:w-auto justify-start mb-8 gap-2 border border-border/50 shadow-inner backdrop-blur-md">
-                    <TabsTrigger value="info" className="rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
+                <TabsList className="bg-muted/50 p-1.5 rounded-2xl flex w-full overflow-x-auto overflow-y-hidden hide-scrollbar justify-start mb-8 gap-2 border border-border/50 shadow-inner backdrop-blur-md shrink-0">
+                    <TabsTrigger value="info" className="whitespace-nowrap shrink-0 rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
                         <Info className="w-4 h-4" />
                         {t.admin.basicInfo}
                     </TabsTrigger>
-                    <TabsTrigger value="stats" className="rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
+                    <TabsTrigger value="stats" className="whitespace-nowrap shrink-0 rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
                         <BarChart3 className="w-4 h-4" />
                         {t.admin.statistics}
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
+                    <TabsTrigger value="history" className="whitespace-nowrap shrink-0 rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
                         <ClipboardList className="w-4 h-4" />
                         {user.role === 'student' ? t.admin.studentRecitationsHistory : t.admin.readerReviewsHistory}
                     </TabsTrigger>
                     {user.role === 'student' && (
-                        <TabsTrigger value="errors" className="rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
+                        <TabsTrigger value="errors" className="whitespace-nowrap shrink-0 rounded-xl data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-lg text-muted-foreground hover:text-foreground font-black gap-2 px-6 py-3 transition-all">
                             <AlertCircle className="w-4 h-4" />
                             {t.admin.errorsLog || "Errors Log"}
                         </TabsTrigger>

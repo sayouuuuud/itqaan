@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
 import { query, queryOne } from "@/lib/db"
 import { sendCertificateIssuedEmail } from "@/lib/email"
-import { generateCertificatePDF } from "@/lib/pdf"
+import { generateCertificateImage } from "@/lib/certificate-generator"
 
 // GET /api/admin/certificates
 export async function GET(req: NextRequest) {
@@ -156,9 +156,12 @@ export async function PUT(req: NextRequest) {
                 student_email: string;
                 ceremony_date: string | null;
                 pdf_file_url: string | null;
+                certificate_photo_url: string | null;
+                serial_code: string | null;
+                name_en: string | null;
             }>(
                 `SELECT cd.student_id, cd.certificate_issued, u.name as student_name, u.email as student_email,
-                        cd.ceremony_date, cd.pdf_file_url
+                        cd.ceremony_date, cd.pdf_file_url, cd.certificate_photo_url, cd.serial_code, cd.name_en
                  FROM certificate_data cd
                  JOIN users u ON u.id = cd.student_id
                  WHERE cd.id = $1`,
@@ -186,17 +189,23 @@ export async function PUT(req: NextRequest) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (host ? `${protocol}://${host}` : "http://localhost:3000");
             const certificateUrl = `${baseUrl}/c/${cert.student_id}`
 
-            // Generate certificate PDF
-            const pdfResult = await generateCertificatePDF(cert.student_id)
-            const certificatePdfUrl = pdfResult?.url || null
-            const certificatePdfBuffer = pdfResult?.buffer || null
+            // Generate certificate image using Sharp layer compositor
+            const imgResult = await generateCertificateImage({
+                studentId: cert.student_id,
+                studentName: cert.student_name, // Always pass native Arabic name to ensure fresh transliteration
+                photoUrl: cert.certificate_photo_url || null,
+                serialCode: cert.serial_code || `ITQ-MAK-${cert.student_id.slice(0, 8).toUpperCase()}`,
+            })
+            const certificateImageUrl = imgResult?.url || null
+            const certificateImageBuffer = imgResult?.buffer || null
+            const nameEn = imgResult?.nameEn || cert.name_en
 
             await query(
-                `UPDATE certificate_data SET certificate_issued = true, certificate_url = $1, certificate_pdf_url = $2, updated_at = NOW() WHERE id = $3`,
-                [certificateUrl, certificatePdfUrl, id]
+                `UPDATE certificate_data SET certificate_issued = true, certificate_url = $1, certificate_image_url = $2, name_en = $3, updated_at = NOW() WHERE id = $4`,
+                [certificateUrl, certificateImageUrl, nameEn, id]
             )
 
-            // Send email with ceremony info and PDF
+            // Send email with ceremony info and certificate image
             if (cert.student_email) {
                 await sendCertificateIssuedEmail(
                     cert.student_email,
@@ -204,8 +213,8 @@ export async function PUT(req: NextRequest) {
                     certificateUrl,
                     ceremonyDate,
                     ceremonyMessage,
-                    certificatePdfUrl,
-                    certificatePdfBuffer
+                    certificateImageUrl,
+                    certificateImageBuffer
                 )
             }
 

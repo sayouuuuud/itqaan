@@ -30,6 +30,8 @@ export async function GET(
                r.internal_notes, 
                r.created_at, 
                r.reviewed_at,
+               r.student_id,
+               r.assigned_reader_id,
                s.name as student_name, 
                s.email as student_email, 
                s.avatar_url as student_avatar,

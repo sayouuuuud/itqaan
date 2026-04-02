@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
 import { query, queryOne } from "@/lib/db"
+import { transliterate, containsArabic } from "@/lib/transliterate"
 
 // GET /api/certificate - get student's certificate data
 export async function GET(req: NextRequest) {
@@ -10,7 +11,6 @@ export async function GET(req: NextRequest) {
   }
 
   const certificateEnabled = true
-
 
   const certificate = await queryOne(
     `SELECT cd.*, u.name as student_name
@@ -31,8 +31,6 @@ export async function GET(req: NextRequest) {
     enhancedCertificate.certificate_url = `${baseUrl}/c/${session.sub}`;
   }
 
-  console.log('Certificate data for student', session.sub, ':', enhancedCertificate)
-
   const latestRecitation = await queryOne<{ status: string }>(
     `SELECT status FROM recitations WHERE student_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [session.sub]
@@ -52,7 +50,7 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// POST /api/certificate - save certificate data
+// POST /api/certificate - save certificate data (including photo)
 export async function POST(req: NextRequest) {
   const session = await getSession()
   if (!session || !requireRole(session, ["student"])) {
@@ -73,21 +71,45 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { university, college, city, entity_id, entity_other, phone, age } = await req.json()
+  const { university, college, city, entity_id, entity_other, phone, age, certificate_photo_url } = await req.json()
+
+  // Compute English name for certificate
+  const rawName: string = session.name || ''
+  const nameEn = containsArabic(rawName) ? transliterate(rawName) : rawName
+
+  // Generate serial code if not already assigned
+  const existing = await queryOne<{ serial_code: string | null }>(
+    `SELECT serial_code FROM certificate_data WHERE student_id = $1`,
+    [session.sub]
+  )
+
+  let serialCode = existing?.serial_code
+  if (!serialCode) {
+    // Get next sequence value
+    const seqRow = await queryOne<{ nextval: bigint }>(
+      `SELECT nextval('certificate_serial_seq') as nextval`
+    )
+    const seqNum = Number(seqRow?.nextval || 1)
+    serialCode = `ITQ-MAK-${String(seqNum).padStart(8, '0')}`
+  }
 
   // Upsert certificate data
   const result = await query(
-    `INSERT INTO certificate_data (student_id, university, college, city, entity_id, entity_other, phone, age)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO certificate_data
+       (student_id, university, college, city, entity_id, entity_other, phone, age, certificate_photo_url, serial_code, name_en)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      ON CONFLICT (student_id) DO UPDATE SET
-       university = COALESCE($2, certificate_data.university),
-       college = COALESCE($3, certificate_data.college),
-       city = COALESCE($4, certificate_data.city),
-       entity_id = COALESCE($5, certificate_data.entity_id),
-       entity_other = COALESCE($6, certificate_data.entity_other),
-       phone = COALESCE($7, certificate_data.phone),
-       age = COALESCE($8, certificate_data.age),
-       updated_at = NOW()
+       university          = COALESCE($2, certificate_data.university),
+       college             = COALESCE($3, certificate_data.college),
+       city                = COALESCE($4, certificate_data.city),
+       entity_id           = COALESCE($5, certificate_data.entity_id),
+       entity_other        = COALESCE($6, certificate_data.entity_other),
+       phone               = COALESCE($7, certificate_data.phone),
+       age                 = COALESCE($8, certificate_data.age),
+       certificate_photo_url = COALESCE($9, certificate_data.certificate_photo_url),
+       serial_code         = COALESCE($10, certificate_data.serial_code),
+       name_en             = COALESCE($11, certificate_data.name_en),
+       updated_at          = NOW()
      RETURNING *`,
     [
       session.sub,
@@ -97,7 +119,10 @@ export async function POST(req: NextRequest) {
       entity_id || null,
       entity_other || null,
       phone || null,
-      age ? parseInt(age.toString()) : null
+      age ? parseInt(age.toString()) : null,
+      certificate_photo_url || null,
+      serialCode,
+      nameEn || null,
     ]
   )
 

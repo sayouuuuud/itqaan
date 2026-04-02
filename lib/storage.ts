@@ -27,7 +27,7 @@ export async function uploadToStorage(
     }
 
     return {
-        url: response.data.url,
+        url: (response.data as any).ufsUrl || response.data.url,
         key: response.data.key,
         name: response.data.name,
         size: response.data.size,

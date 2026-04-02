@@ -213,6 +213,9 @@ export async function DELETE(
         }
 
         // Permanent deletion - Thorough cleanup of related records that don't cascade
+        // 0. Nullify assigned_supervisor_id (NO ACTION FK - must be cleared before deletion)
+        await db.query('UPDATE conversations SET assigned_supervisor_id = NULL WHERE assigned_supervisor_id = $1', [userId])
+
         // 1. Delete bookings (student or reader)
         await db.query('DELETE FROM bookings WHERE student_id = $1 OR reader_id = $1', [userId])
         

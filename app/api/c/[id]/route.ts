@@ -12,11 +12,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 university: string;
                 city: string;
                 student_name: string;
+                name_en: string | null;
                 issued_date: Date;
                 certificate_pdf_url: string | null;
+                certificate_image_url: string | null;
+                certificate_photo_url: string | null;
+                serial_code: string | null;
             }>(
-                `SELECT cd.student_id, cd.certificate_issued, cd.university, cd.city, cd.updated_at as issued_date, 
-                        u.name as student_name, cd.certificate_pdf_url
+                `SELECT cd.student_id, cd.certificate_issued, cd.university, cd.city, cd.updated_at as issued_date,
+                        u.name as student_name, cd.name_en, cd.certificate_pdf_url,
+                        cd.certificate_image_url, cd.certificate_photo_url, cd.serial_code
                  FROM certificate_data cd
                  JOIN users u ON u.id = cd.student_id
                  WHERE cd.student_id = $1`,

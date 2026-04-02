@@ -165,8 +165,8 @@ export async function sendCertificateIssuedEmail(
   certificateLink: string,
   ceremonyDate?: string | null,
   ceremonyMessage?: string,
-  pdfFileUrl?: string | null,
-  pdfBuffer?: Buffer | null
+  certificateImageUrl?: string | null,
+  certificateImageBuffer?: Buffer | null
 ) {
   // Format ceremony info
   let ceremonyHtml = ''
@@ -188,33 +188,33 @@ export async function sendCertificateIssuedEmail(
     `
   }
 
-  // Build attachments list if PDF available
+  // Build attachments list if certificate image available
   const attachments: Attachment[] = []
-  if (pdfBuffer) {
+  if (certificateImageBuffer) {
     attachments.push({
-      filename: `شهادة-${studentName}.pdf`,
-      content: pdfBuffer,
-      contentType: 'application/pdf',
+      filename: `شهادة-${studentName}.png`,
+      content: certificateImageBuffer,
+      contentType: 'image/png',
     })
-    console.log('PDF buffer attached to email, size:', pdfBuffer.byteLength)
-  } else if (pdfFileUrl) {
+    console.log('Certificate image attached to email, size:', certificateImageBuffer.byteLength)
+  } else if (certificateImageUrl) {
     // Fallback if only URL is available
     try {
-      console.log('Downloading PDF for attachment:', pdfFileUrl)
-      const pdfResponse = await fetch(pdfFileUrl)
-      if (pdfResponse.ok) {
-        const fetchedBuffer = await pdfResponse.arrayBuffer()
+      console.log('Downloading certificate image for attachment:', certificateImageUrl)
+      const imageResponse = await fetch(certificateImageUrl)
+      if (imageResponse.ok) {
+        const fetchedBuffer = await imageResponse.arrayBuffer()
         attachments.push({
-          filename: `شهادة-${studentName}.pdf`,
+          filename: `شهادة-${studentName}.png`,
           content: Buffer.from(fetchedBuffer),
-          contentType: 'application/pdf',
+          contentType: 'image/png',
         })
-        console.log('PDF downloaded successfully, size:', fetchedBuffer.byteLength)
+        console.log('Certificate image downloaded successfully, size:', fetchedBuffer.byteLength)
       } else {
-        console.error('Failed to download PDF:', pdfResponse.status)
+        console.error('Failed to download certificate image:', imageResponse.status)
       }
     } catch (error) {
-      console.error('Error downloading PDF for attachment:', error)
+      console.error('Error downloading certificate image for attachment:', error)
     }
   }
 
@@ -241,7 +241,7 @@ export async function sendCertificateIssuedEmail(
         </a>
       </div>
 
-      ${pdfFileUrl ? `<p style="color: #64748b; font-size: 13px; text-align: center;">تجد نسخة PDF من شهادتك مرفقة بهذا البريد.</p>` : ''}
+      ${certificateImageUrl ? `<p style="color: #64748b; font-size: 13px; text-align: center;">تجد نسخة من شهادتك مرفقة بهذا البريد.</p>` : ''}
 
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
       <p style="font-size: 12px; color: #94a3b8; text-align: center;">

@@ -244,9 +244,9 @@ export default function AdminRecitationsPage() {
                           {(rec.studentName || "S").charAt(0)}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-black text-foreground text-sm leading-tight group-hover:text-primary transition-colors truncate">
+                          <Link href={`/admin/users/${rec.studentId}`} className="font-black text-foreground text-sm leading-tight group-hover:text-primary transition-colors truncate block">
                             {rec.studentName}
-                          </p>
+                          </Link>
                           <p className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
                             {rec.studentEmail}
                           </p>
@@ -262,13 +262,21 @@ export default function AdminRecitationsPage() {
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
                         <UserIcon className="w-3.5 h-3.5 opacity-40 shrink-0" />
-                        <span className="truncate max-w-[120px]">{rec.assignedReaderName || "---"}</span>
+                        {rec.assignedReaderId ? (
+                          <Link href={`/admin/users/${rec.assignedReaderId}`} className="truncate max-w-[120px] hover:text-primary transition-colors">
+                            {rec.assignedReaderName}
+                          </Link>
+                        ) : (
+                          <span className="truncate max-w-[120px]">---</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-5">
                       {rec.sessionReaderName ? (
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-black text-primary truncate max-w-[120px]">{rec.sessionReaderName}</span>
+                          <Link href={`/admin/users/${rec.sessionReaderId}`} className="text-xs font-black text-primary truncate max-w-[120px] hover:underline">
+                            {rec.sessionReaderName}
+                          </Link>
                           {rec.bookingSlotStart && (
                             <span className="text-[10px] text-muted-foreground font-bold tracking-tighter flex items-center gap-1">
                               <Calendar className="w-3 h-3 text-primary/40" />

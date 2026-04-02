@@ -1,5 +1,4 @@
 // Database connection helper
-// Replace with your actual database connection string
 // Compatible with: Supabase, Vercel Postgres, any PostgreSQL
 
 import { Pool } from "pg"
@@ -10,12 +9,19 @@ dns.setDefaultResultOrder("ipv4first")
 
 const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
-  // Optimization for shared hosting (Hostinger)
-  max: 6, // Limit total concurrent connections to prevent reaching process limits
-  idleTimeoutMillis: 15000, // Close idle connections after 15 seconds
-  connectionTimeoutMillis: 5000, // Give up on connection after 5 seconds
+  ssl: { rejectUnauthorized: false },
+  max: 10,                        // max concurrent connections
+  min: 2,                         // keep 2 connections warm always
+  idleTimeoutMillis: 30000,       // close idle connections after 30s
+  connectionTimeoutMillis: 8000,  // give up after 8s
+  allowExitOnIdle: false,
 }) : null
+
+// Warm up pool on startup (keeps 2 connections open so first requests are fast)
+if (pool) {
+  pool.connect().then(c => c.release()).catch(() => {})
+  pool.connect().then(c => c.release()).catch(() => {})
+}
 
 export async function query<T = Record<string, unknown>>(
   text: string,
@@ -26,16 +32,13 @@ export async function query<T = Record<string, unknown>>(
     return [] as T[]
   }
 
-  const client = await pool.connect()
   try {
-    const result = await client.query(text, params)
+    // Use pool.query() directly — avoids acquire/release overhead per query
+    const result = await pool.query(text, params as any[])
     return result.rows as T[]
   } catch (error) {
     console.error("[DB] Query error:", error)
-    // Return empty array instead of throwing to keep app functional
     return [] as T[]
-  } finally {
-    client.release()
   }
 }
 

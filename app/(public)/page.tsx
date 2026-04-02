@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useI18n } from '@/lib/i18n/context'
 import { Mic, CheckCircle, Calendar, ArrowLeft, ChevronDown, BookOpen, Shield, Award, Star } from 'lucide-react'
 import { usePublicSettings } from '@/lib/hooks/use-public-settings'
@@ -318,9 +319,11 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8 border-b border-white/5 pb-10">
             <div className="flex flex-col items-center md:items-start gap-4">
               <Link href="/">
-                <img 
+                <Image 
                   src={branding.logoUrl || "/branding/main-logo.png"} 
                   alt={t.appName} 
+                  width={140}
+                  height={80}
                   className="h-16 md:h-20 w-auto object-contain" 
                 />
               </Link>

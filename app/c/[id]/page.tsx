@@ -2,15 +2,20 @@
 
 import { useState, useEffect, use } from "react"
 import { useI18n } from "@/lib/i18n/context"
-import { Loader2, Download, Award, ShieldCheck, Calendar, MapPin, Building } from "lucide-react"
+import { Loader2, Download, Award, ShieldCheck, ExternalLink } from "lucide-react"
 
 type CertificateData = {
+    student_id: string
     student_name: string
+    name_en: string | null
     university: string
     city: string
     issued_date: string
     platform_seal_url?: string
     certificate_pdf_url?: string
+    certificate_image_url?: string
+    certificate_photo_url?: string
+    serial_code?: string
 }
 
 export default function PublicCertificatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +26,7 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
     const [cert, setCert] = useState<CertificateData | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const [imgLoaded, setImgLoaded] = useState(false)
 
     useEffect(() => {
         async function fetchCert() {
@@ -29,14 +35,13 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                 if (res.ok) {
                     const data = await res.json()
                     setCert(data.certificate)
-                    // Check for auto-print parameter
                     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('print') === '1') {
-                        setTimeout(() => window.print(), 500)
+                        setTimeout(() => window.print(), 800)
                     }
                 } else {
                     setError(isAr ? "الشهادة غير موجودة أو لم يتم إصدارها بعد" : "Certificate not found or not yet issued")
                 }
-            } catch (err) {
+            } catch {
                 setError(isAr ? "حدث خطأ أثناء تحميل الشهادة" : "Error loading certificate")
             } finally {
                 setLoading(false)
@@ -44,10 +49,6 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
         }
         fetchCert()
     }, [id, isAr])
-
-    const handlePrint = () => {
-        window.print()
-    }
 
     if (loading) {
         return (
@@ -74,27 +75,86 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
         )
     }
 
+    // ── If we have a generated certificate image, show it directly ──────────
+    if (cert.certificate_image_url) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#1B5E3B]/20 flex flex-col items-center justify-center py-12 px-4 print:bg-white print:p-0">
+                {/* Certificate Image */}
+                <div className="relative w-full max-w-5xl animate-in fade-in zoom-in-95 duration-700">
+                    {/* Glow */}
+                    <div className="absolute -inset-4 bg-[#C9A227]/20 rounded-3xl blur-3xl pointer-events-none" />
+
+                    <div className="relative rounded-2xl overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] border border-white/10">
+                        {!imgLoaded && (
+                            <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
+                                <Loader2 className="w-10 h-10 animate-spin text-[#C9A227]" />
+                            </div>
+                        )}
+                        <img
+                            src={cert.certificate_image_url}
+                            alt={`Certificate for ${cert.name_en || cert.student_name}`}
+                            className={`w-full h-auto block transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setImgLoaded(true)}
+                        />
+                    </div>
+                </div>
+
+                {/* Verification badge */}
+                {cert.serial_code && (
+                    <div className="mt-8 flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white print:hidden">
+                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                        <span className="text-sm font-medium text-white/70">{isAr ? "رقم الشهادة:" : "Certificate ID:"}</span>
+                        <span className="font-mono font-bold tracking-widest text-[#C9A227]">{cert.serial_code}</span>
+                    </div>
+                )}
+
+                {/* Download button */}
+                <div className="mt-6 flex gap-4 print:hidden">
+                    <a
+                        href={cert.certificate_image_url}
+                        download={`certificate-${id}.png`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 bg-gradient-to-r from-[#C9A227] to-[#A6841E] text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:shadow-[#C9A227]/30 hover:-translate-y-1 transition-all"
+                    >
+                        <Download className="w-5 h-5" />
+                        <span>{isAr ? "تحميل الشهادة (PNG)" : "Download Certificate (PNG)"}</span>
+                    </a>
+
+                    <button
+                        onClick={() => window.print()}
+                        className="flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold py-4 px-8 rounded-2xl transition-all"
+                    >
+                        <ExternalLink className="w-5 h-5" />
+                        <span>{isAr ? "طباعة" : "Print"}</span>
+                    </button>
+                </div>
+
+                {/* Print styles */}
+                <style jsx global>{`
+                    @media print {
+                        body { background: white !important; margin: 0 !important; padding: 0 !important; }
+                        .min-h-screen { min-height: auto !important; padding: 0 !important; }
+                        @page { size: landscape; margin: 0; }
+                    }
+                `}</style>
+            </div>
+        )
+    }
+
+    // ── Fallback: HTML certificate (before image is generated) ────────────────
     const formattedDate = new Date(cert.issued_date).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
+        day: 'numeric', month: 'long', year: 'numeric'
     })
 
     return (
         <div className="min-h-screen bg-slate-100 flex flex-col items-center py-12 px-6 print:bg-white print:p-0 print:py-0">
-
-            {/* The Certificate A4 Container */}
             <div className="certificate-container relative bg-white shadow-2xl overflow-hidden print:shadow-none print:m-0"
                 style={{ width: '210mm', height: '297mm', minWidth: '210mm' }}>
-
-                {/* Decorative Border */}
-                <div className="absolute inset-8 border-[12px] border-double border-[#C9A227]/30 pointer-events-none"></div>
-                <div className="absolute inset-12 border border-[#C9A227]/20 pointer-events-none"></div>
-
-                {/* Content */}
+                <div className="absolute inset-8 border-[12px] border-double border-[#C9A227]/30 pointer-events-none" />
+                <div className="absolute inset-12 border border-[#C9A227]/20 pointer-events-none" />
                 <div className="relative h-full flex flex-col items-center pt-24 px-24 text-center">
-                    {/* Header Logo/Icon */}
-                    <div className="mb-12 relative">
+                    <div className="mb-12">
                         <div className="w-24 h-24 bg-[#1B5E3B] rounded-2xl flex items-center justify-center shadow-xl rotate-45 mx-auto">
                             <Award className="w-12 h-12 text-[#C9A227] -rotate-45" />
                         </div>
@@ -103,126 +163,49 @@ export default function PublicCertificatePage({ params }: { params: Promise<{ id
                             <p className="text-[#C9A227] font-bold text-xl mt-2 tracking-widest">{isAr ? "مبادرة تصحيح وذكر" : "Recitation & Mastery Initiative"}</p>
                         </div>
                     </div>
-
-                    <div className="w-32 h-1 bg-[#C9A227]/20 mb-16"></div>
-
-                    {/* Main Text */}
+                    <div className="w-32 h-1 bg-[#C9A227]/20 mb-16" />
                     <div className="space-y-8">
                         <h2 className="text-3xl font-serif text-slate-700 italic">{isAr ? "يُمنح هذا التبرير لـ" : "This certificate is awarded to"}</h2>
-
-                        <div className="py-2">
-                            <h3 className="text-6xl font-black text-[#1B5E3B] underline underline-offset-[16px] decoration-[#C9A227]/40">
-                                {cert.student_name}
-                            </h3>
-                        </div>
-
+                        <h3 className="text-6xl font-black text-[#1B5E3B] underline underline-offset-[16px] decoration-[#C9A227]/40">
+                            {cert.name_en || cert.student_name}
+                        </h3>
                         <p className="text-2xl text-slate-600 leading-relaxed max-w-2xl mt-12">
                             {isAr
-                                ? "وذلك تقديراً لإتمامه إتقان قراءة سورة الفاتحة على الوجه المطلوب والمجاز من قبل اللجان العلمية بالمنصة."
-                                : "In recognition of achieving full mastery in the recitation of Surah Al-Fatiha as approved by our scientific committee."}
+                                ? "وذلك تقديراً لإتمامه إتقان قراءة سورة الفاتحة على الوجه المطلوب."
+                                : "In recognition of achieving full mastery in the recitation of Surah Al-Fatiha."}
                         </p>
                     </div>
-
-                    {/* Details Bar */}
-                    <div className="grid grid-cols-2 gap-x-20 gap-y-12 mt-20 text-right rtl:text-right ltr:text-left w-full max-w-xl">
+                    <div className="grid grid-cols-2 gap-x-20 gap-y-12 mt-20 text-right w-full max-w-xl">
+                        {cert.serial_code && (
+                            <div className="flex flex-col gap-2 col-span-2">
+                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <ShieldCheck className="w-4 h-4" /> {isAr ? "رقم الشهادة" : "Certificate ID"}
+                                </span>
+                                <span className="text-xl font-mono font-bold text-slate-800">{cert.serial_code}</span>
+                            </div>
+                        )}
                         <div className="flex flex-col gap-2">
-                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <Building className="w-4 h-4" /> {isAr ? "الجهة التابع لها" : "Affiliation"}
-                            </span>
-                            <span className="text-xl font-bold text-slate-800">{cert.university || (isAr ? "غير محدد" : "Not specified")}</span>
+                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{isAr ? "الجامعة" : "University"}</span>
+                            <span className="text-xl font-bold text-slate-800">{cert.university || (isAr ? "غير محدد" : "N/A")}</span>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <MapPin className="w-4 h-4" /> {isAr ? "المدينة" : "City"}
-                            </span>
-                            <span className="text-xl font-bold text-slate-800">{cert.city || (isAr ? "غير محدد" : "Not specified")}</span>
+                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{isAr ? "المدينة" : "City"}</span>
+                            <span className="text-xl font-bold text-slate-800">{cert.city || (isAr ? "غير محدد" : "N/A")}</span>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <Calendar className="w-4 h-4" /> {isAr ? "تاريخ الإصدار" : "Issue Date"}
-                            </span>
+                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{isAr ? "تاريخ الإصدار" : "Issue Date"}</span>
                             <span className="text-xl font-bold text-slate-800">{formattedDate}</span>
                         </div>
-                        <div className="flex flex-col gap-2">
-                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4" /> {isAr ? "رمز الموثوقية" : "Verification Code"}
-                            </span>
-                            <span className="text-xl font-mono font-bold text-slate-800">{id.slice(0, 8).toUpperCase()}</span>
-                        </div>
-                    </div>
-
-                    {/* Footer Seals */}
-                    <div className="mt-auto mb-20 w-full flex justify-between items-end">
-                        <div className="text-center">
-                            {cert.platform_seal_url ? (
-                                <div className="w-24 h-24 mb-2 mx-auto">
-                                    <img src={cert.platform_seal_url} alt="Platform Seal" className="w-full h-full object-contain drop-shadow-sm" />
-                                </div>
-                            ) : (
-                                <div className="w-24 h-24 border-2 border-slate-200 rounded-full flex items-center justify-center mb-2 mx-auto opacity-50 grayscale">
-                                    <img src="/logo.png" alt="Platform Seal" className="w-12 h-12 grayscale" />
-                                </div>
-                            )}
-                            <p className="text-xs font-bold text-slate-400">{isAr ? "ختم المنصة" : "Platform Seal"}</p>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                            <div className="mb-4">
-                                <p className="text-xl font-serif text-[#1B5E3B] font-bold border-b border-[#C9A227] pb-1 px-4">{isAr ? "إدارة مبادرة إتقان" : "Itqaan Management"}</p>
-                            </div>
-                            <div className="flex gap-1 text-[#C9A227]">
-                                {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-2 h-2 rounded-full bg-current" />)}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Signature/Watermark Background */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] rotate-12 pointer-events-none">
-                        <Award className="w-[500px] h-[500px]" />
                     </div>
                 </div>
             </div>
-
-            {/* Floating Action Button for Download (Desktop/Mobile) */}
-            {cert.certificate_pdf_url && (
-                <div className="fixed bottom-8 right-8 flex flex-col gap-3 print:hidden transition-all transform hover:scale-105">
-                    <a
-                        href={cert.certificate_pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 bg-[#1B5E3B] text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:bg-[#124028] transition-all"
-                    >
-                        <Download className="w-6 h-6" />
-                        <span>{isAr ? "تحميل الشهادة (PDF)" : "Download Certificate (PDF)"}</span>
-                    </a>
-                </div>
-            )}
-
             <style jsx global>{`
-        @media print {
-          body {
-            background: white !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .min-h-screen {
-            min-height: auto !important;
-            background: white !important;
-            padding: 0 !important;
-          }
-          .certificate-container {
-            width: 100% !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-          }
-           @page {
-            size: A4;
-            margin: 0;
-          }
-        }
-      `}</style>
+                @media print {
+                    body { background: white !important; }
+                    .certificate-container { width: 100% !important; height: 100vh !important; margin: 0 !important; }
+                    @page { size: A4; margin: 0; }
+                }
+            `}</style>
         </div>
     )
 }

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; padding: 20px; font-family: monospace; background: #333; color: white; }
+        .container { position: relative; display: inline-block; border: 1px solid #666; }
+        #coords { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 20px; font-size: 24px; border: 2px solid red; z-index: 1000; }
+        #log { position: fixed; top: 100px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; max-height: 80vh; overflow-y: auto; }
+        img { max-width: none; cursor: crosshair; }
+    </style>
+</head>
+<body>
+    <div id="coords">Click anywhere to log coordinates...</div>
+    <div id="log"></div>
+    <div class="container">
+        <!-- Make sure image displays at intrinsic scale 2528x1684 -->
+        <img id="cert" src="/Certificate.png" width="2528" height="1684" />
+    </div>
+
+    <script>
+        const img = document.getElementById('cert');
+        const coordsDisplay = document.getElementById('coords');
+        const logDisplay = document.getElementById('log');
+
+        img.addEventListener('mousemove', (e) => {
+            const rect = img.getBoundingClientRect();
+            // Calculate natural coordinates based on current zoom/scale
+            const scaleX = img.naturalWidth / rect.width;
+            const scaleY = img.naturalHeight / rect.height;
+            const x = Math.round((e.clientX - rect.left) * scaleX);
+            const y = Math.round((e.clientY - rect.top) * scaleY);
+            coordsDisplay.textContent = `Hover: X: ${x}, Y: ${y}`;
+        });
+
+        let clickCount = 0;
+        img.addEventListener('click', (e) => {
+            const rect = img.getBoundingClientRect();
+            const scaleX = img.naturalWidth / rect.width;
+            const scaleY = img.naturalHeight / rect.height;
+            const x = Math.round((e.clientX - rect.left) * scaleX);
+            const y = Math.round((e.clientY - rect.top) * scaleY);
+            
+            clickCount++;
+            const msg = `Click ${clickCount}: X=${x}, Y=${y}`;
+            coordsDisplay.textContent = `Last Click: X: ${x}, Y: ${y}`;
+            
+            const div = document.createElement('div');
+            div.textContent = msg;
+            logDisplay.prepend(div);
+            
+            // Draw a red dot
+            const dot = document.createElement('div');
+            dot.style.position = 'absolute';
+            dot.style.left = (e.clientX - rect.left - 5) + 'px';
+            dot.style.top = (e.clientY - rect.top - 5) + 'px';
+            dot.style.width = '10px';
+            dot.style.height = '10px';
+            dot.style.backgroundColor = 'red';
+            dot.style.borderRadius = '50%';
+            dot.style.pointerEvents = 'none';
+            img.parentElement.appendChild(dot);
+        });
+    </script>
+</body>
+</html>

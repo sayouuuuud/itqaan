@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
 
       {/* Tabs and Search Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex p-1 bg-muted/50 border border-border rounded-2xl w-full overflow-x-auto overflow-y-hidden hide-scrollbar gap-1 shrink-0">
+        <div className="flex p-1 bg-muted/50 border border-border rounded-2xl w-full lg:w-auto flex-1 overflow-x-auto overflow-y-hidden hide-scrollbar gap-1">
           {[
             { id: "students", label: t.admin.students },
             { id: "readers", label: t.admin.readers },
@@ -221,7 +221,7 @@ export default function AdminUsersPage() {
             </button>
           ))}
         </div>
-        <div className="relative w-full lg:max-w-sm shrink-0">
+        <div className="relative w-full lg:max-w-sm">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder={t.search}

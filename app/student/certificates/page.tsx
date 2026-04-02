@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useI18n } from '@/lib/i18n/context'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Calendar, MapPin, Award, CheckCircle2, Clock, Inbox, ExternalLink, Printer } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Calendar, MapPin, Award, CheckCircle2, Clock, Inbox, Download, FileDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -175,19 +175,33 @@ export default function StudentCertificates() {
                                     {certificates[0].certificate_issued && (
                                         <div className="mt-10 pt-8 border-t border-gray-100/80 dark:border-white/5 flex flex-col sm:flex-row gap-4 items-center justify-center">
                                             {certificates[0].certificate_url && (
-                                                <Button asChild variant="outline" className="w-full sm:w-auto border-2 border-[#1B5E3B]/20 text-[#1B5E3B] hover:bg-[#1B5E3B]/5 rounded-xl h-14 px-8 font-bold transition-all duration-300">
-                                                    <a href={certificates[0].certificate_url} target="_blank" rel="noopener noreferrer">
-                                                        <ExternalLink className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" />
-                                                        {locale === 'ar' ? 'عرض الشهادة الرقمية' : 'View Digital Certificate'}
-                                                    </a>
+                                                <Button 
+                                                    variant="outline" 
+                                                    className="w-full sm:w-auto border-2 border-[#1B5E3B]/20 text-[#1B5E3B] hover:bg-[#1B5E3B]/5 rounded-xl h-14 px-8 font-bold transition-all duration-300"
+                                                    onClick={() => {
+                                                        const link = document.createElement('a');
+                                                        link.href = certificates[0].certificate_url!;
+                                                        link.download = `Certificate-${certificates[0].id}.png`;
+                                                        link.target = "_blank";
+                                                        document.body.appendChild(link);
+                                                        link.click();
+                                                        document.body.removeChild(link);
+                                                    }}
+                                                >
+                                                    <Download className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" />
+                                                    {locale === 'ar' ? 'تنزيل كصورة (PNG)' : 'Download Image (PNG)'}
                                                 </Button>
                                             )}
-                                            {certificates[0].certificate_url && (
-                                                <Button asChild className="w-full sm:w-auto bg-[#C9A227] hover:bg-[#C29837] text-[#1B5E3B] rounded-xl h-14 px-8 font-extrabold shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 border-b-4 border-[#B08A32] active:border-b-0 active:translate-y-1">
-                                                    <a href={`${certificates[0].certificate_url}?print=1`} target="_blank" rel="noopener noreferrer">
-                                                        <Printer className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0 opacity-80" />
-                                                        {locale === 'ar' ? 'طباعة / تحميل PDF' : 'Print / Download PDF'}
-                                                    </a>
+                                            {(certificates[0].pdf_file_url || certificates[0].certificate_pdf_url || certificates[0].certificate_url) && (
+                                                <Button 
+                                                    className="w-full sm:w-auto bg-[#C9A227] hover:bg-[#C29837] text-[#1B5E3B] rounded-xl h-14 px-8 font-extrabold shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 border-b-4 border-[#B08A32] active:border-b-0 active:translate-y-1"
+                                                    onClick={() => {
+                                                        const pdfUrl = certificates[0].pdf_file_url || certificates[0].certificate_pdf_url || certificates[0].certificate_url;
+                                                        window.open(pdfUrl, '_blank');
+                                                    }}
+                                                >
+                                                    <FileDown className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0 opacity-80" />
+                                                    {locale === 'ar' ? 'عرض / تنزيل PDF' : 'View / Download PDF'}
                                                 </Button>
                                             )}
                                         </div>

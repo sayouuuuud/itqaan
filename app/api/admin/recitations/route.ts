@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
             `SELECT 
          r.id, 
          r.surah_name as "surah", 
+         r.student_id as "studentId",
          u.name as "studentName", 
          u.email as "studentEmail",
          r.status, 
@@ -53,6 +54,7 @@ export async function GET(req: NextRequest) {
          reader.name as "assignedReaderName",
          r.ayah_from as "fromAyah",
          r.ayah_to as "toAyah",
+         bk.reader_id as "sessionReaderId",
          session_reader.name as "sessionReaderName",
          bk.status as "bookingStatus",
          bk.slot_start as "bookingSlotStart"

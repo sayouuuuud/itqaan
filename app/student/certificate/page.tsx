@@ -1,10 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Award, User, MapPin, Building, FileText, ArrowLeft, Loader2, Info, CheckCircle } from "lucide-react"
+
+// UploadThing client
+import { UploadButton } from "@uploadthing/react"
 
 export default function CertificatePage() {
   const router = useRouter()
@@ -25,11 +28,14 @@ export default function CertificatePage() {
     entity_id: "",
     entity_other: "",
     phone: "",
-    age: ""
+    age: "",
+    certificate_photo_url: ""
   })
 
   const [universities, setUniversities] = useState<string[]>([])
   const [entities, setEntities] = useState<{ id: string, name: string }[]>([])
+  const [studentName, setStudentName] = useState("")
+  const [serialCode, setSerialCode] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -37,15 +43,12 @@ export default function CertificatePage() {
         const res = await fetch(`/api/certificate?t=${Date.now()}`)
         if (res.ok) {
           const data = await res.json()
-          console.log('Certificate page API response:', data)
           const eligibleStatuses = ['mastered', 'session_booked']
           if (!data.certificateEnabled || !eligibleStatuses.includes(data.recitationStatus)) {
-            console.log('User not eligible for certificate page, redirecting to /student. Status:', data.recitationStatus)
             router.push("/student")
             return
           }
           if (data.certificate) {
-            console.log('Certificate data found:', data.certificate)
             const predefinedUniversities = data.universities || t.student.universities || []
             const predefinedColleges = ["كلية الشريعة", "كلية الطب", "كلية الهندسة", "كلية علوم الحاسب"]
             const predefinedCities = ["الرياض", "جدة", "مكة المكرمة", "المدينة المنورة", "الدمام"]
@@ -53,8 +56,6 @@ export default function CertificatePage() {
             const dbUniv = data.certificate.university || ""
             const dbColl = data.certificate.college || ""
             const dbCity = data.certificate.city || ""
-            const dbEntityId = data.certificate.entity_id || ""
-            const dbEntityOther = data.certificate.entity_other || ""
 
             const isUnivOther = dbUniv && !predefinedUniversities.includes(dbUniv)
             const isCollOther = dbColl && !predefinedColleges.includes(dbColl)
@@ -67,30 +68,33 @@ export default function CertificatePage() {
               college_other: isCollOther ? dbColl : "",
               city: isCityOther ? "أخرى" : dbCity,
               city_other: isCityOther ? dbCity : "",
-              entity_id: dbEntityId ? dbEntityId : (dbEntityOther ? "other" : ""),
-              entity_other: dbEntityOther,
+              entity_id: data.certificate.entity_id ? data.certificate.entity_id : (data.certificate.entity_other ? "other" : ""),
+              entity_other: data.certificate.entity_other || "",
               phone: data.certificate.phone || "",
-              age: data.certificate.age ? data.certificate.age.toString() : ""
+              age: data.certificate.age ? data.certificate.age.toString() : "",
+              certificate_photo_url: data.certificate.certificate_photo_url || ""
             })
+
+
+            if (data.certificate.serial_code) {
+              setSerialCode(data.certificate.serial_code)
+            }
+            if (data.certificate.student_name) {
+              setStudentName(data.certificate.student_name)
+            }
             if (data.universities) setUniversities(data.universities)
             if (data.entities) setEntities(data.entities)
-            // If they already have a certificate issued, maybe show success state
             if (data.certificate.certificate_issued) {
-              console.log('Setting success to true - certificate is issued')
               setSuccess(true)
-            } else {
-              console.log('Certificate not issued yet')
             }
           } else {
             if (data.universities) setUniversities(data.universities)
             if (data.entities) setEntities(data.entities)
-            console.log('No certificate data found')
           }
         } else {
           setError(t.student.serverError)
         }
       } catch (err) {
-        console.error("Failed to load certificate data", err)
         setError(t.student.serverError)
       } finally {
         setLoading(false)
@@ -100,11 +104,10 @@ export default function CertificatePage() {
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -119,7 +122,8 @@ export default function CertificatePage() {
         entity_id: formData.entity_id === 'other' ? null : formData.entity_id,
         entity_other: formData.entity_id === 'other' ? formData.entity_other : null,
         phone: formData.phone,
-        age: formData.age
+        age: formData.age,
+        certificate_photo_url: formData.certificate_photo_url || null,
       }
 
       const res = await fetch("/api/certificate", {
@@ -129,6 +133,8 @@ export default function CertificatePage() {
       })
 
       if (res.ok) {
+        const data = await res.json()
+        if (data.certificate?.serial_code) setSerialCode(data.certificate.serial_code)
         setSuccess(true)
       } else {
         const data = await res.json()
@@ -155,7 +161,6 @@ export default function CertificatePage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] bg-[#C9A227]/5 rounded-full blur-[120px]" />
         <div className="absolute top-[20%] -left-[10%] w-[30%] h-[30%] bg-[#1B5E3B]/5 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/pinstripe.png')] opacity-[0.03]" />
       </div>
 
       <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -166,24 +171,19 @@ export default function CertificatePage() {
           <span className="text-[#1B5E3B] opacity-80">{t.student.certificate}</span>
         </div>
 
-        {/* Header Section */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-right">
           <div className="relative p-5 bg-gradient-to-br from-[#C9A227] to-[#A6841E] rounded-3xl shadow-xl shadow-[#C9A227]/20 transform hover:scale-110 transition-transform duration-500 shrink-0">
             <Award className="w-10 h-10 text-white" />
             <div className="absolute -inset-1 bg-white/20 dark:bg-black/20 rounded-3xl blur-md -z-10 animate-pulse" />
           </div>
           <div className="flex-1">
-            <h1 className="text-4xl font-extrabold text-foreground tracking-tight leading-tight">
-              {t.student.certificateTitle}
-            </h1>
-            <p className="text-muted-foreground text-lg mt-2 font-medium">
-              {t.student.issueCertificateDesc}
-            </p>
+            <h1 className="text-4xl font-extrabold text-foreground tracking-tight leading-tight">{t.student.certificateTitle}</h1>
+            <p className="text-muted-foreground text-lg mt-2 font-medium">{t.student.issueCertificateDesc}</p>
           </div>
         </div>
 
         <div className="relative group">
-          {/* Glass Card Container */}
           <div className="absolute -inset-[1px] bg-gradient-to-br from-white/40 to-transparent dark:from-white/10 dark:to-transparent rounded-[2.5rem] blur-[1px] -z-10" />
           <div className="bg-card/70 backdrop-blur-xl rounded-[2.5rem] border border-border shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] overflow-hidden">
 
@@ -194,9 +194,13 @@ export default function CertificatePage() {
                   <div className="absolute inset-0 rounded-full border-4 border-emerald-100 dark:border-emerald-500/20 animate-ping" />
                 </div>
                 <h2 className="text-3xl font-black text-foreground mb-4">{t.student.certificateSuccessTitle}</h2>
-                <p className="text-muted-foreground text-lg max-w-sm mx-auto leading-relaxed">
-                  {t.student.certificateSuccessDesc}
-                </p>
+                <p className="text-muted-foreground text-lg max-w-sm mx-auto leading-relaxed">{t.student.certificateSuccessDesc}</p>
+                {serialCode && (
+                  <div className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#1B5E3B]/10 border border-[#1B5E3B]/20 rounded-2xl">
+                    <CheckCircle className="w-4 h-4 text-[#1B5E3B]" />
+                    <span className="font-mono font-bold text-[#1B5E3B] text-sm tracking-widest">{serialCode}</span>
+                  </div>
+                )}
                 <div className="pt-10">
                   <Link href="/student" className="inline-flex items-center gap-3 bg-gradient-to-r from-[#1B5E3B] to-[#2D8C5B] hover:from-[#124028] hover:to-[#1B5E3B] text-white font-bold py-4 px-10 rounded-2xl transition-all shadow-lg shadow-[#1B5E3B]/20 hover:shadow-xl hover:-translate-y-1">
                     {t.student.backToDashboard}
@@ -207,7 +211,7 @@ export default function CertificatePage() {
             ) : (
               <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10">
                 {error && (
-                  <div className="bg-red-50/80 backdrop-blur-sm text-red-700 p-5 rounded-2xl text-sm border border-red-100 flex items-center gap-3 animate-shake">
+                  <div className="bg-red-50/80 backdrop-blur-sm text-red-700 p-5 rounded-2xl text-sm border border-red-100 flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-red-500" />
                     {error}
                   </div>
@@ -222,11 +226,13 @@ export default function CertificatePage() {
                   </p>
                 </div>
 
+
+
                 <div className="space-y-12">
                   {/* Academic Info Group */}
                   <section className="space-y-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
+                      <div className="w-1.5 h-6 bg-[#1B5E3B] rounded-full" />
                       <h2 className="text-xl font-bold text-foreground">{isAr ? "البيانات الأكاديمية" : "Academic Information"}</h2>
                     </div>
 
@@ -256,21 +262,13 @@ export default function CertificatePage() {
                           </div>
                         </div>
                         {formData.university === 'أخرى' && (
-                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
-                            <input
-                              type="text"
-                              name="university_other"
-                              value={formData.university_other}
-                              onChange={handleChange}
-                              placeholder={t.student.otherPlaceholder}
-                              required
-                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
-                            />
-                          </div>
+                          <input type="text" name="university_other" value={formData.university_other} onChange={handleChange}
+                            placeholder={t.student.otherPlaceholder} required
+                            className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground" />
                         )}
                       </div>
 
-                      {/* College / Major */}
+                      {/* College */}
                       <div className="space-y-3">
                         <label className="block text-sm font-bold text-muted-foreground px-1 uppercase tracking-wide">{t.student.collegeLabel}</label>
                         <div className="relative group/field">
@@ -294,17 +292,9 @@ export default function CertificatePage() {
                           </div>
                         </div>
                         {formData.college === 'أخرى' && (
-                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
-                            <input
-                              type="text"
-                              name="college_other"
-                              value={formData.college_other}
-                              onChange={handleChange}
-                              placeholder={t.student.otherPlaceholder}
-                              required
-                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
-                            />
-                          </div>
+                          <input type="text" name="college_other" value={formData.college_other} onChange={handleChange}
+                            placeholder={t.student.otherPlaceholder} required
+                            className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground" />
                         )}
                       </div>
                     </div>
@@ -313,7 +303,7 @@ export default function CertificatePage() {
                   {/* Personal & Residency Group */}
                   <section className="space-y-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-1.5 h-6 bg-[#1B5E3B] rounded-full" />
+                      <div className="w-1.5 h-6 bg-[#C9A227] rounded-full" />
                       <h2 className="text-xl font-bold text-foreground">{isAr ? "بيانات السكن والتواصل" : "Residency & Contact"}</h2>
                     </div>
 
@@ -343,21 +333,13 @@ export default function CertificatePage() {
                           </div>
                         </div>
                         {formData.city === 'أخرى' && (
-                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
-                            <input
-                              type="text"
-                              name="city_other"
-                              value={formData.city_other}
-                              onChange={handleChange}
-                              placeholder={t.student.otherPlaceholder}
-                              required
-                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
-                            />
-                          </div>
+                          <input type="text" name="city_other" value={formData.city_other} onChange={handleChange}
+                            placeholder={t.student.otherPlaceholder} required
+                            className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground" />
                         )}
                       </div>
 
-                      {/* Mobile Number */}
+                      {/* Phone */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-end px-1">
                           <label className="block text-sm font-bold text-muted-foreground uppercase tracking-wide">{t.student.mobileLabel}</label>
@@ -365,17 +347,11 @@ export default function CertificatePage() {
                         </div>
                         <div className="relative group/field">
                           <User className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
+                          <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
                             placeholder="05xxxxxxxx"
                             className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm text-left font-medium text-foreground"
-                            dir="ltr"
-                          />
+                            dir="ltr" />
                         </div>
-                        <p className="text-[10px] text-muted-foreground px-1 font-medium">{t.student.mobilePurpose}</p>
                       </div>
 
                       {/* Age */}
@@ -385,17 +361,11 @@ export default function CertificatePage() {
                           <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-bold">{isAr ? "اختياري" : "OPTIONAL"}</span>
                         </div>
                         <div className="relative group/field">
-                          <Info className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within/field:text-[#1B5E3B]" />
-                          <input
-                            type="number"
-                            name="age"
-                            value={formData.age}
-                            onChange={handleChange}
+                          <Info className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                          <input type="number" name="age" value={formData.age} onChange={handleChange}
                             placeholder="25"
-                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm font-medium text-foreground"
-                          />
+                            className="w-full pl-6 pr-12 py-4 bg-muted/30 border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] transition-all text-sm font-medium text-foreground" />
                         </div>
-                        <p className="text-[10px] text-muted-foreground px-1 font-medium">{t.student.agePurpose}</p>
                       </div>
 
                       {/* Authorized Entity */}
@@ -423,24 +393,16 @@ export default function CertificatePage() {
                           </div>
                         </div>
                         {formData.entity_id === 'other' && (
-                          <div className="animate-in slide-in-from-top-4 fade-in duration-300">
-                            <input
-                              type="text"
-                              name="entity_other"
-                              value={formData.entity_other}
-                              onChange={handleChange}
-                              placeholder={t.student.otherPlaceholder}
-                              required
-                              className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground"
-                            />
-                          </div>
+                          <input type="text" name="entity_other" value={formData.entity_other} onChange={handleChange}
+                            placeholder={t.student.otherPlaceholder} required
+                            className="w-full px-6 py-4 bg-card border border-border rounded-2xl focus:ring-4 focus:ring-[#1B5E3B]/10 focus:border-[#1B5E3B] text-sm shadow-sm font-medium text-foreground" />
                         )}
                       </div>
                     </div>
                   </section>
                 </div>
 
-                {/* Submit Button Section */}
+                {/* Submit */}
                 <div className="pt-10 border-t border-border flex flex-col items-center">
                   <button
                     type="submit"
@@ -463,12 +425,12 @@ export default function CertificatePage() {
           </div>
         </div>
 
-        {/* Support Section */}
+        {/* Support */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-8 bg-slate-900 border border-white/5 rounded-[2rem] text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A227]/10 blur-[50px] rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="w-12 h-12 bg-[#C9A227]/20 rounded-xl flex items-center justify-center">
-              < Award className="w-6 h-6 text-[#C9A227]" />
+              <Award className="w-6 h-6 text-[#C9A227]" />
             </div>
             <div>
               <h4 className="font-bold text-lg">{isAr ? "هل لديك استفسار؟" : "Have a question?"}</h4>

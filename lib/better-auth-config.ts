@@ -3,6 +3,10 @@ import { postgresAdapter } from "better-auth/adapters/postgres"
 import { emailOTP, passkey, twoFactor } from "better-auth/plugins"
 import pool from "./db"
 
+if (!pool) {
+  throw new Error("Database pool is not initialized. Check your DATABASE_URL environment variable.")
+}
+
 /**
  * Better Auth Configuration
  * Integrates with existing PostgreSQL database and LMS schema
@@ -11,8 +15,11 @@ import pool from "./db"
 
 export const auth = betterAuth({
   database: postgresAdapter({
-    client: pool,
+    client: pool as any,
   }),
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET || "your-secret-key-change-me",
+  basePath: "/api/auth",
   emailAndPassword: {
     enabled: true,
     password: {
@@ -60,3 +67,5 @@ export const auth = betterAuth({
     },
   },
 })
+
+export const getSession = () => auth.api.getSession()

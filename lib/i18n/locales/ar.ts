@@ -1,6 +1,9 @@
 export const ar = {
   // Locale identifier
   locale: 'ar',
+  common: {
+    submitting: 'جاري الإرسال...',
+  },
   // Common
   appName: 'منصة إتقان التعليمية',
   userFallbackLetter: 'أ',

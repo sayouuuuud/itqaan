@@ -1,6 +1,9 @@
 export const en = {
   // Locale identifier
   locale: 'en',
+  common: {
+    submitting: 'Submitting...',
+  },
   // Common
   appName: 'Itqan Educational Platform',
   userFallbackLetter: 'U',

@@ -6,7 +6,7 @@ const JWT_SECRET = new TextEncoder().encode(
 )
 
 const publicPaths = ["/", "/about", "/contact", "/sitemap-page", "/login", "/login-admin", "/register", "/reader-register", "/forgot-password", "/reset-password", "/verify", "/privacy", "/terms", "/maintenance"]
-const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics"]
+const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics", "/api/uploadthing"]
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl

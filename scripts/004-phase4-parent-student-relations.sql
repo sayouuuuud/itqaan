@@ -18,13 +18,7 @@ CREATE TABLE IF NOT EXISTS parent_student_links (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
-  UNIQUE(parent_id, student_id),
-  CONSTRAINT parent_has_parent_role CHECK (parent_id IN (
-    SELECT id FROM users WHERE role = 'PARENT'
-  )),
-  CONSTRAINT student_has_student_role CHECK (student_id IN (
-    SELECT id FROM users WHERE role = 'STUDENT'
-  ))
+  UNIQUE(parent_id, student_id)
 );
 
 -- Step 2: Create indexes for efficient queries
@@ -38,7 +32,39 @@ CREATE INDEX IF NOT EXISTS idx_parent_student_links_parent_active
 ON parent_student_links(parent_id, is_active) 
 WHERE is_active = TRUE;
 
--- Step 4: Create function to get parent's students
+-- Step 4: Create trigger to validate parent has PARENT role
+CREATE OR REPLACE FUNCTION validate_parent_role()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM users WHERE id = NEW.parent_id AND role = 'PARENT') THEN
+    RAISE EXCEPTION 'parent_id must have PARENT role';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_parent_role
+BEFORE INSERT OR UPDATE ON parent_student_links
+FOR EACH ROW
+EXECUTE FUNCTION validate_parent_role();
+
+-- Step 5: Create trigger to validate student has STUDENT role
+CREATE OR REPLACE FUNCTION validate_student_role()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM users WHERE id = NEW.student_id AND role = 'STUDENT') THEN
+    RAISE EXCEPTION 'student_id must have STUDENT role';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_student_role
+BEFORE INSERT OR UPDATE ON parent_student_links
+FOR EACH ROW
+EXECUTE FUNCTION validate_student_role();
+
+-- Step 6: Create function to get parent's students
 CREATE OR REPLACE FUNCTION get_parent_students(p_parent_id UUID)
 RETURNS TABLE (
   student_id UUID,
@@ -67,7 +93,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 5: Create function to get student's parents
+-- Step 7: Create function to get student's parents
 CREATE OR REPLACE FUNCTION get_student_parents(p_student_id UUID)
 RETURNS TABLE (
   parent_id UUID,
@@ -94,7 +120,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 6: Create audit table for tracking parent-student link changes
+-- Step 8: Create audit table for tracking parent-student link changes
 CREATE TABLE IF NOT EXISTS parent_student_link_audit (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   parent_student_link_id UUID REFERENCES parent_student_links(id) ON DELETE CASCADE,

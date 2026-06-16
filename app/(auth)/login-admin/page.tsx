@@ -58,6 +58,8 @@ export default function AdminLoginPage() {
             const adminRoles = ['admin', 'student_supervisor', 'reciter_supervisor']
             if (adminRoles.includes(role)) {
                 router.push('/admin')
+            } else if (role === 'initiative_admin') {
+                router.push('/initiative')
             } else {
                 router.push(`/${role}`)
             }

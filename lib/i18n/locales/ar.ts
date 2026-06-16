@@ -803,6 +803,8 @@ export const ar = {
     messageUser: 'مراسلة المستخدم',
     securitySettings: 'إعدادات الأمان',
     readerApplications: 'طلبات المقرئين',
+    initiatives: 'المبادرات',
+    initiativeAdmin: 'مشرف المبادرة',
     reviews: 'المراجعات',
     bookings: 'الجلسات والحجوزات',
     conversations: 'مركز المحادثات',

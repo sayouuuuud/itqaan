@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import {
   Building2, Clock, CheckCircle, XCircle, PauseCircle, Users, Mail, Phone,
-  ArrowRight, Loader2, ShieldCheck, User as UserIcon, Target, PlayCircle,
+  ArrowRight, Loader2, ShieldCheck, User as UserIcon, Target, PlayCircle, Link2, Copy,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -35,6 +35,7 @@ type Initiative = {
   students_count: number
   approved_at: string | null
   created_at: string
+  join_code: string | null
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -176,6 +177,29 @@ export default function InitiativeDetailPage() {
         {initiative.admin_email && (
           <InfoCard icon={<ShieldCheck className="w-5 h-5" />} label="حساب مشرف المبادرة" value={initiative.admin_email} ltr />
         )}
+        {initiative.join_code && (
+          <div className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4 md:col-span-2">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Link2 className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">رابط دعوة الطلاب</p>
+              <p className="text-sm font-mono font-bold text-primary truncate ltr:text-left" dir="ltr">
+                {typeof window !== "undefined" ? window.location.origin : ""}/join/{initiative.join_code}
+              </p>
+            </div>
+            <button
+              className="shrink-0 p-2 hover:bg-muted/60 rounded-xl transition-colors"
+              onClick={() => {
+                const link = `${window.location.origin}/join/${initiative.join_code}`
+                navigator.clipboard.writeText(link)
+                toast.success("تم نسخ رابط الدعوة")
+              }}
+            >
+              <Copy className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        )}
       </div>
 
       {initiative.status === "rejected" && initiative.rejection_reason && (
@@ -220,6 +244,13 @@ export default function InitiativeDetailPage() {
           <p className="text-sm text-muted-foreground font-bold">تم رفض هذا الطلب.</p>
         )}
       </div>
+
+      {/* Per-initiative analytics — visible once approved or suspended */}
+      {(initiative.status === "approved" || initiative.status === "suspended") && (
+        <div className="bg-card border border-border rounded-3xl p-8">
+          <InitiativeAnalytics initiativeId={initiative.id} />
+        </div>
+      )}
     </div>
   )
 }

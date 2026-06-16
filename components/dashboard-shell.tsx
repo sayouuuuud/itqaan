@@ -14,14 +14,14 @@ import {
   Menu, X, Users, Settings, BarChart3, ClipboardList, Clock, MessageSquare,
   Search, Plus, BookOpen, Award, UserCheck, CalendarCheck, CalendarDays,
   MessagesSquare, Megaphone, ScrollText, PieChart, Star, ShieldCheck,
-  Globe, Home, Archive, Shield, Phone
+  Globe, Home, Archive, Shield, Phone, Building2, Link2, Upload, GitCompare
 } from 'lucide-react'
 import { usePublicSettings } from '@/lib/hooks/use-public-settings'
 
 type NavItem = { href: string; label: string; icon: React.ElementType; badge?: number | string | null }
 type NavSection = { title?: string; items: NavItem[] }
 
-const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student_supervisor' | 'reciter_supervisor', { sections: NavSection[], label: string, name: string, sublabel: string }> => ({
+const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student_supervisor' | 'reciter_supervisor' | 'initiative_admin', { sections: NavSection[], label: string, name: string, sublabel: string }> => ({
   student: {
     sections: [
       {
@@ -75,6 +75,8 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
           { href: '/admin/bookings', label: t.admin.bookings, icon: CalendarDays },
           { href: '/admin/conversations', label: t.admin.conversations, icon: MessagesSquare },
           { href: '/admin/certificates', label: t.admin.certificates.title, icon: Award },
+          { href: '/admin/initiatives', label: t.admin.initiatives || 'المبادرات', icon: Building2 },
+          { href: '/admin/initiatives/compare', label: 'مقارنة المبادرات', icon: GitCompare },
         ]
       },
       {
@@ -140,10 +142,30 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
       }
     ],
     label: t.auth.reciterSupervisor, name: t.auth.reciterSupervisor, sublabel: t.auth.reciterSupervisor
+  },
+  initiative_admin: {
+    sections: [
+      {
+        items: [
+          { href: '/initiative', label: t.admin.dashboard, icon: LayoutDashboard },
+          { href: '/initiative/participants', label: 'المشاركون', icon: Users },
+          { href: '/initiative/participants/import', label: 'استيراد CSV', icon: Upload },
+          { href: '/initiative/invite', label: 'رابط الدعوة', icon: Link2 },
+          { href: '/initiative/stats', label: 'الإحصائيات', icon: BarChart3 },
+        ]
+      },
+      {
+        title: t.shell.account,
+        items: [
+          { href: '/initiative/profile', label: t.student.profile, icon: User },
+        ]
+      }
+    ],
+    label: t.admin.initiativeAdmin || 'مشرف المبادرة', name: t.admin.initiativeAdmin || 'مشرف المبادرة', sublabel: t.admin.initiativeAdmin || 'مشرف المبادرة'
   }
 })
 
-export function DashboardShell({ role, children, headerTitle }: { role: 'student' | 'reader' | 'admin' | 'student_supervisor' | 'reciter_supervisor'; children: React.ReactNode; headerTitle?: string }) {
+export function DashboardShell({ role, children, headerTitle }: { role: 'student' | 'reader' | 'admin' | 'student_supervisor' | 'reciter_supervisor' | 'initiative_admin'; children: React.ReactNode; headerTitle?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -225,7 +247,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
     <div className={cn(
       "h-screen flex overflow-hidden bg-background transition-colors duration-500",
       isReader && "theme-islamic",
-      (role === 'admin' || role === 'student' || role === 'reader' || role === 'student_supervisor' || role === 'reciter_supervisor') && "admin-theme"
+      (role === 'admin' || role === 'student' || role === 'reader' || role === 'student_supervisor' || role === 'reciter_supervisor' || role === 'initiative_admin') && "admin-theme"
     )}>
       {/* Overlay */}
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
@@ -325,7 +347,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
             <h2 className="text-xl font-bold text-foreground hidden lg:block">{headerTitle || config.label}</h2>
           </div>
           <div className="flex items-center gap-4">
-            {role !== 'student' && (
+            {role !== 'student' && role !== 'initiative_admin' && (
               <div className="hidden md:block">
                 <GlobalSearch role={role as 'admin' | 'reader'} />
               </div>

@@ -5,8 +5,9 @@ const JWT_SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || "hana-lazan-secret-key-change-in-production"
 )
 
-const publicPaths = ["/", "/about", "/contact", "/sitemap-page", "/login", "/login-admin", "/register", "/reader-register", "/forgot-password", "/reset-password", "/verify", "/privacy", "/terms", "/maintenance"]
-const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics", "/api/uploadthing"]
+const publicPaths = ["/", "/about", "/contact", "/sitemap-page", "/login", "/login-admin", "/register", "/reader-register", "/forgot-password", "/reset-password", "/verify", "/privacy", "/terms", "/maintenance", "/initiatives/request"]
+const publicPrefixes = ["/join/"]
+const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics", "/api/uploadthing", "/api/initiatives/request", "/api/initiatives/join"]
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl
@@ -22,7 +23,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Allow public paths
-    if (publicPaths.includes(pathname) || pathname.startsWith("/api/auth")) {
+    if (publicPaths.includes(pathname) || publicPrefixes.some((p) => pathname.startsWith(p)) || pathname.startsWith("/api/auth")) {
         return NextResponse.next()
     }
 
@@ -59,6 +60,12 @@ export async function middleware(req: NextRequest) {
         if (pathname.startsWith("/admin")) {
             const adminRoles = ["admin", "student_supervisor", "reciter_supervisor"]
             if (!adminRoles.includes(role)) {
+                return NextResponse.redirect(new URL("/login-admin", req.url))
+            }
+        }
+        if (pathname.startsWith("/initiative") && !pathname.startsWith("/initiatives")) {
+            const initiativeRoles = ["initiative_admin", "admin"]
+            if (!initiativeRoles.includes(role)) {
                 return NextResponse.redirect(new URL("/login-admin", req.url))
             }
         }

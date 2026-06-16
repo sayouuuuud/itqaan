@@ -8,7 +8,7 @@ const JWT_SECRET = new TextEncoder().encode(
 export interface JWTPayload {
   sub: string
   email: string
-  role: "student" | "reader" | "admin" | "student_supervisor" | "reciter_supervisor"
+  role: "student" | "reader" | "admin" | "student_supervisor" | "reciter_supervisor" | "initiative_admin"
   name: string
   iat: number
   exp: number
@@ -40,7 +40,7 @@ export async function getSession(): Promise<JWTPayload | null> {
 
 export function requireRole(
   session: JWTPayload | null,
-  roles: ("student" | "reader" | "admin" | "student_supervisor" | "reciter_supervisor")[]
+  roles: ("student" | "reader" | "admin" | "student_supervisor" | "reciter_supervisor" | "initiative_admin")[]
 ): boolean {
   if (!session) return false
   return roles.includes(session.role)

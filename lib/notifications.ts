@@ -1,4 +1,5 @@
 import { query } from "@/lib/db"
+import { queryOne } from "@/lib/db"
 
 export type NotificationType =
     | "recitation_received"      // reader: new recitation to review
@@ -19,6 +20,8 @@ export type NotificationType =
     | "reschedule_rejected"        // student+reader: reschedule rejected
     | "reader_reassigned"          // student+reader: admin reassigned reader
     | "recitation_reassigned"     // reader: admin took the recitation from them and reassigned it
+    | "initiative_student_joined"  // initiative_admin: طالب جديد انضم عبر رابط الدعوة
+    | "initiative_recitation_sent" // initiative_admin: طالب من المبادرة أرسل تلاوة جديدة
     | "general"
 
 export interface CreateNotificationInput {
@@ -88,8 +91,25 @@ export async function getAdminUserIds(): Promise<string[]> {
 }
 
 /**
- * Create notification for all admin users
+ * إرسال إشعار لمشرف المبادرة بناءً على initiative_id.
+ * لا يفشل إذا لم توجد مبادرة أو لم يكن للمبادرة مشرف.
  */
+export async function notifyInitiativeAdmin(
+    initiativeId: string,
+    data: Omit<CreateNotificationInput, "userId">
+): Promise<void> {
+    try {
+        const row = await queryOne<{ admin_user_id: string | null }>(
+            `SELECT admin_user_id FROM initiatives WHERE id = $1`,
+            [initiativeId]
+        )
+        if (row?.admin_user_id) {
+            await createNotification({ ...data, userId: row.admin_user_id })
+        }
+    } catch (err) {
+        console.error("Failed to notify initiative admin:", err)
+    }
+}
 export async function createNotificationForAdmins(
     data: Omit<CreateNotificationInput, "userId">
 ): Promise<void> {

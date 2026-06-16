@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { query } from "@/lib/db"
-import { createNotification } from "@/lib/notifications"
+import { query, queryOne } from "@/lib/db"
+import { createNotification, notifyInitiativeAdmin } from "@/lib/notifications"
 
 // GET /api/recitations - list recitations
 export async function GET(req: NextRequest) {
@@ -86,11 +86,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Resolve the student's initiative (if any) so the recitation is tagged for
+    // per-initiative isolation and statistics. Individual users stay NULL.
+    const studentInitiative = await queryOne<{ initiative_id: string | null }>(
+      "SELECT initiative_id FROM users WHERE id = $1",
+      [session.sub]
+    )
+    const initiativeId = studentInitiative?.initiative_id || null
+
     const result = await query(
-      `INSERT INTO recitations (student_id, surah_name, surah_number, ayah_from, ayah_to, audio_url, audio_duration_seconds, submission_type, student_notes, qiraah, status)
-       VALUES ($1, 'الفاتحة', 1, 1, 7, $2, $3, 'recorded', $4, $5, 'pending')
+      `INSERT INTO recitations (student_id, surah_name, surah_number, ayah_from, ayah_to, audio_url, audio_duration_seconds, submission_type, student_notes, qiraah, status, initiative_id)
+       VALUES ($1, 'الفاتحة', 1, 1, 7, $2, $3, 'recorded', $4, $5, 'pending', $6)
        RETURNING *`,
-      [session.sub, audioUrl, audioDuration || null, notes || null, qiraah || 'حفص عن عاصم']
+      [session.sub, audioUrl, audioDuration || null, notes || null, qiraah || 'حفص عن عاصم', initiativeId]
     )
 
     // Auto-assign a reader matching the student's gender and is active for evaluation
@@ -154,6 +162,18 @@ export async function POST(req: NextRequest) {
         category: 'recitation',
         link: '/admin/recitations',
         relatedRecitationId: result[0].id as string,
+      })
+    }
+
+    // إشعار مشرف المبادرة لو الطالب ينتمي لمبادرة
+    if (initiativeId) {
+      const studentName = await queryOne<{ name: string }>("SELECT name FROM users WHERE id = $1", [session.sub])
+      await notifyInitiativeAdmin(initiativeId, {
+        type: "initiative_recitation_sent",
+        title: "تلاوة جديدة من أحد مشاركي مبادرتك",
+        message: `أرسل ${studentName?.name || "أحد الطلاب"} تلاوة جديدة لسورة الفاتحة.`,
+        category: "recitation",
+        link: `/initiative/participants`,
       })
     }
 

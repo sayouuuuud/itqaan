@@ -1,8 +1,9 @@
 "use client"
 
 import useSWR from "swr"
-import { Users, CheckCircle2, Clock, Search, Loader2, Mail, BadgeCheck } from "lucide-react"
+import { Users, CheckCircle2, Clock, Search, Loader2, Mail, BadgeCheck, ArrowLeft } from "lucide-react"
 import { useState } from "react"
+import Link from "next/link"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
@@ -79,13 +80,14 @@ export default function InitiativeParticipantsPage() {
                   <th className="px-5 py-3 font-black">التلاوات</th>
                   <th className="px-5 py-3 font-black">الإتقان</th>
                   <th className="px-5 py-3 font-black">آخر نشاط</th>
+                  <th className="px-5 py-3 font-black">التفاصيل</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                  <tr className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors cursor-pointer">
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
+                      <Link href={`/initiative/participants/${p.id}`} className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0">
                           {p.name.charAt(0)}
                         </div>
@@ -96,7 +98,7 @@ export default function InitiativeParticipantsPage() {
                             {p.email}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-5 py-4">
                       {p.emailVerified ? (
@@ -113,6 +115,14 @@ export default function InitiativeParticipantsPage() {
                     <td className="px-5 py-4 font-bold text-foreground">{p.masteredCount}</td>
                     <td className="px-5 py-4 text-muted-foreground">
                       {p.lastActivity ? new Date(p.lastActivity).toLocaleDateString("ar-EG") : "—"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Link
+                        href={`/initiative/participants/${p.id}`}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                      >
+                        عرض التقدم <ArrowLeft className="w-3 h-3" />
+                      </Link>
                     </td>
                   </tr>
                 ))}

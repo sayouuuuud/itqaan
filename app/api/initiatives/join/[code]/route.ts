@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { query, queryOne } from "@/lib/db"
 import { sendVerificationEmail } from "@/lib/email"
 import { INITIATIVE_TYPE_LABELS } from "@/lib/initiatives"
+import { notifyInitiativeAdmin } from "@/lib/notifications"
 
 interface InitiativeForJoin {
   id: string
@@ -89,6 +90,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
     const user = created[0]
 
     await sendVerificationEmail(user.email, user.name, verificationCode)
+
+    // إشعار مشرف المبادرة بانضمام طالب جديد (لا يعطّل تسجيل الطالب لو فشل)
+    await notifyInitiativeAdmin(initiative.id, {
+      type: "initiative_student_joined",
+      title: "طالب جديد انضم إلى مبادرتك",
+      message: `انضم ${name} إلى مبادرتك عبر رابط الدعوة.`,
+      category: "general",
+      link: `/initiative/participants`,
+    })
 
     return NextResponse.json(
       {

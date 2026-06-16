@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useI18n } from '@/lib/i18n/context'
 import { Mic, CheckCircle, Calendar, ArrowLeft, ChevronDown, BookOpen, Shield, Award, Star } from 'lucide-react'
 import { usePublicSettings } from '@/lib/hooks/use-public-settings'
+import { InitiativesCTA } from '@/components/initiatives-cta'
 
 export default function LandingPage() {
   const { t } = useI18n()
@@ -311,6 +312,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* CTA للمؤسسات والجهات */}
+      <InitiativesCTA />
 
       {/* ========== FOOTER ========== */}
       <footer className="py-12 md:py-16 px-4 bg-[#082A1F] border-t border-white/[0.06]">

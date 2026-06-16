@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Card, CardContent } from '@/components/ui/card'
 import { BookOpen, Target, Heart, Eye } from 'lucide-react'
+import { InitiativesCTA } from '@/components/initiatives-cta'
 
 export const metadata: Metadata = {
   title: 'من نحن | حنا لازن',
@@ -139,6 +140,9 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* CTA للمؤسسات */}
+      <InitiativesCTA />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { query, queryOne } from "@/lib/db"
-import { createNotification } from "@/lib/notifications"
+import { createNotification, notifyInitiativeAdmin } from "@/lib/notifications"
 
 // GET /api/recitations - list recitations
 export async function GET(req: NextRequest) {
@@ -162,6 +162,18 @@ export async function POST(req: NextRequest) {
         category: 'recitation',
         link: '/admin/recitations',
         relatedRecitationId: result[0].id as string,
+      })
+    }
+
+    // إشعار مشرف المبادرة لو الطالب ينتمي لمبادرة
+    if (initiativeId) {
+      const studentName = await queryOne<{ name: string }>("SELECT name FROM users WHERE id = $1", [session.sub])
+      await notifyInitiativeAdmin(initiativeId, {
+        type: "initiative_recitation_sent",
+        title: "تلاوة جديدة من أحد مشاركي مبادرتك",
+        message: `أرسل ${studentName?.name || "أحد الطلاب"} تلاوة جديدة لسورة الفاتحة.`,
+        category: "recitation",
+        link: `/initiative/participants`,
       })
     }
 

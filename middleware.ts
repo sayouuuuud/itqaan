@@ -6,7 +6,8 @@ const JWT_SECRET = new TextEncoder().encode(
 )
 
 const publicPaths = ["/", "/about", "/contact", "/sitemap-page", "/login", "/login-admin", "/register", "/reader-register", "/forgot-password", "/reset-password", "/verify", "/privacy", "/terms", "/maintenance", "/initiatives/request"]
-const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics", "/api/uploadthing", "/api/initiatives/request"]
+const publicPrefixes = ["/join/"]
+const apiPublicPaths = ["/api/auth/login", "/api/auth/register", "/api/admin/homepage", "/api/admin/analytics", "/api/uploadthing", "/api/initiatives/request", "/api/initiatives/join"]
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl
@@ -22,7 +23,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Allow public paths
-    if (publicPaths.includes(pathname) || pathname.startsWith("/api/auth")) {
+    if (publicPaths.includes(pathname) || publicPrefixes.some((p) => pathname.startsWith(p)) || pathname.startsWith("/api/auth")) {
         return NextResponse.next()
     }
 

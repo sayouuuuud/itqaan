@@ -4,6 +4,7 @@ import { getSession, requireRole } from "@/lib/auth"
 import { query, queryOne } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { logAdminAction } from "@/lib/activity-log"
+import { generateJoinCode } from "@/lib/initiatives"
 
 function generateTempPassword(): string {
   // 10-char password with letters + digits
@@ -77,12 +78,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "تعذّر إنشاء حساب مشرف المبادرة" }, { status: 500 })
   }
 
+  // Generate a unique join code so the initiative admin can invite students immediately.
+  let joinCode = generateJoinCode()
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const clash = await queryOne<{ id: string }>(
+      `SELECT id FROM initiatives WHERE join_code = $1 LIMIT 1`,
+      [joinCode]
+    )
+    if (!clash) break
+    joinCode = generateJoinCode()
+  }
+
   await query(
     `UPDATE initiatives
      SET status = 'approved', admin_user_id = $1, approved_by = $2, approved_at = now(),
+         join_code = COALESCE(join_code, $4), join_enabled = true,
          rejection_reason = NULL, updated_at = now()
      WHERE id = $3`,
-    [adminUserId, session!.sub, id]
+    [adminUserId, session!.sub, id, joinCode]
   )
 
   // Email the credentials to the initiative admin.

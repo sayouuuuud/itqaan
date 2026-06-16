@@ -14,7 +14,7 @@ import {
   Menu, X, Users, Settings, BarChart3, ClipboardList, Clock, MessageSquare,
   Search, Plus, BookOpen, Award, UserCheck, CalendarCheck, CalendarDays,
   MessagesSquare, Megaphone, ScrollText, PieChart, Star, ShieldCheck,
-  Globe, Home, Archive, Shield, Phone, Building2
+  Globe, Home, Archive, Shield, Phone, Building2, Link2
 } from 'lucide-react'
 import { usePublicSettings } from '@/lib/hooks/use-public-settings'
 
@@ -147,6 +147,9 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
       {
         items: [
           { href: '/initiative', label: t.admin.dashboard, icon: LayoutDashboard },
+          { href: '/initiative/participants', label: 'المشاركون', icon: Users },
+          { href: '/initiative/invite', label: 'رابط الدعوة', icon: Link2 },
+          { href: '/initiative/stats', label: 'الإحصائيات', icon: BarChart3 },
         ]
       },
       {

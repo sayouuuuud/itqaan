@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       whereClause += ` AND u.role = $${params.length}`
     } else if (role) {
       if (role === 'supervisors') {
-        whereClause += ` AND u.role IN ('student_supervisor', 'reciter_supervisor')`
+        whereClause += ` AND u.role IN ('student_supervisor', 'reciter_supervisor', 'initiative_admin')`
       } else {
         params.push(role)
         whereClause += ` AND u.role = $${params.length}`
@@ -57,6 +57,8 @@ export async function GET(req: NextRequest) {
     // Get paginated users
     const users = await query(
       `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url, u.is_accepting_recitations,
+              u.initiative_id,
+              (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
               rp.rating, rp.total_reviews, rp.nationality,
               EXISTS(

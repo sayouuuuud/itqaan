@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth"
 import { queryOne } from "@/lib/db"
-import { Building2, Users, Clock, Sparkles } from "lucide-react"
+import { Building2, Users, Clock, Sparkles, AlertCircle } from "lucide-react"
 
 const TYPE_LABELS: Record<string, string> = {
   university: "جامعة", ministry: "وزارة / جهة حكومية", restaurant: "مطعم", cafe: "مقهى", other: "أخرى",
@@ -28,6 +28,33 @@ export default async function InitiativeDashboardPage() {
         [session.sub]
       )
     : null
+
+  // مشرف مبادرة غير مرتبط بأي مبادرة بعد — يظهر له حالة توضيحية بدلاً من لوحة فارغة.
+  if (!initiative && session?.role === "initiative_admin") {
+    return (
+      <div dir="rtl" className="space-y-8">
+        <div className="bg-card border border-border rounded-[32px] p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 left-0 h-1.5 bg-amber-500" />
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-muted-foreground">لوحة تحكم المبادرة</p>
+              <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">لم يتم ربط حسابك بمبادرة بعد</h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-muted/30 border border-dashed border-border rounded-3xl p-8 text-center">
+          <p className="text-sm font-bold text-foreground mb-2">حسابك جاهز، لكنه غير مرتبط بأي مبادرة حالياً</p>
+          <p className="text-sm text-muted-foreground leading-relaxed text-pretty max-w-md mx-auto">
+            بمجرد أن تقوم الإدارة بربط حسابك بمبادرة (عند إنشائها أو من صفحة تفاصيل المبادرة)، ستظهر لك هنا لوحة التحكم وأدوات إدارة المشاركين.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div dir="rtl" className="space-y-8">

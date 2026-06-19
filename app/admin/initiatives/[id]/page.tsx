@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import {
   Building2, Clock, CheckCircle, XCircle, PauseCircle, Users, Mail, Phone,
   ArrowRight, Loader2, ShieldCheck, User as UserIcon, Target, PlayCircle, Link2, Copy,
+  UserCheck, UserX, Link as LinkIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,6 +30,7 @@ type Initiative = {
   contact_phone: string | null
   target_students_count: number | null
   status: Status
+  admin_user_id: string | null
   admin_email: string | null
   admin_name: string | null
   rejection_reason: string | null
@@ -56,16 +58,28 @@ export default function InitiativeDetailPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
+  const [supervisors, setSupervisors] = useState<{ id: string; name: string; email: string; initiative_id: string | null; initiative_name: string | null }[]>([])
+  const [selectedAdminId, setSelectedAdminId] = useState("")
+  const [assigning, setAssigning] = useState(false)
+
+  async function loadInitiative() {
+    const res = await fetch(`/api/admin/initiatives/${id}`)
+    if (res.ok) {
+      const data = await res.json()
+      setInitiative(data.initiative)
+      return data.initiative as Initiative
+    }
+    return null
+  }
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/admin/initiatives/${id}`)
-        if (res.ok) {
-          const data = await res.json()
-          setInitiative(data.initiative)
-        } else {
-          toast.error("تعذّر تحميل المبادرة")
+        await loadInitiative()
+        const sup = await fetch("/api/admin/users?role=initiative_admin&limit=200")
+        if (sup.ok) {
+          const d = await sup.json()
+          setSupervisors(d.users || [])
         }
       } catch {
         toast.error("تعذّر الاتصال بالخادم")
@@ -75,6 +89,38 @@ export default function InitiativeDetailPage() {
     }
     if (id) load()
   }, [id])
+
+  async function handleAssignAdmin(action: "assign_admin" | "unassign_admin") {
+    if (action === "assign_admin" && !selectedAdminId) {
+      toast.error("اختر مشرفاً للربط")
+      return
+    }
+    setAssigning(true)
+    try {
+      const res = await fetch(`/api/admin/initiatives/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, adminUserId: action === "assign_admin" ? selectedAdminId : undefined }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(action === "assign_admin" ? "تم ربط المشرف بالمبادرة" : "تم فك ربط المشرف")
+        setSelectedAdminId("")
+        await loadInitiative()
+        const sup = await fetch("/api/admin/users?role=initiative_admin&limit=200")
+        if (sup.ok) {
+          const d = await sup.json()
+          setSupervisors(d.users || [])
+        }
+      } else {
+        toast.error(data.error || "تعذّر تحديث المشرف")
+      }
+    } catch {
+      toast.error("تعذّر الاتصال بالخادم")
+    } finally {
+      setAssigning(false)
+    }
+  }
 
   async function handleApprove() {
     setProcessing(true)
@@ -198,6 +244,69 @@ export default function InitiativeDetailPage() {
             >
               <Copy className="w-4 h-4 text-muted-foreground" />
             </button>
+          </div>
+        )}
+      </div>
+
+      {/* إدارة مشرف المبادرة */}
+      <div className="bg-card border border-border rounded-3xl p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-primary" />
+          <h2 className="text-base font-black text-foreground">مشرف المبادرة</h2>
+        </div>
+
+        {initiative.admin_user_id ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/30 border border-border rounded-2xl p-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-black">
+                {(initiative.admin_name || initiative.admin_email || "?").charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-black text-foreground truncate">{initiative.admin_name || "—"}</p>
+                <p className="text-xs font-bold text-muted-foreground truncate" dir="ltr">{initiative.admin_email}</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleAssignAdmin("unassign_admin")}
+              disabled={assigning}
+              variant="outline"
+              className="rounded-2xl h-11 px-5 font-black border-destructive/20 text-destructive hover:bg-destructive/10 gap-2 shrink-0"
+            >
+              {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+              فك الربط
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-muted-foreground leading-relaxed">
+              لا يوجد مشرف مرتبط بهذه المبادرة. اختر أحد حسابات مشرفي المبادرات لربطه. لإنشاء حساب جديد توجّه إلى صفحة المستخدمين.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <select
+                value={selectedAdminId}
+                onChange={(e) => setSelectedAdminId(e.target.value)}
+                className="flex-1 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+              >
+                <option value="">اختر مشرفاً...</option>
+                {supervisors.map((u) => (
+                  <option key={u.id} value={u.id} disabled={!!u.initiative_id && u.initiative_id !== initiative.id}>
+                    {u.name} — {u.email}{u.initiative_id && u.initiative_id !== initiative.id ? ` (مرتبط بـ ${u.initiative_name || "مبادرة أخرى"})` : ""}
+                  </option>
+                ))}
+              </select>
+              <Button
+                onClick={() => handleAssignAdmin("assign_admin")}
+                disabled={assigning || !selectedAdminId}
+                className="rounded-2xl h-11 px-6 font-black gap-2 shrink-0"
+              >
+                {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />}
+                ربط المشرف
+              </Button>
+            </div>
+            <Link href="/admin/users" className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+              <UserCheck className="w-3.5 h-3.5" />
+              إنشاء حساب مشرف مبادرة جديد
+            </Link>
           </div>
         )}
       </div>

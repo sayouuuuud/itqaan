@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     // table / `users.initiative_id` column so the list always renders even if
     // that schema is missing on a given database. Initiative info is attached
     // separately below in a guarded query.
-    const users = await query<Record<string, any>>(
+    let users = await query<Record<string, any>>(
       `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url, u.is_accepting_recitations,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
               rp.rating, rp.total_reviews, rp.nationality,
@@ -80,30 +80,72 @@ export async function GET(req: NextRequest) {
       [...params, limit, offset]
     )
 
+    // Progressive fallback: if the rich query returned nothing but the count
+    // says there ARE users, the rich query almost certainly threw because of a
+    // missing optional column/table (e.g. avatar_url, is_accepting_recitations,
+    // rp.nationality, user_sessions, recitations). `lib/db.ts` swallows query
+    // errors and returns [], so re-run a minimal query that only relies on
+    // columns guaranteed to exist on the `users` table.
+    if (users.length === 0 && totalUsers > 0) {
+      console.error("[v0] users rich query returned empty with count=" + totalUsers + "; falling back to minimal query")
+      users = await query<Record<string, any>>(
+        `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at
+         FROM users u
+         ${whereClause}
+         ORDER BY u.created_at DESC
+         LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, limit, offset]
+      )
+      // Normalize optional fields so the UI has predictable shapes.
+      for (const u of users) {
+        u.avatar_url = u.avatar_url ?? null
+        u.is_accepting_recitations = u.is_accepting_recitations ?? null
+        u.recitations_count = u.recitations_count ?? 0
+        u.rating = u.rating ?? null
+        u.total_reviews = u.total_reviews ?? null
+        u.nationality = u.nationality ?? null
+        u.is_online = u.is_online ?? false
+      }
+    }
+
     // Enrich with initiative info (id + name). Guarded so a missing
-    // initiatives table / column never breaks the users list.
+    // initiatives table / column never breaks the users list. We first probe
+    // information_schema to confirm `users.initiative_id` exists, so we never
+    // even issue a query that would throw "column u.initiative_id does not
+    // exist" on databases that lack the column.
     if (users.length > 0) {
+      // Default every user to null so the shape is always consistent.
+      for (const u of users) {
+        u.initiative_id = u.initiative_id ?? null
+        u.initiative_name = u.initiative_name ?? null
+      }
       try {
-        const ids = users.map(u => u.id)
-        const initiativeRows = await query<{ id: string; initiative_id: string | null; initiative_name: string | null }>(
-          `SELECT u.id, u.initiative_id,
-                  (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name
-           FROM users u
-           WHERE u.id = ANY($1::uuid[])`,
-          [ids]
+        const colCheck = await query<{ exists: boolean }>(
+          `SELECT EXISTS (
+             SELECT 1 FROM information_schema.columns
+             WHERE table_name = 'users' AND column_name = 'initiative_id'
+           ) as exists`
         )
-        const map = new Map(initiativeRows.map(r => [r.id, r]))
-        for (const u of users) {
-          const info = map.get(u.id)
-          u.initiative_id = info?.initiative_id ?? null
-          u.initiative_name = info?.initiative_name ?? null
+        const hasInitiativeColumn = Boolean((colCheck[0] as any)?.exists)
+
+        if (hasInitiativeColumn) {
+          const ids = users.map(u => u.id)
+          const initiativeRows = await query<{ id: string; initiative_id: string | null; initiative_name: string | null }>(
+            `SELECT u.id, u.initiative_id,
+                    (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name
+             FROM users u
+             WHERE u.id = ANY($1::uuid[])`,
+            [ids]
+          )
+          const map = new Map(initiativeRows.map(r => [r.id, r]))
+          for (const u of users) {
+            const info = map.get(u.id)
+            u.initiative_id = info?.initiative_id ?? null
+            u.initiative_name = info?.initiative_name ?? null
+          }
         }
       } catch (e) {
         console.error("[v0] initiative enrichment skipped:", e)
-        for (const u of users) {
-          u.initiative_id = null
-          u.initiative_name = null
-        }
       }
     }
 

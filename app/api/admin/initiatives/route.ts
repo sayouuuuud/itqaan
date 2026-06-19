@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
-import { query, queryOne } from "@/lib/db"
+import { query, queryOne, queryStrict } from "@/lib/db"
 import { generateJoinCode } from "@/lib/initiatives"
 
 // أنشئ join_code فريد غير مكرر في الجدول
@@ -83,39 +83,64 @@ export async function POST(req: NextRequest) {
       : null
 
   const adminMode = typeof body.adminMode === "string" ? body.adminMode : "none"
-  const joinCode = await uniqueJoinCode()
 
-  // إنشاء المبادرة
-  const rows = await query<{ id: string }>(
-    `INSERT INTO initiatives
-       (name, type, description, contact_name, contact_email, contact_phone,
-        target_students_count, status, join_code, join_enabled, approved_by, approved_at, created_at, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,'approved',$8,true,$9,now(),now(),now())
-     RETURNING id`,
-    [name, type, description, contactName, contactEmail, contactPhone, targetCount, joinCode, session!.sub]
-  )
-  const initiativeId = rows[0].id
+  try {
+    const joinCode = await uniqueJoinCode()
 
-  // ——— ربط مشرف مبادرة موجود (اختياري) ———
-  if (adminMode === "existing") {
-    const existingUserId = typeof body.existingUserId === "string" ? body.existingUserId : null
-    if (existingUserId) {
-      const user = await queryOne<{ id: string; role: string; initiative_id: string | null }>(
-        `SELECT id, role, initiative_id FROM users WHERE id = $1`, [existingUserId]
-      )
-      if (!user) {
-        return NextResponse.json({ error: "المستخدم المختار غير موجود" }, { status: 400 })
-      }
-      if (user.role !== "initiative_admin") {
-        return NextResponse.json({ error: "يمكن ربط حسابات مشرفي المبادرات فقط" }, { status: 400 })
-      }
-      if (user.initiative_id) {
-        return NextResponse.json({ error: "هذا المشرف مرتبط بمبادرة أخرى بالفعل" }, { status: 400 })
-      }
-      await query(`UPDATE users SET initiative_id=$1, updated_at=now() WHERE id=$2`, [initiativeId, existingUserId])
-      await query(`UPDATE initiatives SET admin_user_id=$1 WHERE id=$2`, [existingUserId, initiativeId])
+    // إنشاء المبادرة. نستخدم queryStrict حتى لا يُبتلع خطأ SQL (مثل عمود ناقص)
+    // ونرجّع استجابة JSON واضحة بدل تعطّل الراوت بجسم فارغ.
+    const rows = await queryStrict<{ id: string }>(
+      `INSERT INTO initiatives
+         (name, type, description, contact_name, contact_email, contact_phone,
+          target_students_count, status, join_code, join_enabled, approved_by, approved_at, created_at, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,'approved',$8,true,$9,now(),now(),now())
+       RETURNING id`,
+      [name, type, description, contactName, contactEmail, contactPhone, targetCount, joinCode, session!.sub]
+    )
+
+    const initiativeId = rows[0]?.id
+    if (!initiativeId) {
+      console.error("[v0] initiative insert returned no row")
+      return NextResponse.json({ error: "فشل إنشاء المبادرة" }, { status: 500 })
     }
-  }
 
-  return NextResponse.json({ id: initiativeId }, { status: 201 })
+    // ——— ربط مشرف مبادرة موجود (اختياري) ———
+    if (adminMode === "existing") {
+      const existingUserId = typeof body.existingUserId === "string" ? body.existingUserId : null
+      if (existingUserId) {
+        const user = await queryOne<{ id: string; role: string; initiative_id: string | null }>(
+          `SELECT id, role, initiative_id FROM users WHERE id = $1`, [existingUserId]
+        )
+        if (!user) {
+          return NextResponse.json({ error: "المستخدم المختار غير موجود" }, { status: 400 })
+        }
+        if (user.role !== "initiative_admin") {
+          return NextResponse.json({ error: "يمكن ربط حسابات مشرفي المبادرات فقط" }, { status: 400 })
+        }
+        if (user.initiative_id) {
+          return NextResponse.json({ error: "هذا المشرف مرتبط بمبادرة أخرى بالفعل" }, { status: 400 })
+        }
+        // ربط المشرف بالمبادرة — محمي حتى لا يفشل الإنشاء كله لو حدث خطأ هنا.
+        try {
+          await queryStrict(`UPDATE users SET initiative_id=$1, updated_at=now() WHERE id=$2`, [initiativeId, existingUserId])
+          await queryStrict(`UPDATE initiatives SET admin_user_id=$1 WHERE id=$2`, [existingUserId, initiativeId])
+        } catch (linkErr) {
+          console.error("[v0] failed to link supervisor to initiative:", linkErr)
+          // المبادرة أُنشئت بنجاح؛ نرجّع نجاحًا مع تنبيه بأن الربط لم يكتمل.
+          return NextResponse.json(
+            { id: initiativeId, warning: "تم إنشاء المبادرة لكن تعذّر ربط المشرف. يمكنك ربطه لاحقًا." },
+            { status: 201 }
+          )
+        }
+      }
+    }
+
+    return NextResponse.json({ id: initiativeId }, { status: 201 })
+  } catch (err) {
+    console.error("[v0] create initiative error:", err)
+    return NextResponse.json(
+      { error: "حدث خطأ أثناء إنشاء المبادرة. تأكد من إعداد قاعدة البيانات." },
+      { status: 500 }
+    )
+  }
 }

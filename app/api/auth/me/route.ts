@@ -20,8 +20,15 @@ export async function GET() {
       phone: string | null
       is_accepting_recitations: boolean
       student_status: string
+      initiative_id: string | null
+      initiative_name: string | null
     }>(
-      `SELECT id, name, email, role, avatar_url, gender, phone, is_accepting_recitations, student_status FROM users WHERE id = $1`,
+      `SELECT u.id, u.name, u.email, u.role, u.avatar_url, u.gender, u.phone,
+              u.is_accepting_recitations, u.student_status, u.initiative_id,
+              i.name AS initiative_name
+       FROM users u
+       LEFT JOIN initiatives i ON i.id = u.initiative_id
+       WHERE u.id = $1`,
       [session.sub]
     )
 

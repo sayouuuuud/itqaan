@@ -34,6 +34,16 @@ export function generateJoinCode(length = 8): string {
   return code
 }
 
+// Generate a long, URL-safe, hard-to-guess token for email invitations.
+export function generateInviteToken(length = 40): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  let token = ""
+  for (let i = 0; i < length; i++) {
+    token += alphabet[Math.floor(Math.random() * alphabet.length)]
+  }
+  return token
+}
+
 export const INITIATIVE_TYPE_LABELS: Record<string, string> = {
   university: "جامعة",
   ministry: "وزارة / جهة حكومية",

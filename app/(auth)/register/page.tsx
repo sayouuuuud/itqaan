@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
+import { roleHomePath } from '@/lib/roles'
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronDown } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -24,7 +25,7 @@ export default function RegisterPage() {
         if (res.ok) {
           const data = await res.json()
           if (data.user) {
-            router.push(`/${data.user.role}`)
+            router.push(roleHomePath(data.user.role))
           }
         }
       } catch (err) {

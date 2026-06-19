@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/context'
+import { roleHomePath } from '@/lib/roles'
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react'
 
 export default function AdminLoginPage() {
@@ -53,16 +54,8 @@ export default function AdminLoginPage() {
                 return
             }
 
-            // Redirect based on role (should be admin)
-            const role = data.user?.role || 'admin'
-            const adminRoles = ['admin', 'student_supervisor', 'reciter_supervisor']
-            if (adminRoles.includes(role)) {
-                router.push('/admin')
-            } else if (role === 'initiative_admin') {
-                router.push('/initiative')
-            } else {
-                router.push(`/${role}`)
-            }
+            // Redirect based on role
+            router.push(roleHomePath(data.user?.role))
         } catch {
             setError(t.auth.connectionError)
             setLoading(false)

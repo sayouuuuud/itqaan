@@ -40,8 +40,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (search) {
-      params.push(`%${search}%`)
-      whereClause += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`
+      const searchVal = `%${search}%`
+      params.push(searchVal)
+      const idx1 = params.length
+      params.push(searchVal)
+      const idx2 = params.length
+      whereClause += ` AND (u.name ILIKE $${idx1} OR u.email ILIKE $${idx2})`
     }
 
     // Get total count for pagination

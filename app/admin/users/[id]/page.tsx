@@ -66,6 +66,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
     const [selectedInitiativeId, setSelectedInitiativeId] = useState("")
     const [assignMsg, setAssignMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
     const [assigning, setAssigning] = useState(false)
+    const [assignMode, setAssignMode] = useState<"existing" | "new">("existing")
+    const [newInitiativeName, setNewInitiativeName] = useState("")
     const { id } = use(params)
 
     const handleDeleteUser = async () => {
@@ -103,6 +105,26 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         } catch (err: any) {
             setAssignMsg({ type: "error", text: err.message })
         } finally {
+            setAssigning(false)
+        }
+    }
+
+    const handleCreateAndAssign = async () => {
+        if (!newInitiativeName.trim()) return
+        setAssigning(true)
+        setAssignMsg(null)
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "create_and_assign_initiative_admin", initiativeName: newInitiativeName.trim() }),
+            })
+            const json = await res.json()
+            if (!res.ok) throw new Error(json.error || "فشل الإنشاء")
+            // اذهب مباشرة لصفحة المبادرة لاستكمال بياناتها
+            router.push(`/admin/initiatives/${json.initiativeId}`)
+        } catch (err: any) {
+            setAssignMsg({ type: "error", text: err.message })
             setAssigning(false)
         }
     }
@@ -388,25 +410,71 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <select
-                                        value={selectedInitiativeId}
-                                        onChange={e => setSelectedInitiativeId(e.target.value)}
-                                        className="flex-1 h-11 rounded-2xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                    >
-                                        <option value="">اختر مبادرة معتمدة...</option>
-                                        {initiatives.map((ini: any) => (
-                                            <option key={ini.id} value={ini.id}>{ini.name}</option>
-                                        ))}
-                                    </select>
-                                    <Button
-                                        onClick={handleAssignInitiativeAdmin}
-                                        disabled={assigning || !selectedInitiativeId}
-                                        className="rounded-2xl h-11 px-6 font-black gap-2 shrink-0"
-                                    >
-                                        {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
-                                        تعيين مشرفاً
-                                    </Button>
+                                <div className="space-y-4">
+                                    {/* تبديل بين اختيار مبادرة موجودة وإنشاء جديدة */}
+                                    <div className="flex gap-2 p-1 bg-muted/40 rounded-2xl w-fit">
+                                        <button
+                                            onClick={() => setAssignMode("existing")}
+                                            className={`px-4 py-2 rounded-xl text-xs font-black transition-colors ${
+                                                assignMode === "existing" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                        >
+                                            اختر مبادرة موجودة
+                                        </button>
+                                        <button
+                                            onClick={() => setAssignMode("new")}
+                                            className={`px-4 py-2 rounded-xl text-xs font-black transition-colors ${
+                                                assignMode === "new" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                        >
+                                            أنشئ مبادرة جديدة
+                                        </button>
+                                    </div>
+
+                                    {assignMode === "existing" ? (
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            <select
+                                                value={selectedInitiativeId}
+                                                onChange={e => setSelectedInitiativeId(e.target.value)}
+                                                className="flex-1 h-11 rounded-2xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                            >
+                                                <option value="">اختر مبادرة معتمدة...</option>
+                                                {initiatives.map((ini: any) => (
+                                                    <option key={ini.id} value={ini.id}>{ini.name}</option>
+                                                ))}
+                                            </select>
+                                            <Button
+                                                onClick={handleAssignInitiativeAdmin}
+                                                disabled={assigning || !selectedInitiativeId}
+                                                className="rounded-2xl h-11 px-6 font-black gap-2 shrink-0"
+                                            >
+                                                {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
+                                                تعيين مشرفاً
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                <input
+                                                    value={newInitiativeName}
+                                                    onChange={e => setNewInitiativeName(e.target.value)}
+                                                    placeholder="اكتب اسم المبادرة الجديدة..."
+                                                    className="flex-1 h-11 rounded-2xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                                />
+                                                <Button
+                                                    onClick={handleCreateAndAssign}
+                                                    disabled={assigning || !newInitiativeName.trim()}
+                                                    className="rounded-2xl h-11 px-6 font-black gap-2 shrink-0"
+                                                >
+                                                    {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
+                                                    إنشاء وتعيين
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                ستُنشأ المبادرة معتمدة ويصبح هذا المستخدم مشرفاً لها، وسيتم نقلك لصفحتها لاستكمال باقي البيانات.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

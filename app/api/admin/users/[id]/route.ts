@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import * as db from '@/lib/db'
+import { generateJoinCode } from '@/lib/initiatives'
 
 export async function GET(
     req: Request,
@@ -206,13 +207,57 @@ export async function PATCH(
 
         const { id: userId } = await params
         const body = await req.json()
-        const { action, initiativeId } = body
+        const { action, initiativeId, initiativeName } = body
 
         const user = await db.queryOne<{ id: string; name: string; role: string }>(
             'SELECT id, name, role FROM users WHERE id = $1',
             [userId]
         )
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+        if (action === 'create_and_assign_initiative_admin') {
+            const name = typeof initiativeName === 'string' ? initiativeName.trim() : ''
+            if (!name) return NextResponse.json({ error: 'اسم المبادرة مطلوب' }, { status: 400 })
+
+            // أنشئ join_code فريد
+            let joinCode = generateJoinCode()
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const clash = await db.queryOne<{ id: string }>(
+                    `SELECT id FROM initiatives WHERE join_code = $1 LIMIT 1`,
+                    [joinCode]
+                )
+                if (!clash) break
+                joinCode = generateJoinCode()
+            }
+
+            // أنشئ المبادرة بحالة معتمدة واربط المستخدم مشرفاً لها
+            const created = await db.query<{ id: string }>(
+                `INSERT INTO initiatives
+                   (name, status, join_code, join_enabled, admin_user_id, approved_by, approved_at, created_at, updated_at)
+                 VALUES ($1, 'approved', $2, true, $3, $4, now(), now(), now())
+                 RETURNING id`,
+                [name, joinCode, userId, session.sub]
+            )
+            const newInitiativeId = created[0].id
+
+            await db.query(
+                `UPDATE users SET role = 'initiative_admin', initiative_id = $1 WHERE id = $2`,
+                [newInitiativeId, userId]
+            )
+
+            await db.query(
+                `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [session.sub, 'create_and_assign_initiative_admin', 'initiative', newInitiativeId,
+                 `Admin created initiative "${name}" and assigned ${user.name} as its admin`]
+            )
+
+            return NextResponse.json({
+                success: true,
+                initiativeId: newInitiativeId,
+                message: `تم إنشاء مبادرة "${name}" وتعيين ${user.name} مشرفاً لها. أكمل بياناتها من صفحة المبادرة.`,
+            })
+        }
 
         if (action === 'assign_initiative_admin') {
             if (!initiativeId) return NextResponse.json({ error: 'initiativeId required' }, { status: 400 })

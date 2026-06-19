@@ -109,29 +109,43 @@ export async function GET(req: NextRequest) {
     }
 
     // Enrich with initiative info (id + name). Guarded so a missing
-    // initiatives table / column never breaks the users list.
+    // initiatives table / column never breaks the users list. We first probe
+    // information_schema to confirm `users.initiative_id` exists, so we never
+    // even issue a query that would throw "column u.initiative_id does not
+    // exist" on databases that lack the column.
     if (users.length > 0) {
+      // Default every user to null so the shape is always consistent.
+      for (const u of users) {
+        u.initiative_id = u.initiative_id ?? null
+        u.initiative_name = u.initiative_name ?? null
+      }
       try {
-        const ids = users.map(u => u.id)
-        const initiativeRows = await query<{ id: string; initiative_id: string | null; initiative_name: string | null }>(
-          `SELECT u.id, u.initiative_id,
-                  (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name
-           FROM users u
-           WHERE u.id = ANY($1::uuid[])`,
-          [ids]
+        const colCheck = await query<{ exists: boolean }>(
+          `SELECT EXISTS (
+             SELECT 1 FROM information_schema.columns
+             WHERE table_name = 'users' AND column_name = 'initiative_id'
+           ) as exists`
         )
-        const map = new Map(initiativeRows.map(r => [r.id, r]))
-        for (const u of users) {
-          const info = map.get(u.id)
-          u.initiative_id = info?.initiative_id ?? null
-          u.initiative_name = info?.initiative_name ?? null
+        const hasInitiativeColumn = Boolean((colCheck[0] as any)?.exists)
+
+        if (hasInitiativeColumn) {
+          const ids = users.map(u => u.id)
+          const initiativeRows = await query<{ id: string; initiative_id: string | null; initiative_name: string | null }>(
+            `SELECT u.id, u.initiative_id,
+                    (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name
+             FROM users u
+             WHERE u.id = ANY($1::uuid[])`,
+            [ids]
+          )
+          const map = new Map(initiativeRows.map(r => [r.id, r]))
+          for (const u of users) {
+            const info = map.get(u.id)
+            u.initiative_id = info?.initiative_id ?? null
+            u.initiative_name = info?.initiative_name ?? null
+          }
         }
       } catch (e) {
         console.error("[v0] initiative enrichment skipped:", e)
-        for (const u of users) {
-          u.initiative_id = null
-          u.initiative_name = null
-        }
       }
     }
 

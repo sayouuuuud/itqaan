@@ -317,6 +317,17 @@ export default function AdminUsersPage() {
                           <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
                             {t.auth.studentSupervisor}
                           </Badge>
+                        ) : user.role === 'initiative_admin' ? (
+                          <div className="flex flex-col items-start gap-1">
+                            <Badge className="bg-teal-500/10 text-teal-400 border-teal-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
+                              {isAr ? "مشرف مبادرة" : "Initiative Admin"}
+                            </Badge>
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              {user.initiative_name
+                                ? user.initiative_name
+                                : (isAr ? "غير مرتبط بمبادرة" : "No initiative")}
+                            </span>
+                          </div>
                         ) : (
                           <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 font-black text-[10px] uppercase tracking-widest rounded-lg pointer-events-none">
                             {t.auth.reciterSupervisor}
@@ -504,9 +515,17 @@ export default function AdminUsersPage() {
                     <option value="admin">{t.auth.admin}</option>
                     <option value="student_supervisor">{t.auth.studentSupervisor}</option>
                     <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
+                    <option value="initiative_admin">{isAr ? "مشرف مبادرة" : "Initiative Admin"}</option>
                   </>
                 )}
               </select>
+              {formData.role === 'initiative_admin' && (
+                <p className="text-[11px] font-bold text-muted-foreground leading-relaxed pt-1">
+                  {isAr
+                    ? "سيُنشأ الحساب بدون مبادرة. يمكنك ربطه بمبادرة لاحقاً عند إنشاء المبادرة أو من صفحة تفاصيلها."
+                    : "The account will be created without an initiative. You can link it to one later when creating an initiative or from its detail page."}
+                </p>
+              )}
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t.auth.genderOptional}</Label>
@@ -584,6 +603,7 @@ export default function AdminUsersPage() {
                     <option value="admin">{t.auth.admin}</option>
                     <option value="student_supervisor">{t.auth.studentSupervisor}</option>
                     <option value="reciter_supervisor">{t.auth.reciterSupervisor}</option>
+                    <option value="initiative_admin">{isAr ? "مشرف مبادرة" : "Initiative Admin"}</option>
                   </>
                 )}
               </select>

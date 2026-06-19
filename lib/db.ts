@@ -131,6 +131,37 @@ export async function ensureInitiativesSchema(): Promise<void> {
   }
 }
 
+// Idempotently ensure the initiative_invites table exists. This backs the
+// email-based invite flow where an initiative admin invites a specific student
+// by email and the student registers tagged with that initiative. Runs once per boot.
+let initiativeInvitesSchemaEnsured = false
+export async function ensureInitiativeInvitesSchema(): Promise<void> {
+  if (!pool || initiativeInvitesSchemaEnsured) return
+  try {
+    await ensureInitiativesSchema()
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS initiative_invites (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        initiative_id uuid NOT NULL REFERENCES initiatives(id) ON DELETE CASCADE,
+        email varchar(255) NOT NULL,
+        token varchar(64) NOT NULL UNIQUE,
+        status varchar(20) NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending','accepted','expired')),
+        invited_by uuid REFERENCES users(id),
+        accepted_user_id uuid REFERENCES users(id),
+        expires_at timestamptz,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        accepted_at timestamptz
+      )
+    `)
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_initiative_invites_initiative ON initiative_invites(initiative_id)`)
+    initiativeInvitesSchemaEnsured = true
+    console.log("[DB] initiative_invites schema ensured")
+  } catch (e) {
+    console.error("[DB] ensureInitiativeInvitesSchema error:", e)
+  }
+}
+
 export const hasDatabase = () => !!pool
 
 export default pool

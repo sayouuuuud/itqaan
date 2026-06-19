@@ -65,6 +65,43 @@ export async function sendEmail({ to, subject, body, html, attachments }: EmailO
   }
 }
 
+// Invitation email sent by an initiative admin to a specific student.
+export function sendInitiativeInviteEmail(
+  to: string,
+  initiativeName: string,
+  inviteUrl: string,
+  inviterName?: string
+) {
+  return sendEmail({
+    to,
+    subject: `دعوة للانضمام إلى مبادرة ${initiativeName} - إتقان التعليمية`,
+    body: `تمت دعوتك للانضمام إلى مبادرة ${initiativeName} على منصة إتقان التعليمية. سجّل من خلال الرابط التالي: ${inviteUrl}`,
+    html: `
+      <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="color: #0B3D2E; font-size: 24px; margin-bottom: 4px;">إتقان التعليمية</h1>
+          <p style="color: #64748b; font-size: 13px;">دعوة للانضمام إلى مبادرة</p>
+        </div>
+        <h2 style="color: #0B3D2E; font-size: 20px;">تمت دعوتك للانضمام 🎉</h2>
+        <p style="font-size: 16px; color: #475569; line-height: 1.7;">
+          ${inviterName ? `قام <strong>${inviterName}</strong> بدعوتك` : "تمت دعوتك"} للانضمام إلى
+          مبادرة <strong>${initiativeName}</strong> على منصة إتقان التعليمية لإتقان تلاوة سورة الفاتحة.
+        </p>
+        <div style="margin: 24px 0; text-align: center;">
+          <a href="${inviteUrl}" target="_blank"
+             style="display: inline-block; background-color: #0B3D2E; color: white; text-decoration: none;
+                    padding: 14px 36px; border-radius: 10px; font-weight: bold; font-size: 16px;">
+            🔗 إنشاء حسابي والانضمام
+          </a>
+        </div>
+        <p style="font-size: 13px; color: #64748b;">سيتم ربط حسابك تلقائياً بالمبادرة عند التسجيل عبر هذا الرابط.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.</p>
+      </div>
+    `,
+  })
+}
+
 // Basic verification email doesn't need to be in the DB to keep Auth standalone
 export function sendVerificationEmail(to: string, userName: string, code: string) {
   return sendEmail({

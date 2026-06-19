@@ -170,7 +170,7 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { t } = useI18n()
-  const [user, setUser] = useState<{ name: string; email: string; role: string; avatar_url?: string | null } | null>(null)
+  const [user, setUser] = useState<{ name: string; email: string; role: string; avatar_url?: string | null; initiative_name?: string | null } | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [unreadMessages, setUnreadMessages] = useState(0)
   const [avatarError, setAvatarError] = useState(false)
@@ -323,7 +323,14 @@ export function DashboardShell({ role, children, headerTitle }: { role: 'student
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-foreground truncate">{config.name}</p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">{config.sublabel}</p>
+              {role === 'student' && user?.initiative_name ? (
+                <span className="inline-flex items-center gap-1 mt-0.5 max-w-full bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded-full">
+                  <Building2 className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{`طالب مبادرة · ${user.initiative_name}`}</span>
+                </span>
+              ) : (
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">{config.sublabel}</p>
+              )}
             </div>
           </div>
 

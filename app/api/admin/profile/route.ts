@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs"
 export async function GET() {
     try {
         const session = await getSession()
-        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor" | "initiative_admin")[] = ["admin", "student_supervisor", "reciter_supervisor", "initiative_admin"]
         if (!session || !allowedRoles.includes(session.role as any)) {
             return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
         }
@@ -28,7 +28,7 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
     try {
         const session = await getSession()
-        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor")[] = ["admin", "student_supervisor", "reciter_supervisor"]
+        const allowedRoles: ("admin" | "student_supervisor" | "reciter_supervisor" | "initiative_admin")[] = ["admin", "student_supervisor", "reciter_supervisor", "initiative_admin"]
         if (!session || !allowedRoles.includes(session.role as any)) {
             return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
         }

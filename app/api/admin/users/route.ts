@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
-import { query } from "@/lib/db"
+import { query, queryStrict, ensureUserRoleConstraint } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { logAdminAction } from "@/lib/activity-log"
 
@@ -207,6 +207,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (role) {
+      // Ensure the role CHECK constraint allows the newer roles before update.
+      await ensureUserRoleConstraint()
       values.push(role)
       updates.push(`role = $${values.length}`)
       if (role === 'reader') {
@@ -307,12 +309,41 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10)
 
-    const result = await query(
-      `INSERT INTO users (name, email, password_hash, role, email_verified, is_active, gender, approval_status)
-       VALUES ($1, $2, $3, $4, TRUE, TRUE, $5, 'approved')
-       RETURNING id, name, email, role, is_active, created_at, gender`,
-      [name, email.toLowerCase(), passwordHash, role, gender || null]
-    )
+    // Make sure the role CHECK constraint allows the newer roles (supervisors,
+    // initiative_admin) before inserting, otherwise older databases reject it.
+    await ensureUserRoleConstraint()
+
+    let result: Record<string, any>[]
+    try {
+      result = await queryStrict(
+        `INSERT INTO users (name, email, password_hash, role, email_verified, is_active, gender, approval_status)
+         VALUES ($1, $2, $3, $4, TRUE, TRUE, $5, 'approved')
+         RETURNING id, name, email, role, is_active, created_at, gender`,
+        [name, email.toLowerCase(), passwordHash, role, gender || null]
+      )
+    } catch (e: any) {
+      // 23514 = check_violation. If the constraint still rejected the role,
+      // widen it and retry once.
+      if (e?.code === '23514') {
+        await query(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check`)
+        await query(
+          `ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('student','reader','admin','student_supervisor','reciter_supervisor','initiative_admin'))`
+        )
+        result = await queryStrict(
+          `INSERT INTO users (name, email, password_hash, role, email_verified, is_active, gender, approval_status)
+           VALUES ($1, $2, $3, $4, TRUE, TRUE, $5, 'approved')
+           RETURNING id, name, email, role, is_active, created_at, gender`,
+          [name, email.toLowerCase(), passwordHash, role, gender || null]
+        )
+      } else {
+        throw e
+      }
+    }
+
+    if (!result[0]) {
+      console.error("[v0] user insert returned no row for role:", role)
+      return NextResponse.json({ error: "فشل حفظ المستخدم" }, { status: 500 })
+    }
 
     if (role === 'reader') {
       await query(

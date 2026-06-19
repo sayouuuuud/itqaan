@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import * as db from '@/lib/db'
+import { generateJoinCode } from '@/lib/initiatives'
 
 export async function GET(
     req: Request,
@@ -188,6 +189,134 @@ export async function GET(
             activityData: activityData || [],
             errorsLog: errorsLog || []
         })
+    } catch (err) {
+        console.error(err)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getSession()
+        if (!session || session.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+        }
+
+        const { id: userId } = await params
+        const body = await req.json()
+        const { action, initiativeId, initiativeName } = body
+
+        const user = await db.queryOne<{ id: string; name: string; role: string }>(
+            'SELECT id, name, role FROM users WHERE id = $1',
+            [userId]
+        )
+        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+        if (action === 'create_and_assign_initiative_admin') {
+            const name = typeof initiativeName === 'string' ? initiativeName.trim() : ''
+            if (!name) return NextResponse.json({ error: 'اسم المبادرة مطلوب' }, { status: 400 })
+
+            // أنشئ join_code فريد
+            let joinCode = generateJoinCode()
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const clash = await db.queryOne<{ id: string }>(
+                    `SELECT id FROM initiatives WHERE join_code = $1 LIMIT 1`,
+                    [joinCode]
+                )
+                if (!clash) break
+                joinCode = generateJoinCode()
+            }
+
+            // أنشئ المبادرة بحالة معتمدة واربط المستخدم مشرفاً لها
+            const created = await db.query<{ id: string }>(
+                `INSERT INTO initiatives
+                   (name, status, join_code, join_enabled, admin_user_id, approved_by, approved_at, created_at, updated_at)
+                 VALUES ($1, 'approved', $2, true, $3, $4, now(), now(), now())
+                 RETURNING id`,
+                [name, joinCode, userId, session.sub]
+            )
+            const newInitiativeId = created[0].id
+
+            await db.query(
+                `UPDATE users SET role = 'initiative_admin', initiative_id = $1 WHERE id = $2`,
+                [newInitiativeId, userId]
+            )
+
+            await db.query(
+                `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [session.sub, 'create_and_assign_initiative_admin', 'initiative', newInitiativeId,
+                 `Admin created initiative "${name}" and assigned ${user.name} as its admin`]
+            )
+
+            return NextResponse.json({
+                success: true,
+                initiativeId: newInitiativeId,
+                message: `تم إنشاء مبادرة "${name}" وتعيين ${user.name} مشرفاً لها. أكمل بياناتها من صفحة المبادرة.`,
+            })
+        }
+
+        if (action === 'assign_initiative_admin') {
+            if (!initiativeId) return NextResponse.json({ error: 'initiativeId required' }, { status: 400 })
+
+            // التحقق من أن المبادرة معتمدة
+            const initiative = await db.queryOne<{ id: string; name: string; status: string }>(
+                `SELECT id, name, status FROM initiatives WHERE id = $1`,
+                [initiativeId]
+            )
+            if (!initiative) return NextResponse.json({ error: 'Initiative not found' }, { status: 404 })
+            if (initiative.status !== 'approved') {
+                return NextResponse.json({ error: 'يمكن التعيين فقط للمبادرات المعتمدة' }, { status: 400 })
+            }
+
+            // تحديث المستخدم: دور + initiative_id
+            await db.query(
+                `UPDATE users SET role = 'initiative_admin', initiative_id = $1 WHERE id = $2`,
+                [initiativeId, userId]
+            )
+
+            // ربط المبادرة بالمشرف
+            await db.query(
+                `UPDATE initiatives SET admin_user_id = $1, updated_at = now() WHERE id = $2`,
+                [userId, initiativeId]
+            )
+
+            await db.query(
+                `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [session.sub, 'assign_initiative_admin', 'user', userId,
+                 `Admin assigned ${user.name} as initiative_admin for initiative ${initiative.name}`]
+            )
+
+            return NextResponse.json({ success: true, message: `تم تعيين ${user.name} مشرفاً للمبادرة "${initiative.name}"` })
+        }
+
+        if (action === 'remove_initiative_admin') {
+            await db.query(
+                `UPDATE users SET role = 'student', initiative_id = NULL WHERE id = $1`,
+                [userId]
+            )
+            // إلغاء ربط المبادرة إذا كان هو المشرف
+            await db.query(
+                `UPDATE initiatives SET admin_user_id = NULL, updated_at = now()
+                 WHERE admin_user_id = $1`,
+                [userId]
+            )
+
+            await db.query(
+                `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [session.sub, 'remove_initiative_admin', 'user', userId,
+                 `Admin removed initiative_admin role from ${user.name}`]
+            )
+
+            return NextResponse.json({ success: true, message: `تم إلغاء دور مشرف المبادرة عن ${user.name}` })
+        }
+
+        return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
     } catch (err) {
         console.error(err)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   Building2, Clock, CheckCircle, XCircle, PauseCircle, Search,
-  Users, Mail, Phone, ChevronLeft, AlertCircle,
+  Users, Mail, Phone, ChevronLeft, AlertCircle, Plus, X, Loader2,
 } from "lucide-react"
 
 type Status = "pending" | "approved" | "rejected" | "suspended"
@@ -40,28 +41,74 @@ const STATUS_CONFIG: Record<Status, { label: string; color: string; bg: string; 
   suspended: { label: "موقوفة", color: "text-muted-foreground", bg: "bg-muted border-border", icon: <PauseCircle className="w-3.5 h-3.5" /> },
 }
 
+const TYPE_OPTIONS = [
+  { value: "university", label: "جامعة" },
+  { value: "ministry", label: "وزارة / جهة حكومية" },
+  { value: "school", label: "مدرسة" },
+  { value: "charity", label: "جمعية خيرية" },
+  { value: "company", label: "شركة" },
+  { value: "restaurant", label: "مطعم" },
+  { value: "cafe", label: "مقهى" },
+  { value: "other", label: "أخرى" },
+]
+
 export default function AdminInitiativesPage() {
+  const router = useRouter()
   const [initiatives, setInitiatives] = useState<Initiative[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | Status>("all")
   const [search, setSearch] = useState("")
+  const [showCreate, setShowCreate] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState("")
+  const [form, setForm] = useState({
+    name: "", type: "", description: "",
+    contact_name: "", contact_email: "", contact_phone: "", target_students_count: "",
+  })
+
+  async function load() {
+    try {
+      const res = await fetch("/api/admin/initiatives")
+      if (res.ok) {
+        const data = await res.json()
+        setInitiatives(data.initiatives || [])
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/admin/initiatives")
-        if (res.ok) {
-          const data = await res.json()
-          setInitiatives(data.initiatives || [])
-        }
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
     load()
   }, [])
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.name.trim()) {
+      setCreateError("اسم المبادرة مطلوب")
+      return
+    }
+    setCreating(true)
+    setCreateError("")
+    try {
+      const res = await fetch("/api/admin/initiatives", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          target_students_count: form.target_students_count ? Number(form.target_students_count) : null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "فشل إنشاء المبادرة")
+      router.push(`/admin/initiatives/${data.id}`)
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "فشل إنشاء المبادرة")
+      setCreating(false)
+    }
+  }
 
   const counts = {
     all: initiatives.length,
@@ -92,13 +139,133 @@ export default function AdminInitiativesPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1 font-bold">مراجعة طلبات الجهات واعتمادها وإدارة المبادرات</p>
         </div>
-        {counts.pending > 0 && (
-          <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">
-            <AlertCircle className="w-3.5 h-3.5" />
-            {counts.pending} طلب بانتظار المراجعة
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {counts.pending > 0 && (
+            <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+              <AlertCircle className="w-3.5 h-3.5" />
+              {counts.pending} طلب بانتظار المراجعة
+            </div>
+          )}
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-2xl text-sm font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            إنشاء مبادرة جديدة
+          </button>
+        </div>
       </div>
+
+      {/* Create Modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => !creating && setShowCreate(false)}>
+          <div
+            className="bg-card border border-border rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card rounded-t-3xl">
+              <h2 className="text-xl font-black text-foreground flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-primary" />
+                إنشاء مبادرة جديدة
+              </h2>
+              <button onClick={() => !creating && setShowCreate(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="p-6 space-y-4">
+              <Field label="اسم المبادرة *">
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="مثال: مبادرة جامعة الملك سعود"
+                  className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+                  autoFocus
+                />
+              </Field>
+              <Field label="نوع الجهة">
+                <select
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+                >
+                  <option value="">اختر النوع (اختياري)</option>
+                  {TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="وصف المبادرة">
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  rows={3}
+                  placeholder="نبذة مختصرة عن المبادرة (اختياري)"
+                  className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10 resize-none"
+                />
+              </Field>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="اسم المسؤول">
+                  <input
+                    value={form.contact_name}
+                    onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+                  />
+                </Field>
+                <Field label="عدد الطلاب المستهدف">
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.target_students_count}
+                    onChange={(e) => setForm({ ...form, target_students_count: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+                  />
+                </Field>
+                <Field label="البريد الإلكتروني">
+                  <input
+                    type="email"
+                    dir="ltr"
+                    value={form.contact_email}
+                    onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10 text-right"
+                  />
+                </Field>
+                <Field label="رقم الهاتف">
+                  <input
+                    dir="ltr"
+                    value={form.contact_phone}
+                    onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10 text-right"
+                  />
+                </Field>
+              </div>
+
+              {createError && (
+                <div className="flex items-center gap-2 bg-destructive/10 text-destructive border border-destructive/20 px-4 py-2.5 rounded-xl text-sm font-bold">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {createError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreate(false)}
+                  disabled={creating}
+                  className="px-5 py-2.5 rounded-xl text-sm font-black text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors disabled:opacity-60"
+                >
+                  {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  إنشاء واستكمال البيانات
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Filters + Search */}
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
@@ -189,6 +356,15 @@ export default function AdminInitiativesPage() {
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-[11px] font-black text-muted-foreground tracking-wide">{label}</label>
+      {children}
     </div>
   )
 }

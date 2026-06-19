@@ -59,10 +59,12 @@ export async function GET(req: NextRequest) {
     const totalUsers = parseInt((countResult[0] as any).total)
 
     // Get paginated users
-    const users = await query(
+    // NOTE: keep this base query free of any dependency on the `initiatives`
+    // table / `users.initiative_id` column so the list always renders even if
+    // that schema is missing on a given database. Initiative info is attached
+    // separately below in a guarded query.
+    const users = await query<Record<string, any>>(
       `SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, u.avatar_url, u.is_accepting_recitations,
-              u.initiative_id,
-              (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name,
               (SELECT COUNT(*) FROM recitations r WHERE r.student_id = u.id) as recitations_count,
               rp.rating, rp.total_reviews, rp.nationality,
               EXISTS(
@@ -77,6 +79,33 @@ export async function GET(req: NextRequest) {
        LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
       [...params, limit, offset]
     )
+
+    // Enrich with initiative info (id + name). Guarded so a missing
+    // initiatives table / column never breaks the users list.
+    if (users.length > 0) {
+      try {
+        const ids = users.map(u => u.id)
+        const initiativeRows = await query<{ id: string; initiative_id: string | null; initiative_name: string | null }>(
+          `SELECT u.id, u.initiative_id,
+                  (SELECT ini.name FROM initiatives ini WHERE ini.id = u.initiative_id) as initiative_name
+           FROM users u
+           WHERE u.id = ANY($1::uuid[])`,
+          [ids]
+        )
+        const map = new Map(initiativeRows.map(r => [r.id, r]))
+        for (const u of users) {
+          const info = map.get(u.id)
+          u.initiative_id = info?.initiative_id ?? null
+          u.initiative_name = info?.initiative_name ?? null
+        }
+      } catch (e) {
+        console.error("[v0] initiative enrichment skipped:", e)
+        for (const u of users) {
+          u.initiative_id = null
+          u.initiative_name = null
+        }
+      }
+    }
 
     const totalPages = Math.ceil(totalUsers / limit)
 

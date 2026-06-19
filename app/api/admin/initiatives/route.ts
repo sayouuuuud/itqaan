@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession, requireRole } from "@/lib/auth"
-import { query, queryOne, queryStrict } from "@/lib/db"
+import { query, queryOne, queryStrict, ensureInitiativesSchema } from "@/lib/db"
 import { generateJoinCode } from "@/lib/initiatives"
 
 // أنشئ join_code فريد غير مكرر في الجدول
@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
   const adminMode = typeof body.adminMode === "string" ? body.adminMode : "none"
 
   try {
+    // تأكد من وجود جدول وأعمدة المبادرات (يعالج قواعد البيانات الناقصة الترقية).
+    await ensureInitiativesSchema()
+
     const joinCode = await uniqueJoinCode()
 
     // إنشاء المبادرة. نستخدم queryStrict حتى لا يُبتلع خطأ SQL (مثل عمود ناقص)
@@ -136,10 +139,14 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ id: initiativeId }, { status: 201 })
-  } catch (err) {
+  } catch (err: any) {
     console.error("[v0] create initiative error:", err)
+    const detail = typeof err?.message === "string" ? err.message : String(err)
     return NextResponse.json(
-      { error: "حدث خطأ أثناء إنشاء المبادرة. تأكد من إعداد قاعدة البيانات." },
+      {
+        error: "حدث خطأ أثناء إنشاء المبادرة. تأكد من إعداد قاعدة البيانات.",
+        detail,
+      },
       { status: 500 }
     )
   }

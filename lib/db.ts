@@ -83,6 +83,54 @@ export async function ensureUserRoleConstraint(): Promise<void> {
   }
 }
 
+// Idempotently ensure the initiatives module schema exists. Some production
+// databases have migration 011 (the initiatives table) but not 012 (join_code
+// / join_enabled columns), or are missing users.initiative_id — which makes the
+// create-initiative INSERT throw "column ... does not exist". This mirrors
+// migrations 011 + 012 with IF NOT EXISTS so it is safe to run repeatedly.
+// Runs once per boot.
+let initiativesSchemaEnsured = false
+export async function ensureInitiativesSchema(): Promise<void> {
+  if (!pool || initiativesSchemaEnsured) return
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS initiatives (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        name varchar(255) NOT NULL,
+        type varchar(50),
+        description text,
+        logo_url text,
+        contact_name varchar(255),
+        contact_email varchar(255),
+        contact_phone varchar(50),
+        target_students_count integer,
+        status varchar(20) NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending','approved','rejected','suspended')),
+        admin_user_id uuid REFERENCES users(id),
+        rejection_reason text,
+        approved_by uuid REFERENCES users(id),
+        approved_at timestamptz,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      )
+    `)
+    // Columns that may be missing if an older migration version was applied.
+    await pool.query(`ALTER TABLE initiatives ADD COLUMN IF NOT EXISTS logo_url text`)
+    await pool.query(`ALTER TABLE initiatives ADD COLUMN IF NOT EXISTS rejection_reason text`)
+    await pool.query(`ALTER TABLE initiatives ADD COLUMN IF NOT EXISTS approved_by uuid REFERENCES users(id)`)
+    await pool.query(`ALTER TABLE initiatives ADD COLUMN IF NOT EXISTS approved_at timestamptz`)
+    await pool.query(`ALTER TABLE initiatives ADD COLUMN IF NOT EXISTS join_code varchar(12) UNIQUE`)
+    await pool.query(`ALTER TABLE initiatives ADD COLUMN IF NOT EXISTS join_enabled boolean NOT NULL DEFAULT true`)
+    // Link columns on related tables.
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS initiative_id uuid REFERENCES initiatives(id)`)
+    await pool.query(`ALTER TABLE recitations ADD COLUMN IF NOT EXISTS initiative_id uuid REFERENCES initiatives(id)`)
+    initiativesSchemaEnsured = true
+    console.log("[DB] initiatives schema ensured")
+  } catch (e) {
+    console.error("[DB] ensureInitiativesSchema error:", e)
+  }
+}
+
 export const hasDatabase = () => !!pool
 
 export default pool

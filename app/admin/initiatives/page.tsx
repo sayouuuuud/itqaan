@@ -119,7 +119,10 @@ export default function AdminInitiativesPage() {
       // قد يرجع الخادم جسمًا فارغًا عند خطأ غير متوقع؛ نحلّل بأمان.
       const text = await res.text()
       const data = text ? JSON.parse(text) : {}
-      if (!res.ok || !data.id) throw new Error(data.error || "فشل إنشاء المبادرة")
+      if (!res.ok || !data.id) {
+        const msg = data.detail ? `${data.error || "فشل إنشاء المبادرة"} — ${data.detail}` : (data.error || "فشل إنشاء المبادرة")
+        throw new Error(msg)
+      }
       router.push(`/admin/initiatives/${data.id}`)
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "فشل إنشاء المبادرة")

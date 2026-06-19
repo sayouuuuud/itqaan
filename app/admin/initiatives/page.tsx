@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   Building2, Clock, CheckCircle, XCircle, PauseCircle, Search,
   Users, Mail, Phone, ChevronLeft, AlertCircle, Plus, X, Loader2,
+  UserCheck, UserPlus, Send,
 } from "lucide-react"
 
 type Status = "pending" | "approved" | "rejected" | "suspended"
@@ -65,6 +66,13 @@ export default function AdminInitiativesPage() {
     name: "", type: "", description: "",
     contact_name: "", contact_email: "", contact_phone: "", target_students_count: "",
   })
+  // مشرف المبادرة
+  const [adminMode, setAdminMode] = useState<"none" | "existing" | "new" | "invite">("none")
+  const [existingUsers, setExistingUsers] = useState<{ id: string; name: string; email: string }[]>([])
+  const [existingUserId, setExistingUserId] = useState("")
+  const [adminName, setAdminName] = useState("")
+  const [adminEmail, setAdminEmail] = useState("")
+  const [inviteEmail, setInviteEmail] = useState("")
 
   async function load() {
     try {
@@ -84,12 +92,28 @@ export default function AdminInitiativesPage() {
     load()
   }, [])
 
+  function openCreate() {
+    setShowCreate(true)
+    setAdminMode("none")
+    setExistingUserId("")
+    setAdminName("")
+    setAdminEmail("")
+    setInviteEmail("")
+    setCreateError("")
+    // جلب اليوزرز لخيار "اختر يوزر موجود"
+    fetch("/api/admin/users?role=student&role=initiative_admin&limit=200")
+      .then(r => r.json())
+      .then(d => setExistingUsers(d.users || []))
+      .catch(() => {})
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name.trim()) {
-      setCreateError("اسم المبادرة مطلوب")
-      return
-    }
+    if (!form.name.trim()) { setCreateError("اسم المبادرة مطلوب"); return }
+    if (adminMode === "existing" && !existingUserId) { setCreateError("اختر مستخدماً موجوداً أو غيّر خيار المشرف"); return }
+    if (adminMode === "new" && (!adminName.trim() || !adminEmail.trim())) { setCreateError("اسم وبريد المشرف الجديد مطلوبان"); return }
+    if (adminMode === "invite" && !inviteEmail.trim()) { setCreateError("بريد الدعوة مطلوب"); return }
+
     setCreating(true)
     setCreateError("")
     try {
@@ -99,6 +123,11 @@ export default function AdminInitiativesPage() {
         body: JSON.stringify({
           ...form,
           target_students_count: form.target_students_count ? Number(form.target_students_count) : null,
+          adminMode,
+          existingUserId: adminMode === "existing" ? existingUserId : undefined,
+          adminName: adminMode === "new" ? adminName : undefined,
+          adminEmail: adminMode === "new" ? adminEmail : undefined,
+          inviteEmail: adminMode === "invite" ? inviteEmail : undefined,
         }),
       })
       const data = await res.json()
@@ -147,7 +176,7 @@ export default function AdminInitiativesPage() {
             </div>
           )}
           <button
-            onClick={() => setShowCreate(true)}
+            onClick={openCreate}
             className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-2xl text-sm font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
@@ -235,6 +264,92 @@ export default function AdminInitiativesPage() {
                     className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10 text-right"
                   />
                 </Field>
+              </div>
+
+              {/* قسم تعيين مشرف المبادرة */}
+              <div className="border border-border rounded-2xl overflow-hidden">
+                <div className="bg-muted/30 px-4 py-3 border-b border-border">
+                  <p className="text-[11px] font-black text-muted-foreground tracking-wide">مشرف المبادرة (اختياري)</p>
+                </div>
+                {/* تبويبات الخيارات */}
+                <div className="flex border-b border-border">
+                  {([
+                    { key: "none",     label: "بدون مشرف الآن", icon: <X className="w-3.5 h-3.5" /> },
+                    { key: "existing", label: "يوزر موجود",      icon: <UserCheck className="w-3.5 h-3.5" /> },
+                    { key: "new",      label: "يوزر جديد",       icon: <UserPlus className="w-3.5 h-3.5" /> },
+                    { key: "invite",   label: "دعوة بالإيميل",   icon: <Send className="w-3.5 h-3.5" /> },
+                  ] as const).map(tab => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setAdminMode(tab.key)}
+                      className={cn(
+                        "flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-black transition-colors border-b-2",
+                        adminMode === tab.key
+                          ? "border-primary text-primary bg-primary/5"
+                          : "border-transparent text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {tab.icon}
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+                {/* محتوى التبويب */}
+                <div className="p-4">
+                  {adminMode === "none" && (
+                    <p className="text-xs text-muted-foreground font-bold text-center py-2">يمكنك تعيين مشرف لاحقاً من صفحة تفاصيل المبادرة أو من صفحة إدارة المستخدمين.</p>
+                  )}
+                  {adminMode === "existing" && (
+                    <select
+                      value={existingUserId}
+                      onChange={e => setExistingUserId(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+                    >
+                      <option value="">اختر مستخدماً...</option>
+                      {existingUsers.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} — {u.email}</option>
+                      ))}
+                    </select>
+                  )}
+                  {adminMode === "new" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field label="اسم المشرف *">
+                        <input
+                          value={adminName}
+                          onChange={e => setAdminName(e.target.value)}
+                          placeholder="الاسم الكامل"
+                          className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10"
+                        />
+                      </Field>
+                      <Field label="البريد الإلكتروني *">
+                        <input
+                          type="email"
+                          dir="ltr"
+                          value={adminEmail}
+                          onChange={e => setAdminEmail(e.target.value)}
+                          placeholder="admin@example.com"
+                          className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10 text-left"
+                        />
+                      </Field>
+                    </div>
+                  )}
+                  {adminMode === "invite" && (
+                    <div className="space-y-2">
+                      <Field label="بريد المدعو *">
+                        <input
+                          type="email"
+                          dir="ltr"
+                          value={inviteEmail}
+                          onChange={e => setInviteEmail(e.target.value)}
+                          placeholder="admin@example.com"
+                          className="w-full px-3 py-2 bg-muted/50 border border-border rounded-xl text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-primary/10 text-left"
+                        />
+                      </Field>
+                      <p className="text-[11px] text-muted-foreground">سيصله إيميل بزر "إكمال بياناتك والانضمام" يكمل فيه اسمه وكلمة مروره.</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {createError && (

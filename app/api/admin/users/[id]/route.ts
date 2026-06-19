@@ -194,6 +194,90 @@ export async function GET(
     }
 }
 
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getSession()
+        if (!session || session.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+        }
+
+        const { id: userId } = await params
+        const body = await req.json()
+        const { action, initiativeId } = body
+
+        const user = await db.queryOne<{ id: string; name: string; role: string }>(
+            'SELECT id, name, role FROM users WHERE id = $1',
+            [userId]
+        )
+        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+        if (action === 'assign_initiative_admin') {
+            if (!initiativeId) return NextResponse.json({ error: 'initiativeId required' }, { status: 400 })
+
+            // التحقق من أن المبادرة معتمدة
+            const initiative = await db.queryOne<{ id: string; name: string; status: string }>(
+                `SELECT id, name, status FROM initiatives WHERE id = $1`,
+                [initiativeId]
+            )
+            if (!initiative) return NextResponse.json({ error: 'Initiative not found' }, { status: 404 })
+            if (initiative.status !== 'approved') {
+                return NextResponse.json({ error: 'يمكن التعيين فقط للمبادرات المعتمدة' }, { status: 400 })
+            }
+
+            // تحديث المستخدم: دور + initiative_id
+            await db.query(
+                `UPDATE users SET role = 'initiative_admin', initiative_id = $1 WHERE id = $2`,
+                [initiativeId, userId]
+            )
+
+            // ربط المبادرة بالمشرف
+            await db.query(
+                `UPDATE initiatives SET admin_user_id = $1, updated_at = now() WHERE id = $2`,
+                [userId, initiativeId]
+            )
+
+            await db.query(
+                `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [session.sub, 'assign_initiative_admin', 'user', userId,
+                 `Admin assigned ${user.name} as initiative_admin for initiative ${initiative.name}`]
+            )
+
+            return NextResponse.json({ success: true, message: `تم تعيين ${user.name} مشرفاً للمبادرة "${initiative.name}"` })
+        }
+
+        if (action === 'remove_initiative_admin') {
+            await db.query(
+                `UPDATE users SET role = 'student', initiative_id = NULL WHERE id = $1`,
+                [userId]
+            )
+            // إلغاء ربط المبادرة إذا كان هو المشرف
+            await db.query(
+                `UPDATE initiatives SET admin_user_id = NULL, updated_at = now()
+                 WHERE admin_user_id = $1`,
+                [userId]
+            )
+
+            await db.query(
+                `INSERT INTO activity_logs (user_id, action, entity_type, entity_id, description)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [session.sub, 'remove_initiative_admin', 'user', userId,
+                 `Admin removed initiative_admin role from ${user.name}`]
+            )
+
+            return NextResponse.json({ success: true, message: `تم إلغاء دور مشرف المبادرة عن ${user.name}` })
+        }
+
+        return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+    } catch (err) {
+        console.error(err)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
+
 export async function DELETE(
     req: Request,
     { params }: { params: Promise<{ id: string }> }

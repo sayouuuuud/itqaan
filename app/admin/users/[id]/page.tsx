@@ -33,6 +33,9 @@ import {
     Award,
     Trash2,
     AlertTriangle,
+    Building2,
+    CheckCircle,
+    XCircle as XIcon,
 } from "lucide-react"
 import {
     Bar,
@@ -59,6 +62,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
     const [error, setError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState("info")
     const [isDeleting, setIsDeleting] = useState(false)
+    const [initiatives, setInitiatives] = useState<any[]>([])
+    const [selectedInitiativeId, setSelectedInitiativeId] = useState("")
+    const [assignMsg, setAssignMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
+    const [assigning, setAssigning] = useState(false)
     const { id } = use(params)
 
     const handleDeleteUser = async () => {
@@ -77,6 +84,51 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         }
     }
 
+    const handleAssignInitiativeAdmin = async () => {
+        if (!selectedInitiativeId) return
+        setAssigning(true)
+        setAssignMsg(null)
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "assign_initiative_admin", initiativeId: selectedInitiativeId }),
+            })
+            const json = await res.json()
+            if (!res.ok) throw new Error(json.error || "فشل التعيين")
+            setAssignMsg({ type: "success", text: json.message })
+            // تحديث بيانات الصفحة
+            const updated = await fetch(`/api/admin/users/${id}`).then(r => r.json())
+            setData(updated)
+        } catch (err: any) {
+            setAssignMsg({ type: "error", text: err.message })
+        } finally {
+            setAssigning(false)
+        }
+    }
+
+    const handleRemoveInitiativeAdmin = async () => {
+        if (!window.confirm("هل أنت متأكد من إلغاء دور مشرف المبادرة عن هذا المستخدم؟")) return
+        setAssigning(true)
+        setAssignMsg(null)
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "remove_initiative_admin" }),
+            })
+            const json = await res.json()
+            if (!res.ok) throw new Error(json.error || "فشل الإلغاء")
+            setAssignMsg({ type: "success", text: json.message })
+            const updated = await fetch(`/api/admin/users/${id}`).then(r => r.json())
+            setData(updated)
+        } catch (err: any) {
+            setAssignMsg({ type: "error", text: err.message })
+        } finally {
+            setAssigning(false)
+        }
+    }
+
     useEffect(() => {
         async function fetchData() {
             try {
@@ -91,6 +143,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             }
         }
         fetchData()
+        // جلب المبادرات المعتمدة للتعيين
+        fetch('/api/admin/initiatives?status=approved')
+            .then(r => r.json())
+            .then(d => setInitiatives(d.initiatives || []))
+            .catch(() => {})
     }, [id, t.admin.failedToLoadData])
 
     if (loading) {
@@ -297,6 +354,81 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* قسم تعيين مشرف المبادرة — يظهر للادمن دائماً */}
+                    <Card className="border-border/50 shadow-2xl shadow-black/5 rounded-3xl bg-card/60 backdrop-blur-xl border md:col-span-2">
+                        <CardHeader className="border-b border-border/50 pb-4 bg-muted/20 rounded-t-3xl">
+                            <CardTitle className="text-base font-black text-foreground flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                                    <Building2 className="w-5 h-5" />
+                                </div>
+                                تعيين كمشرف مبادرة
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-4">
+                            {/* الحالة الحالية */}
+                            {user.role === 'initiative_admin' ? (
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                                    <div className="flex items-center gap-3">
+                                        <CheckCircle className="w-5 h-5 text-primary shrink-0" />
+                                        <div>
+                                            <p className="font-black text-foreground text-sm">هذا المستخدم مشرف مبادرة حالياً</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">يمكنك إلغاء الدور وإعادته لطالب عادي.</p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleRemoveInitiativeAdmin}
+                                        disabled={assigning}
+                                        className="rounded-xl h-9 px-4 font-black border-destructive/30 text-destructive hover:bg-destructive/10 shrink-0 gap-2"
+                                    >
+                                        {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <XIcon className="w-4 h-4" />}
+                                        إلغاء الدور
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <select
+                                        value={selectedInitiativeId}
+                                        onChange={e => setSelectedInitiativeId(e.target.value)}
+                                        className="flex-1 h-11 rounded-2xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                    >
+                                        <option value="">اختر مبادرة معتمدة...</option>
+                                        {initiatives.map((ini: any) => (
+                                            <option key={ini.id} value={ini.id}>{ini.name}</option>
+                                        ))}
+                                    </select>
+                                    <Button
+                                        onClick={handleAssignInitiativeAdmin}
+                                        disabled={assigning || !selectedInitiativeId}
+                                        className="rounded-2xl h-11 px-6 font-black gap-2 shrink-0"
+                                    >
+                                        {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
+                                        تعيين مشرفاً
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* رسالة النجاح أو الخطأ */}
+                            {assignMsg && (
+                                <div className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${
+                                    assignMsg.type === "success"
+                                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                                        : "bg-destructive/10 text-destructive border border-destructive/20"
+                                }`}>
+                                    {assignMsg.type === "success"
+                                        ? <CheckCircle className="w-4 h-4 shrink-0" />
+                                        : <XIcon className="w-4 h-4 shrink-0" />}
+                                    {assignMsg.text}
+                                </div>
+                            )}
+
+                            {initiatives.length === 0 && user.role !== 'initiative_admin' && (
+                                <p className="text-xs text-muted-foreground">لا توجد مبادرات معتمدة متاحة حالياً.</p>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     {/* Reader Profile Additional Info */}
                     {user.role === 'reader' && (

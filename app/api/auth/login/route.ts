@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { query } from "@/lib/db"
+import { query, queryStrict, isDbConnectionError, DB_UNAVAILABLE_MESSAGE } from "@/lib/db"
 import { signToken } from "@/lib/auth"
 
 const MAX_FAILED_ATTEMPTS = 5
@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const users = await query<{
+    // queryStrict (not query) so a database outage surfaces as a real error
+    // instead of an empty result that looks like "wrong credentials".
+    const users = await queryStrict<{
       id: string
       name: string
       email: string
@@ -202,6 +204,9 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     console.error("Login error:", error)
+    if (isDbConnectionError(error)) {
+      return NextResponse.json({ error: DB_UNAVAILABLE_MESSAGE }, { status: 503 })
+    }
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
   }
 }

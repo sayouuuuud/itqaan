@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { query, queryOne } from "@/lib/db"
+import { queryStrict, isDbConnectionError, DB_UNAVAILABLE_MESSAGE } from "@/lib/db"
 import { signToken } from "@/lib/auth"
 import { sendVerificationEmail } from "@/lib/email"
 
@@ -23,10 +23,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "الجنس غير صحيح" }, { status: 400 })
     }
 
-    const existing = await queryOne<{ id: string; email_verified: boolean }>(
+    // queryStrict (not queryOne) so a database outage surfaces as a real error
+    // instead of an empty result that silently changes the flow.
+    const existingRows = await queryStrict<{ id: string; email_verified: boolean }>(
       "SELECT id, email_verified FROM users WHERE email = $1 LIMIT 1",
       [email.toLowerCase()]
     )
+    const existing = existingRows[0] || null
 
     const passwordHash = await bcrypt.hash(password, 10)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Create new record
-      const newUsers = await query<{ id: string; name: string; email: string; role: string }>(
+      const newUsers = await queryStrict<{ id: string; name: string; email: string; role: string }>(
         `INSERT INTO users (name, email, password_hash, role, gender, verification_code, verification_expires_at, email_verified)
          VALUES ($1, $2, $3, 'student', $4, $5, $6, FALSE)
          RETURNING id, name, email, role`,
@@ -70,6 +73,9 @@ export async function POST(req: NextRequest) {
     }, { status: 201 })
   } catch (error) {
     console.error("Register error:", error)
+    if (isDbConnectionError(error)) {
+      return NextResponse.json({ error: DB_UNAVAILABLE_MESSAGE }, { status: 503 })
+    }
     return NextResponse.json({ error: "حدث خطأ في الخادم" }, { status: 500 })
   }
 }

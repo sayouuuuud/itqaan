@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { query } from "@/lib/db"
+import { query, queryStrict, isDbConnectionError, DB_UNAVAILABLE_MESSAGE } from "@/lib/db"
 import { createNotificationForAdmins } from "@/lib/notifications"
 
 export async function POST(req: NextRequest) {
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check existing email
-    const existing = await query("SELECT id FROM users WHERE email = $1", [
+    const existing = await queryStrict("SELECT id FROM users WHERE email = $1", [
       email.toLowerCase(),
     ])
     if (existing.length > 0) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     // Create user with pending_approval status
-    const users = await query<{ id: string }>(
+    const users = await queryStrict<{ id: string }>(
       `INSERT INTO users (name, email, password_hash, role, gender, approval_status)
        VALUES ($1, $2, $3, 'reader', $4, 'pending_approval')
        RETURNING id`,
@@ -105,6 +105,9 @@ export async function POST(req: NextRequest) {
     )
   } catch (error) {
     console.error("Reader register error:", error)
+    if (isDbConnectionError(error)) {
+      return NextResponse.json({ error: DB_UNAVAILABLE_MESSAGE }, { status: 503 })
+    }
     return NextResponse.json(
       { error: "حدث خطأ في الخادم" },
       { status: 500 }

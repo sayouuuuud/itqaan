@@ -42,6 +42,62 @@ export async function query<T = Record<string, unknown>>(
   }
 }
 
+// Arabic message shown to users when the database itself is unreachable.
+// This must never be confused with a wrong email/password.
+export const DB_UNAVAILABLE_MESSAGE =
+  "تعذر الاتصال بقاعدة البيانات. يرجى المحاولة لاحقاً أو التواصل مع الدعم."
+
+// Distinguishes "the database is unreachable / misconfigured" from a normal
+// SQL error. Network-level failures have no SQLSTATE `code` at all, while
+// connection/auth/database-level Postgres errors use the 08*, 28*, 3D* and
+// 57P* classes (plus Supabase's pooler XX000 "tenant or user not found").
+export function isDbConnectionError(error: unknown): boolean {
+  if (!error) return false
+
+  const err = error as { code?: string; message?: string }
+  const code = typeof err.code === "string" ? err.code : ""
+  const message = (err.message || String(error)).toLowerCase()
+
+  const networkCodes = [
+    "ECONNREFUSED",
+    "ENOTFOUND",
+    "EAI_AGAIN",
+    "ETIMEDOUT",
+    "ECONNRESET",
+    "EHOSTUNREACH",
+    "ENETUNREACH",
+    "EPIPE",
+    "CERT_HAS_EXPIRED",
+    "SELF_SIGNED_CERT_IN_CHAIN",
+  ]
+  if (networkCodes.includes(code)) return true
+
+  // Postgres connection/auth/database-availability classes.
+  if (/^(08|28|3D|57P)/.test(code)) return true
+
+  const messageSignals = [
+    "no database_url",
+    // Supabase/pgbouncer pooler: "(ENOTFOUND) tenant/user postgres.xxx not found"
+    "not found",
+    "enotfound",
+    "connection terminated",
+    "connection timeout",
+    "timeout exceeded when trying to connect",
+    "getaddrinfo",
+    "server closed the connection",
+    "terminating connection",
+    "database system is starting up",
+    "too many connections",
+    "password authentication failed",
+    "does not exist", // e.g. database "xxx" does not exist
+  ]
+  if (code === "XX000" || !code) {
+    return messageSignals.some((s) => message.includes(s))
+  }
+
+  return false
+}
+
 export async function queryOne<T = Record<string, unknown>>(
   text: string,
   params?: unknown[]

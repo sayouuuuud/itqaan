@@ -75,6 +75,10 @@ const getRoleConfig = (t: any): Record<'student' | 'reader' | 'admin' | 'student
           { href: '/admin/bookings', label: t.admin.bookings, icon: CalendarDays },
           { href: '/admin/conversations', label: t.admin.conversations, icon: MessagesSquare },
           { href: '/admin/certificates', label: t.admin.certificates.title, icon: Award },
+        ]
+      },
+      {
+        title: 'نظام المبادرات', items: [
           { href: '/admin/initiatives', label: t.admin.initiatives || 'المبادرات', icon: Building2 },
           { href: '/admin/initiatives/compare', label: 'مقارنة المبادرات', icon: GitCompare },
         ]

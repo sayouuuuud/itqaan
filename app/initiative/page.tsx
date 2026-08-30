@@ -1,6 +1,7 @@
+import Link from "next/link"
 import { getSession } from "@/lib/auth"
 import { queryOne } from "@/lib/db"
-import { Building2, Users, Clock, Sparkles, AlertCircle } from "lucide-react"
+import { Building2, Users, Clock, Sparkles, AlertCircle, UserPlus, BarChart3, ArrowLeft } from "lucide-react"
 
 const TYPE_LABELS: Record<string, string> = {
   university: "جامعة", ministry: "وزارة / جهة حكومية", restaurant: "مطعم", cafe: "مقهى", other: "أخرى",
@@ -82,13 +83,27 @@ export default async function InitiativeDashboardPage() {
         <StatCard icon={<Clock className="w-5 h-5" />} label="الحالة" value={initiative?.status === "approved" ? "معتمدة" : initiative?.status === "suspended" ? "موقوفة" : "—"} />
       </div>
 
-      <div className="bg-muted/30 border border-dashed border-border rounded-3xl p-8 text-center">
-        <p className="text-sm font-bold text-foreground mb-1">المزيد من الأدوات قريباً</p>
-        <p className="text-sm text-muted-foreground leading-relaxed text-pretty max-w-md mx-auto">
-          ستتوفر قريباً إدارة المشاركين، روابط الدعوة، والإحصائيات التفصيلية لمبادرتك.
-        </p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <QuickLink href="/initiative/participants" icon={<Users />} title="إدارة المشاركين" description="عرض الطلاب ومتابعة تلاواتهم وتقدمهم." />
+        <QuickLink href="/initiative/invite" icon={<UserPlus />} title="الدعوات والانضمام" description="إدارة كود الانضمام ودعوات البريد والاستيراد." />
+        <QuickLink href="/initiative/stats" icon={<BarChart3 />} title="الإحصائيات" description="قياس النشاط ونسب الإتقان وأداء المبادرة." />
       </div>
     </div>
+  )
+}
+
+function QuickLink({ href, icon, title, description }: { href: string; icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <Link href={href} className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:bg-muted/40">
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-bold text-foreground">{title}</h2>
+          <ArrowLeft className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-1" />
+        </div>
+        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+      </div>
+    </Link>
   )
 }
 

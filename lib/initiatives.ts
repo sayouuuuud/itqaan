@@ -1,3 +1,4 @@
+import { randomBytes, randomInt } from "crypto"
 import { queryOne } from "@/lib/db"
 import type { JWTPayload } from "@/lib/auth"
 
@@ -29,19 +30,14 @@ const JOIN_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 export function generateJoinCode(length = 8): string {
   let code = ""
   for (let i = 0; i < length; i++) {
-    code += JOIN_CODE_ALPHABET[Math.floor(Math.random() * JOIN_CODE_ALPHABET.length)]
+    code += JOIN_CODE_ALPHABET[randomInt(JOIN_CODE_ALPHABET.length)]
   }
   return code
 }
 
-// Generate a long, URL-safe, hard-to-guess token for email invitations.
-export function generateInviteToken(length = 40): string {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  let token = ""
-  for (let i = 0; i < length; i++) {
-    token += alphabet[Math.floor(Math.random() * alphabet.length)]
-  }
-  return token
+// Generate a cryptographically secure URL-safe token for email invitations.
+export function generateInviteToken(bytes = 32): string {
+  return randomBytes(bytes).toString("base64url")
 }
 
 export const INITIATIVE_TYPE_LABELS: Record<string, string> = {
